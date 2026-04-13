@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClassPick</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0f0f0f;
+  --surface: #181818;
+  --surface2: #222222;
+  --surface3: #2a2a2a;
+  --border: #333;
+  --text: #f0ede8;
+  --muted: #888;
+  --gold: #d4a853;
+  --gold2: #f0c060;
+  --green: #4caf82;
+  --red: #e05050;
+  --blue: #5090d0;
+  --purple: #9070d0;
+  --r: 8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;min-height:100vh}
+
+/* ── LAYOUT ── */
+.shell{display:grid;grid-template-columns:280px 1fr;grid-template-rows:auto 1fr;min-height:100vh;max-width:1300px;margin:0 auto}
+
+/* ── HEADER ── */
+header{
+  grid-column:1/-1;
+  padding:16px 28px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:18px;
+  background:var(--surface);
+}
+header h1{font-family:'Playfair Display',serif;font-size:1.7rem;letter-spacing:-0.01em;color:var(--text)}
+header h1 span{color:var(--gold)}
+.hbadges{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.hbadge{padding:3px 11px;border-radius:100px;font-size:0.65rem;border:1px solid var(--border);color:var(--muted)}
+.hbadge b{color:var(--gold2)}
+
+/* ── SIDEBAR ── */
+.sidebar{border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden}
+.sb-section{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-label{font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+
+/* Student list */
+.student-list{flex:1;overflow-y:auto;padding:8px}
+.stu{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:6px;margin-bottom:3px;cursor:pointer;border:1px solid transparent;transition:all 0.12s;user-select:none}
+.stu:hover{background:var(--surface2);border-color:var(--border)}
+.stu.present{background:rgba(76,175,130,0.1);border-color:rgba(76,175,130,0.3)}
+.stu.done-r{opacity:0.38}
+.stu.done-r .stu-id{text-decoration:line-through}
+.cb{width:16px;height:16px;border:1.5px solid var(--border);border-radius:3px;flex-shrink:0;display:grid;place-items:center;font-size:9px;background:var(--surface)}
+.stu.present .cb{background:var(--green);border-color:var(--green);color:#000}
+.stu-id{font-size:0.78rem;font-weight:500;flex:1;min-width:0}
+.stu-nm{font-size:0.65rem;color:var(--muted);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stu-type{font-size:0.58rem;padding:1px 5px;border-radius:3px;flex-shrink:0}
+.type-boy{background:rgba(80,144,208,0.2);color:var(--blue)}
+.type-girl{background:rgba(208,120,180,0.2);color:#d080b8}
+.type-kid{background:rgba(200,160,80,0.2);color:#c8a050}
+.stu-num{font-size:0.65rem;color:var(--gold);border:1px solid rgba(212,168,83,0.3);padding:0 5px;border-radius:3px;flex-shrink:0}
+
+/* ── INPUTS ── */
+input[type=text],input[type=number],select,textarea{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);
+  padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;
+  color:var(--text);outline:none;transition:border-color 0.15s;width:100%
+}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+textarea{resize:vertical;min-height:80px}
+select option{background:var(--surface2)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:var(--r);border:1px solid transparent;font-family:'IBM Plex Mono',monospace;font-size:0.76rem;font-weight:500;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn-gold{background:var(--gold);color:#000;border-color:var(--gold)}
+.btn-gold:hover{background:var(--gold2)}
+.btn-ghost{background:transparent;color:var(--muted);border-color:var(--border)}
+.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+.btn-green{background:var(--green);color:#000;border-color:var(--green)}
+.btn-green:hover{background:#5dd090}
+.btn-red{background:transparent;color:var(--red);border-color:rgba(224,80,80,0.4)}
+.btn-red:hover{background:rgba(224,80,80,0.1)}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-blue:hover{background:#70a8e8}
+.btn-sm{padding:4px 9px;font-size:0.68rem}
+.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+
+/* ── TABS ── */
+.main{display:flex;flex-direction:column;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);overflow-x:auto;flex-shrink:0}
+.tab{padding:13px 18px;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.panel{display:none;flex:1;overflow-y:auto;padding:24px 28px}
+.panel.active{display:block}
+
+/* ── SECTION CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:18px}
+.card-title{font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── NUMBER DRAW ── */
+.draw-stage{
+  display:flex;flex-direction:column;align-items:center;gap:24px;
+  padding:36px 20px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  position:relative;overflow:hidden;
+}
+.draw-stage::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 60% at 50% 100%, rgba(212,168,83,0.07), transparent);
+}
+
+.big-ball{
+  width:180px;height:180px;border-radius:50%;
+  border:2px solid var(--border);
+  background:var(--surface);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;z-index:1;
+  cursor:pointer;
+  transition:all 0.25s;
+  box-shadow:0 0 0 0 rgba(212,168,83,0);
+}
+.big-ball:hover:not(.drawn){
+  border-color:var(--gold);
+  box-shadow:0 0 40px rgba(212,168,83,0.15);
+  transform:scale(1.03);
+}
+.big-ball.drawn{
+  border-color:var(--gold);
+  background:linear-gradient(135deg,#1a1500,#2a2000);
+  box-shadow:0 0 60px rgba(212,168,83,0.25);
+}
+.ball-label{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ball-num{
+  font-family:'Playfair Display',serif;
+  font-size:4.5rem;font-weight:900;
+  color:var(--gold2);
+  line-height:1;
+  animation:none;
+}
+.ball-num.pop{animation:numPop 0.45s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes numPop{from{transform:scale(0.4);opacity:0}to{transform:scale(1);opacity:1}}
+.ball-sub{font-size:0.68rem;color:var(--muted);margin-top:4px}
+
+.draw-result{
+  display:none;
+  background:var(--surface);
+  border:1px solid var(--gold);
+  border-radius:8px;
+  padding:16px 24px;
+  text-align:center;
+  width:100%;max-width:360px;
+  position:relative;z-index:1;
+  animation:slideUp 0.3s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.draw-result.visible{display:block}
+.dr-label{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.dr-name{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--gold2);margin-bottom:3px}
+.dr-id{font-size:0.76rem;color:var(--muted)}
+.dr-task{font-size:0.7rem;color:var(--muted);border-top:1px solid var(--border);padding-top:8px;margin-top:8px}
+
+/* Number pool chips */
+.num-pool{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.nchip{
+  width:36px;height:36px;border-radius:6px;
+  display:grid;place-items:center;
+  font-size:0.78rem;font-weight:600;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--muted);
+  cursor:default;
+  transition:all 0.15s;
+}
+.nchip.available{border-color:var(--gold);color:var(--gold);background:rgba(212,168,83,0.08)}
+.nchip.drawn-chip{background:var(--surface3);border-color:var(--border);color:var(--border);text-decoration:line-through;opacity:0.4}
+.nchip.current-chip{background:var(--gold);color:#000;border-color:var(--gold);font-weight:700}
+
+/* Draw progress */
+.draw-prog{width:100%;max-width:360px;position:relative;z-index:1}
+.dp-labels{display:flex;justify-content:space-between;font-size:0.63rem;color:var(--muted);margin-bottom:5px}
+.dp-track{height:6px;background:var(--surface3);border-radius:100px;overflow:hidden}
+.dp-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:100px;transition:width 0.5s ease}
+
+/* ── CLEANING DUTY ── */
+.clean-stage{
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  padding:32px 20px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:12px;
+  position:relative;overflow:hidden;
+}
+.clean-stage::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 100%,rgba(76,175,130,0.06),transparent)}
+
+.clean-btn{
+  width:150px;height:150px;border-radius:50%;
+  border:2px solid var(--border);background:var(--surface);
+  font-family:'Playfair Display',serif;font-size:1rem;
+  cursor:pointer;transition:all 0.2s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;position:relative;z-index:1;
+  box-shadow:0 4px 24px rgba(0,0,0,0.3);
+  color:var(--text);
+}
+.clean-btn:hover:not(:disabled){border-color:var(--green);transform:scale(1.04);box-shadow:0 8px 36px rgba(76,175,130,0.2)}
+.clean-btn:disabled{opacity:0.35;cursor:not-allowed}
+.clean-btn .ci{font-size:2.2rem}
+
+.clean-result{
+  display:none;background:var(--surface);border:1px solid var(--green);border-radius:8px;
+  padding:16px 24px;text-align:center;width:100%;max-width:340px;
+  animation:slideUp 0.3s ease;position:relative;z-index:1;
+}
+.clean-result.visible{display:block}
+.cr-label{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.cr-name{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--green);margin-bottom:3px}
+.cr-id{font-size:0.73rem;color:var(--muted)}
+
+/* Eligible list */
+.elig-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.echip{font-size:0.7rem;padding:3px 9px;border-radius:4px;border:1px solid var(--border);color:var(--muted)}
+.echip.up-next{border-color:var(--green);color:var(--green);background:rgba(76,175,130,0.1)}
+.echip.done-clean{text-decoration:line-through;opacity:0.35}
+.echip.just-picked{border-color:var(--gold);color:var(--gold);background:rgba(212,168,83,0.12)}
+
+/* ── STUDENTS TAB ── */
+.filter-row{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap}
+.fchip{padding:4px 12px;border-radius:100px;font-size:0.68rem;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.12s;background:transparent}
+.fchip:hover{border-color:var(--text);color:var(--text)}
+.fchip.active{border-color:var(--gold);color:var(--gold);background:rgba(212,168,83,0.1)}
+
+.stu-table{width:100%;border-collapse:collapse;font-size:0.76rem}
+.stu-table th{text-align:left;padding:7px 10px;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface2)}
+.stu-table td{padding:9px 10px;border-bottom:1px solid rgba(51,51,51,0.5)}
+.stu-table tr:hover td{background:var(--surface2)}
+.stu-table tr:last-child td{border-bottom:none}
+
+.type-badge{font-size:0.62rem;padding:2px 7px;border-radius:3px;display:inline-block}
+
+/* Add student form */
+.add-form{display:grid;grid-template-columns:1fr 1.5fr auto auto auto;gap:7px;align-items:end}
+.add-form .fi label{display:block;font-size:0.6rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px}
+
+/* ── HISTORY ── */
+.hist-table{width:100%;border-collapse:collapse;font-size:0.74rem}
+.hist-table th{text-align:left;padding:7px 10px;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface2)}
+.hist-table td{padding:9px 10px;border-bottom:1px solid rgba(51,51,51,0.5)}
+.hist-table tr:hover td{background:var(--surface2)}
+.hist-table tr:last-child td{border-bottom:none}
+.mode-badge{font-size:0.6rem;padding:2px 7px;border-radius:3px;display:inline-block;font-weight:500}
+.mb-draw{background:rgba(212,168,83,0.15);color:var(--gold);border:1px solid rgba(212,168,83,0.3)}
+.mb-clean{background:rgba(76,175,130,0.15);color:var(--green);border:1px solid rgba(76,175,130,0.3)}
+
+/* ── ATTENDANCE ── */
+.att-toolbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r)}
+.att-toolbar .fi label,.fi label{display:block;font-size:0.6rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px}
+.sess-tog{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.sess-tog button{flex:1;padding:6px 13px;background:var(--surface2);border:none;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);cursor:pointer;transition:all 0.12s;white-space:nowrap}
+.sess-tog button:first-child{border-right:1px solid var(--border)}
+.sess-tog button.active{background:var(--gold);color:#000;font-weight:500}
+.att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-bottom:14px}
+.att-card{border:1px solid var(--border);border-radius:6px;padding:9px 11px;cursor:pointer;transition:all 0.12s;user-select:none;background:var(--surface);display:flex;align-items:center;gap:7px}
+.att-card:hover{border-color:var(--gold)}
+.att-card.att-present{background:rgba(76,175,130,0.08);border-color:rgba(76,175,130,0.4)}
+.att-cb{width:15px;height:15px;border:1.5px solid var(--border);border-radius:3px;display:grid;place-items:center;font-size:8px;flex-shrink:0;background:var(--surface)}
+.att-card.att-present .att-cb{background:var(--green);border-color:var(--green);color:#000}
+.att-info .att-id{font-size:0.76rem;font-weight:500}
+.att-info .att-id.green{color:var(--green)}
+.att-info .att-nm{font-size:0.62rem;color:var(--muted)}
+
+.att-browser{border-top:1px solid var(--border);padding-top:20px;margin-top:20px}
+.att-browser h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:12px}
+.week-nav{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.week-nav button{padding:4px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text);transition:all 0.12s}
+.week-nav button:hover{border-color:var(--gold)}
+.week-label{flex:1;text-align:center;font-size:0.73rem;color:var(--muted)}
+.week-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:14px}
+.day-cell{border:1px solid var(--border);border-radius:6px;padding:9px 6px;text-align:center;cursor:pointer;transition:all 0.12s;background:var(--surface2)}
+.day-cell:hover{border-color:var(--gold)}
+.day-cell.today{border-color:var(--gold)}
+.day-cell.sel{background:var(--gold);border-color:var(--gold)}
+.day-cell.has-data{position:relative}
+.day-cell.has-data::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--green)}
+.day-cell.sel.has-data::after{background:#000}
+.day-name{font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:3px}
+.day-cell.sel .day-name{color:rgba(0,0,0,0.6)}
+.day-num{font-family:'Playfair Display',serif;font-size:1.2rem;line-height:1}
+.day-cell.sel .day-num{color:#000}
+.day-sess{font-size:0.54rem;color:var(--muted);margin-top:2px}
+.day-cell.sel .day-sess{color:rgba(0,0,0,0.5)}
+.rec-viewer{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;min-height:70px}
+.rec-empty{font-size:0.74rem;color:var(--muted);text-align:center;padding:16px}
+
+/* misc */
+.prog-wrap{display:flex;align-items:center;gap:10px;font-size:0.68rem;color:var(--muted)}
+.prog-track{flex:1;height:5px;background:var(--surface3);border-radius:100px;overflow:hidden;max-width:200px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green),#7de0b0);border-radius:100px;transition:width 0.4s}
+.warn{background:rgba(212,168,83,0.08);border:1px solid rgba(212,168,83,0.25);border-radius:var(--r);padding:9px 13px;font-size:0.72rem;color:var(--gold);margin-bottom:14px}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:0.76rem}
+.select-cnt{font-size:0.66rem;color:var(--muted);margin-top:4px}
+.select-cnt b{color:var(--green)}
+.sb-quick{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.srch{width:100%;font-size:0.7rem;padding:5px 8px;margin-bottom:6px}
+
+#toast{position:fixed;bottom:18px;right:18px;padding:9px 15px;background:var(--surface);border:1px solid var(--border);border-radius:7px;font-size:0.74rem;z-index:999;transform:translateY(50px);opacity:0;transition:all 0.22s;pointer-events:none;max-width:280px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.g{border-color:var(--green);color:var(--green)}
+#toast.r{border-color:var(--red);color:var(--red)}
+#toast.b{border-color:var(--blue);color:var(--blue)}
+#toast.gold{border-color:var(--gold);color:var(--gold)}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+@media(max-width:700px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{border-right:none;border-bottom:1px solid var(--border);max-height:220px}
+  .add-form{grid-template-columns:1fr 1fr}
+  .week-strip{grid-template-columns:repeat(5,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- HEADER -->
+<header>
+  <h1>Class<span>Pick</span></h1>
+  <span style="font-size:0.65rem;color:var(--muted)">Classroom management</span>
+  <div class="hbadges">
+    <div class="hbadge"><b id="hTotal">0</b> students</div>
+    <div class="hbadge">Present: <b id="hPresent">0</b></div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-section">
+    <div class="sb-label">Attendance (today)</div>
+    <div class="sb-quick">
+      <button class="btn btn-ghost btn-sm" onclick="checkAll()">✓ All</button>
+      <button class="btn btn-ghost btn-sm" onclick="uncheckAll()">✗ None</button>
+      <button class="btn btn-ghost btn-sm" onclick="checkByType('boy')">Boys</button>
+    </div>
+    <input type="text" class="srch" id="sbSearch" placeholder="Search…" oninput="renderSidebar()"/>
+    <div class="select-cnt" id="selectCnt"></div>
+  </div>
+  <div class="student-list" id="sidebarList"></div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('draw')">🎱 Number Draw</button>
+    <button class="tab" onclick="switchTab('clean')">🧹 Cleaning Duty</button>
+    <button class="tab" onclick="switchTab('attendance')">🗓 Attendance</button>
+    <button class="tab" onclick="switchTab('students')">👥 Students</button>
+    <button class="tab" onclick="switchTab('history')">📋 History</button>
+  </div>
+
+  <!-- ═══ NUMBER DRAW ═══ -->
+  <div class="panel active" id="panel-draw">
+
+    <div class="card">
+      <div class="card-title">Number Range Setup</div>
+      <div class="row" style="margin-bottom:10px">
+        <div>
+          <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px">FROM</label>
+          <input type="number" id="rangeFrom" value="1" min="1" style="width:80px" oninput="initPool()"/>
+        </div>
+        <div>
+          <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px">TO</label>
+          <input type="number" id="rangeTo" value="20" min="1" style="width:80px" oninput="initPool()"/>
+        </div>
+        <div style="margin-top:18px">
+          <button class="btn btn-ghost btn-sm" onclick="initPool(true)">↺ Reset pool</button>
+        </div>
+        <div style="margin-top:18px;font-size:0.68rem;color:var(--muted)" id="poolStatus"></div>
+      </div>
+      <div class="num-pool" id="numPool"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Draw a Number</div>
+      <div class="draw-stage">
+        <div class="big-ball" id="bigBall" onclick="drawNumber()">
+          <div class="ball-label">tap to draw</div>
+          <div class="ball-num" id="ballNum">?</div>
+          <div class="ball-sub" id="ballSub"></div>
+        </div>
+
+        <div class="draw-result" id="drawResult">
+          <div class="dr-label">Presenter</div>
+          <div class="dr-name" id="drName">—</div>
+          <div class="dr-id" id="drId"></div>
+          <div class="dr-task" id="drTask"></div>
+        </div>
+
+        <div class="draw-prog">
+          <div class="dp-labels">
+            <span id="dpRound">Round 1</span>
+            <span id="dpText">0 / 0 drawn</span>
+          </div>
+          <div class="dp-track"><div class="dp-fill" id="dpFill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase">Task / context (optional)</label>
+        <input type="text" id="drawTask" placeholder="e.g. Present Assignment 2…"/>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ CLEANING DUTY ═══ -->
+  <div class="panel" id="panel-clean">
+
+    <div class="card">
+      <div class="card-title">Eligible Students</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:10px">
+        Only <strong style="color:var(--text)">present boys who are not kids</strong> are eligible. The one picked yesterday is skipped until everyone has had a turn.
+      </div>
+      <div id="cleanWarn" class="warn" style="display:none"></div>
+      <div class="elig-list" id="eligList"></div>
+      <div style="margin-top:12px" class="prog-wrap">
+        <span id="cleanRoundLabel">Round 1</span>
+        <div class="prog-track"><div class="prog-fill" id="cleanFill" style="width:0%"></div></div>
+        <span id="cleanProgText">0 / 0</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Select Today's Cleaner</div>
+      <div class="clean-stage">
+        <button class="btn-clean clean-btn" id="cleanBtn" onclick="pickCleaner()">
+          <span class="ci">🧹</span>
+          Pick Cleaner
+        </button>
+        <div class="clean-result" id="cleanResult">
+          <div class="cr-label">Today's Cleaner</div>
+          <div class="cr-name" id="crName">—</div>
+          <div class="cr-id" id="crId"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ ATTENDANCE ═══ -->
+  <div class="panel" id="panel-attendance">
+    <div class="att-toolbar">
+      <div class="fi">
+        <label>Date</label>
+        <input type="date" id="attDate" style="font-size:0.76rem"/>
+      </div>
+      <div class="fi">
+        <label>Session</label>
+        <div class="sess-tog">
+          <button id="btnMorn" class="active" onclick="setSession('morning')">🌅 Morning</button>
+          <button id="btnEven" onclick="setSession('evening')">🌆 Evening</button>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:18px" onclick="goToday()">Today</button>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="font-family:'Playfair Display',serif;font-size:1.2rem" id="attDateTitle">—</div>
+      <div class="row">
+        <button class="btn btn-ghost btn-sm" onclick="attAll(true)">✓ All Present</button>
+        <button class="btn btn-ghost btn-sm" onclick="attAll(false)">✗ All Absent</button>
+        <button class="btn btn-ghost btn-sm" onclick="attFromSidebar()">← From sidebar</button>
+      </div>
+    </div>
+
+    <div class="att-grid" id="attGrid"></div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase">Note (optional)</label>
+      <textarea id="attNote" placeholder="e.g. Fire drill, field trip…" style="min-height:48px"></textarea>
+    </div>
+
+    <div class="row" style="margin-bottom:6px">
+      <button class="btn btn-green" onclick="saveAtt()">💾 Save Attendance</button>
+      <button class="btn btn-ghost btn-sm" onclick="attApplyToSidebar()">→ Apply to sidebar</button>
+      <span id="attSavedMsg" style="font-size:0.68rem;color:var(--green);display:none">✓ Saved</span>
+    </div>
+
+    <div id="attStats" style="font-size:0.7rem;color:var(--muted);margin-bottom:16px"></div>
+
+    <!-- DAILY REPORT CARD -->
+    <div class="card" style="border-color:rgba(212,168,83,0.3);background:rgba(212,168,83,0.04)">
+      <div class="card-title">📊 Daily Attendance Report</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:14px;line-height:1.6">
+        Generates a shareable image for <b style="color:var(--text)" id="reportDateLabel">today</b>. Check and correct the Hijri date below before generating.
+      </div>
+
+      <!-- Hijri date manual selector -->
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(212,168,83,0.2);border-radius:8px;padding:14px 16px;margin-bottom:14px">
+        <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);margin-bottom:10px">🗓 Hijri Date — verify &amp; correct if needed</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <div>
+            <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px">Day</label>
+            <input type="number" id="hijriDay" min="1" max="30" style="width:64px;font-size:0.82rem" oninput="updateHijriPreview()"/>
+          </div>
+          <div>
+            <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px">Month</label>
+            <select id="hijriMonth" style="font-size:0.76rem" onchange="updateHijriPreview()">
+              <option value="1">1 — Muharram</option>
+              <option value="2">2 — Safar</option>
+              <option value="3">3 — Rabi' al-Awwal</option>
+              <option value="4">4 — Rabi' al-Thani</option>
+              <option value="5">5 — Jumada al-Ula</option>
+              <option value="6">6 — Jumada al-Thani</option>
+              <option value="7">7 — Rajab</option>
+              <option value="8">8 — Sha'ban</option>
+              <option value="9">9 — Ramadan</option>
+              <option value="10">10 — Shawwal</option>
+              <option value="11">11 — Dhu al-Qi'dah</option>
+              <option value="12">12 — Dhu al-Hijjah</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px">Year (AH)</label>
+            <input type="number" id="hijriYear" min="1400" max="1600" style="width:80px;font-size:0.82rem" oninput="updateHijriPreview()"/>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="autoDetectHijri()" style="margin-bottom:1px">↺ Auto-detect</button>
+        </div>
+        <div style="margin-top:10px;font-size:0.8rem;color:var(--gold)" id="hijriPreview">—</div>
+      </div>
+
+      <div class="row" style="margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn btn-gold" onclick="generateReport()">🖼 Generate Report Card</button>
+        <button class="btn btn-ghost btn-sm" onclick="shareReportWhatsApp()" id="shareWABtn" style="display:none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Share to WhatsApp
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadReport()" id="downloadRptBtn" style="display:none">⬇ Save Image</button>
+      </div>
+
+      <!-- Preview -->
+      <div id="reportPreview" style="display:none;margin-top:8px">
+        <img id="reportImg" style="width:100%;max-width:480px;border-radius:8px;border:1px solid var(--border);display:block"/>
+      </div>
+    </div>
+
+    <!-- Browser -->
+    <div class="att-browser">
+      <h3>Past Records</h3>
+      <div class="week-nav">
+        <button onclick="wkNav(-1)">← Prev</button>
+        <div class="week-label" id="wkLabel">—</div>
+        <button onclick="wkNav(1)">Next →</button>
+      </div>
+      <div class="week-strip" id="weekStrip"></div>
+      <div class="rec-viewer" id="recViewer"><div class="rec-empty">Select a day to view its record.</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ STUDENTS ═══ -->
+  <div class="panel" id="panel-students">
+    <div class="card">
+      <div class="card-title">Add Student</div>
+      <div class="add-form">
+        <div class="fi"><label>ID / Number</label><input type="text" id="newId" placeholder="e.g. 01" maxlength="20"/></div>
+        <div class="fi"><label>Full Name</label><input type="text" id="newName" placeholder="Name" maxlength="60"/></div>
+        <div class="fi"><label>Type</label>
+          <select id="newType">
+            <option value="boy">Boy</option>
+            <option value="girl">Girl</option>
+            <option value="kid">Kid</option>
+          </select>
+        </div>
+        <div class="fi"><label>Draw #</label><input type="number" id="newNum" placeholder="—" min="1" style="width:70px"/></div>
+        <div style="margin-top:18px"><button class="btn btn-gold" onclick="addStudent()">+ Add</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Import / Export Students</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:12px;line-height:1.6">
+        Export your students as a CSV file to back them up or move them to another device.<br>
+        Next time, just import that same file — no need to retype everyone.
+      </div>
+
+      <!-- Export -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:7px">Export</div>
+        <div class="row">
+          <button class="btn btn-gold" onclick="exportStudents()">⬇ Download students.csv</button>
+          <span style="font-size:0.68rem;color:var(--muted)" id="exportCount"></span>
+        </div>
+        <div style="margin-top:8px;font-size:0.68rem;color:var(--muted)">
+          CSV columns: <code style="color:var(--gold)">ID, Name, Type, DrawNum</code>
+        </div>
+      </div>
+
+      <!-- Import -->
+      <div style="border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:7px">Import from CSV</div>
+        <div style="font-size:0.68rem;color:var(--muted);margin-bottom:10px;line-height:1.6">
+          Upload a CSV file. Each row: <code style="color:var(--gold)">ID, Name, Type, DrawNum</code><br>
+          Type must be <code>boy</code>, <code>girl</code>, or <code>kid</code>. DrawNum is optional.<br>
+          Duplicate IDs are skipped automatically.
+        </div>
+        <div class="row" style="margin-bottom:8px">
+          <label class="btn btn-blue" style="cursor:pointer">
+            📂 Choose CSV file
+            <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"/>
+          </label>
+          <span style="font-size:0.68rem;color:var(--muted)" id="importStatus"></span>
+        </div>
+        <!-- Preview table -->
+        <div id="importPreview" style="display:none;margin-top:10px">
+          <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:6px">Preview</div>
+          <div id="importPreviewTable"></div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn btn-green" onclick="confirmImport()">✓ Add these students</button>
+            <button class="btn btn-ghost btn-sm" onclick="cancelImport()">Cancel</button>
+            <span id="importPreviewCount" style="font-size:0.68rem;color:var(--muted)"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Student Roster</div>
+      <div class="filter-row" id="filterRow">
+        <div class="fchip active" data-f="all" onclick="setFilter('all')">All</div>
+        <div class="fchip" data-f="boy" onclick="setFilter('boy')">Boys</div>
+        <div class="fchip" data-f="girl" onclick="setFilter('girl')">Girls</div>
+        <div class="fchip" data-f="kid" onclick="setFilter('kid')">Kids</div>
+        <div class="fchip" data-f="eligible" onclick="setFilter('eligible')">Cleaning eligible</div>
+      </div>
+      <input type="text" id="stuSearch" placeholder="Search ID or name…" style="margin-bottom:12px;font-size:0.74rem" oninput="renderStudentTable()"/>
+      <div id="stuTableWrap"></div>
+    </div>
+  </div>
+
+  <!-- ═══ HISTORY ═══ -->
+  <div class="panel" id="panel-history">
+    <div class="row" style="margin-bottom:14px">
+      <button class="btn btn-ghost btn-sm" onclick="exportHistory()">⬇ Export CSV</button>
+      <button class="btn btn-red btn-sm" onclick="clearHistory()">🗑 Clear History</button>
+      <input type="text" id="histSearch" placeholder="Filter…" style="max-width:180px;font-size:0.73rem" oninput="renderHistory()"/>
+    </div>
+    <div id="histWrap"></div>
+  </div>
+
+</main>
+</div>
+<canvas id="reportCanvas" style="display:none"></canvas>
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const LS_KEY = 'classpick_v4';
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || defaultState(); }
+  catch { return defaultState(); }
+}
+function defaultState() {
+  return {
+    students: [],      // {id, name, type:'boy'|'girl'|'kid', drawNum?:number}
+    present: [],       // ids present today (sidebar)
+
+    // Number Draw
+    drawPool: [],      // numbers still available this round
+    drawHistory: [],   // {num, id, name, task, round, ts}
+    drawRound: 1,
+    drawFrom: 1,
+    drawTo: 20,
+
+    // Cleaning
+    cleanPool: [],     // eligible IDs remaining this rotation
+    cleanHistory: [],  // {id, name, round, ts}
+    cleanRound: 1,
+
+    // Pick history (unified)
+    history: [],       // {type:'draw'|'clean', ...fields, ts}
+
+    // Attendance
+    attendance: {},    // {"YYYY-MM-DD": {morning:{present:[],note,savedAt}, evening:{...}}}
+  };
+}
+let S = loadState();
+function save() { localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+function findStu(id) { return S.students.find(s => s.id === id); }
+
+// ══════════════════════════════════════════════
+//  STUDENTS
+// ══════════════════════════════════════════════
+let stuFilter = 'all';
+function setFilter(f) {
+  stuFilter = f;
+  document.querySelectorAll('.fchip').forEach(c => c.classList.toggle('active', c.dataset.f === f));
+  renderStudentTable();
+}
+
+function addStudent() {
+  const id = document.getElementById('newId').value.trim();
+  const name = document.getElementById('newName').value.trim();
+  const type = document.getElementById('newType').value;
+  const num = parseInt(document.getElementById('newNum').value) || null;
+  if (!id) { toast('Enter an ID', 'r'); return; }
+  if (S.students.find(s => s.id === id)) { toast(`"${id}" already exists`, 'r'); return; }
+  S.students.push({ id, name, type, drawNum: num });
+  if (!S.cleanPool.includes(id) && type === 'boy') S.cleanPool.push(id);
+  save();
+  document.getElementById('newId').value = '';
+  document.getElementById('newName').value = '';
+  document.getElementById('newNum').value = '';
+  renderAll();
+  toast(`Added ${id}`, 'g');
+}
+
+function removeStudent(id) {
+  if (!confirm(`Remove student "${id}"?`)) return;
+  S.students = S.students.filter(s => s.id !== id);
+  S.present = S.present.filter(x => x !== id);
+  S.cleanPool = S.cleanPool.filter(x => x !== id);
+  save(); renderAll(); toast('Removed', 'r');
+}
+
+function renderStudentTable() {
+  const wrap = document.getElementById('stuTableWrap');
+  const q = document.getElementById('stuSearch').value.toLowerCase();
+  let list = S.students.filter(s => {
+    if (q && !s.id.toLowerCase().includes(q) && !(s.name||'').toLowerCase().includes(q)) return false;
+    if (stuFilter === 'boy') return s.type === 'boy';
+    if (stuFilter === 'girl') return s.type === 'girl';
+    if (stuFilter === 'kid') return s.type === 'kid';
+    if (stuFilter === 'eligible') return s.type === 'boy'; // non-kid boys
+    return true;
+  });
+  if (!list.length) { wrap.innerHTML = `<div class="empty">No students found.</div>`; return; }
+  wrap.innerHTML = `<table class="stu-table"><thead><tr>
+    <th>ID</th><th>Name</th><th>Type</th><th>Draw #</th><th>Present</th><th></th>
+  </tr></thead><tbody>` +
+  list.map(s => `<tr>
+    <td style="font-weight:500;color:var(--gold)">${s.id}</td>
+    <td>${s.name||'—'}</td>
+    <td><span class="type-badge type-${s.type}">${s.type}</span></td>
+    <td>${s.drawNum || '—'}</td>
+    <td>${S.present.includes(s.id) ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--border)">—</span>'}</td>
+    <td><button class="btn btn-red btn-sm" onclick="removeStudent('${s.id}')">✕</button></td>
+  </tr>`).join('') + '</tbody></table>';
+}
+function exportStudents() {
+  if (!S.students.length) { toast('No students to export', 'r'); return; }
+  // Export WITHOUT Present column — that's session-specific, not permanent student data
+  const rows = [['ID','Name','Type','DrawNum']];
+  S.students.forEach(s => rows.push([s.id, s.name||'', s.type, s.drawNum||'']));
+  dlCsv(rows, 'students.csv');
+  document.getElementById('exportCount').textContent = `${S.students.length} students exported`;
+  toast(`Exported ${S.students.length} students`, 'g');
+}
+
+// ── CSV IMPORT ──
+let importPending = []; // rows parsed but not yet confirmed
+
+function importCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (!lines.length) { toast('Empty file', 'r'); return; }
+
+    // Detect if first row is a header
+    const firstCells = lines[0].split(',').map(c => c.replace(/^"|"$/g,'').trim().toLowerCase());
+    const hasHeader = firstCells.includes('id') || firstCells.includes('name') || firstCells.includes('type');
+    const dataLines = hasHeader ? lines.slice(1) : lines;
+
+    const parsed = [];
+    const errors = [];
+
+    dataLines.forEach((line, i) => {
+      // Handle quoted CSV properly
+      const cells = parseCSVLine(line);
+      const id   = (cells[0]||'').trim();
+      const name = (cells[1]||'').trim();
+      const type = (cells[2]||'boy').trim().toLowerCase();
+      const drawNum = parseInt(cells[3]) || null;
+
+      if (!id) return; // skip empty rows
+      if (!['boy','girl','kid'].includes(type)) {
+        errors.push(`Row ${i+2}: unknown type "${type}" — defaulting to "boy"`);
+      }
+      const validType = ['boy','girl','kid'].includes(type) ? type : 'boy';
+      const isDuplicate = !!S.students.find(s => s.id === id);
+      parsed.push({ id, name, type: validType, drawNum, isDuplicate });
+    });
+
+    if (!parsed.length) { toast('No valid rows found in CSV', 'r'); return; }
+
+    importPending = parsed;
+    showImportPreview(parsed, errors);
+    document.getElementById('importStatus').textContent = `${parsed.length} rows read`;
+  };
+  reader.readAsText(file);
+  // Reset input so same file can be re-selected
+  input.value = '';
+}
+
+function parseCSVLine(line) {
+  const cells = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQ = !inQ; continue; }
+    if (ch === ',' && !inQ) { cells.push(cur); cur = ''; continue; }
+    cur += ch;
+  }
+  cells.push(cur);
+  return cells;
+}
+
+function showImportPreview(rows, errors) {
+  const preview = document.getElementById('importPreview');
+  const table = document.getElementById('importPreviewTable');
+  const count = document.getElementById('importPreviewCount');
+
+  const newRows = rows.filter(r => !r.isDuplicate);
+  const skipRows = rows.filter(r => r.isDuplicate);
+
+  count.textContent = `${newRows.length} new · ${skipRows.length} duplicates (will be skipped)`;
+
+  const typeColor = {boy:'var(--blue)',girl:'#d080b8',kid:'#c8a050'};
+
+  table.innerHTML = `<table class="stu-table">
+    <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Draw #</th><th>Status</th></tr></thead>
+    <tbody>
+      ${rows.map(r => `<tr style="${r.isDuplicate?'opacity:0.4':''}">
+        <td style="color:var(--gold)">${r.id}</td>
+        <td>${r.name||'—'}</td>
+        <td><span style="color:${typeColor[r.type]||'var(--muted)'}">${r.type}</span></td>
+        <td>${r.drawNum||'—'}</td>
+        <td style="font-size:0.65rem">${r.isDuplicate
+          ? '<span style="color:var(--muted)">⚠ duplicate — skip</span>'
+          : '<span style="color:var(--green)">✓ new</span>'}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+
+  if (errors.length) {
+    table.innerHTML += `<div style="margin-top:8px;font-size:0.68rem;color:var(--gold)">${errors.map(e=>`⚠ ${e}`).join('<br>')}</div>`;
+  }
+
+  preview.style.display = 'block';
+}
+
+function confirmImport() {
+  const newStudents = importPending.filter(r => !r.isDuplicate);
+  if (!newStudents.length) { toast('Nothing new to import', 'r'); return; }
+
+  newStudents.forEach(r => {
+    S.students.push({ id: r.id, name: r.name, type: r.type, drawNum: r.drawNum });
+    if (r.type === 'boy' && !S.cleanPool.includes(r.id)) S.cleanPool.push(r.id);
+  });
+
+  save();
+  cancelImport();
+  renderAll();
+  toast(`✓ Imported ${newStudents.length} students`, 'g');
+}
+
+function cancelImport() {
+  importPending = [];
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importStatus').textContent = '';
+  document.getElementById('importPreviewCount').textContent = '';
+}
+
+// ══════════════════════════════════════════════
+//  SIDEBAR / PRESENT
+// ══════════════════════════════════════════════
+function togglePresent(id) {
+  S.present = S.present.includes(id) ? S.present.filter(x=>x!==id) : [...S.present, id];
+  save(); renderSidebar(); updateHeader(); renderEligList(); renderAttGrid();
+}
+function checkAll() { S.present = S.students.map(s=>s.id); save(); renderSidebar(); updateHeader(); renderEligList(); renderAttGrid(); }
+function uncheckAll() { S.present = []; save(); renderSidebar(); updateHeader(); renderEligList(); renderAttGrid(); }
+function checkByType(t) { S.present = S.students.filter(s=>s.type===t).map(s=>s.id); save(); renderSidebar(); updateHeader(); renderEligList(); renderAttGrid(); }
+
+function renderSidebar() {
+  const list = document.getElementById('sidebarList');
+  if (!S.students.length) {
+    list.innerHTML = `<div class="empty">No students yet. Add them in the 👥 Students tab.</div>`;
+    document.getElementById('selectCnt').textContent = '';
+    return;
+  }
+  const q = document.getElementById('sbSearch').value.toLowerCase();
+  const filtered = S.students.filter(s => !q || s.id.toLowerCase().includes(q) || (s.name||'').toLowerCase().includes(q));
+  list.innerHTML = filtered.map(s => {
+    const isP = S.present.includes(s.id);
+    return `<div class="stu ${isP?'present':''}" onclick="togglePresent('${s.id}')">
+      <div class="cb">${isP?'✓':''}</div>
+      <span class="stu-id">${s.id}</span>
+      ${s.name?`<span class="stu-nm">${s.name}</span>`:''}
+      <span class="stu-type type-${s.type}">${s.type[0].toUpperCase()}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('selectCnt').innerHTML = `<b>${S.present.length}</b> of ${S.students.length} present`;
+}
+
+function updateHeader() {
+  document.getElementById('hTotal').textContent = S.students.length;
+  document.getElementById('hPresent').textContent = S.present.length;
+}
+
+// ══════════════════════════════════════════════
+//  NUMBER DRAW
+// ══════════════════════════════════════════════
+function initPool(force) {
+  const from = parseInt(document.getElementById('rangeFrom').value)||1;
+  const to = parseInt(document.getElementById('rangeTo').value)||20;
+  if (to < from) return;
+  S.drawFrom = from; S.drawTo = to;
+  if (force || !S.drawPool.length) {
+    S.drawPool = [];
+    for (let i = from; i <= to; i++) S.drawPool.push(i);
+    if (force) { S.drawRound++; toast('Pool reset — new round!', 'gold'); }
+  }
+  save();
+  renderPool();
+  updateDrawProgress();
+}
+
+function renderPool() {
+  const pool = document.getElementById('numPool');
+  const from = S.drawFrom || 1, to = S.drawTo || 20;
+  const drawnNums = new Set(S.drawHistory.filter(d => d.round === S.drawRound).map(d => d.num));
+  const currentNum = S.drawHistory.length ? S.drawHistory[S.drawHistory.length-1]?.num : null;
+  let html = '';
+  for (let i = from; i <= to; i++) {
+    const isCurrent = i === currentNum && S.drawHistory[S.drawHistory.length-1]?.round === S.drawRound;
+    const isDrawn = drawnNums.has(i) && !isCurrent;
+    let cls = 'nchip';
+    if (isCurrent) cls += ' current-chip';
+    else if (isDrawn) cls += ' drawn-chip';
+    else if (S.drawPool.includes(i)) cls += ' available';
+    html += `<div class="${cls}">${i}</div>`;
+  }
+  pool.innerHTML = html;
+  const available = S.drawPool.length;
+  const total = (S.drawTo||20) - (S.drawFrom||1) + 1;
+  document.getElementById('poolStatus').textContent = `${available} remaining of ${total}`;
+}
+
+function drawNumber() {
+  if (!S.drawPool.length) {
+    // New round
+    S.drawRound++;
+    const from = S.drawFrom||1, to = S.drawTo||20;
+    S.drawPool = [];
+    for (let i = from; i <= to; i++) S.drawPool.push(i);
+    toast(`All numbers drawn! Starting Round ${S.drawRound}`, 'gold');
+    save(); renderPool();
+  }
+  const idx = Math.floor(Math.random() * S.drawPool.length);
+  const num = S.drawPool[idx];
+  S.drawPool.splice(idx, 1);
+
+  // Find student with this draw number
+  const task = document.getElementById('drawTask').value.trim() || '';
+  const stu = S.students.find(s => s.drawNum === num);
+  const rec = { num, id: stu?.id||null, name: stu?.name||null, task, round: S.drawRound, ts: new Date().toISOString() };
+  S.drawHistory.push(rec);
+  S.history.push({ type:'draw', ...rec });
+  save();
+
+  // Animate ball
+  const ball = document.getElementById('bigBall');
+  ball.classList.add('drawn');
+  const ballNum = document.getElementById('ballNum');
+  ballNum.textContent = num;
+  ballNum.classList.remove('pop'); void ballNum.offsetWidth; ballNum.classList.add('pop');
+  document.getElementById('ballLabel');
+  ball.querySelector('.ball-label').textContent = 'number drawn';
+  document.getElementById('ballSub').textContent = stu ? `→ ${stu.name || stu.id}` : 'No student assigned';
+
+  // Show result card
+  const res = document.getElementById('drawResult');
+  res.classList.add('visible');
+  document.getElementById('drName').textContent = stu ? (stu.name || stu.id) : `Number ${num}`;
+  document.getElementById('drId').textContent = stu ? `#${stu.id} · Draw number ${num}` : `Draw number ${num} — not assigned to a student`;
+  document.getElementById('drTask').textContent = task ? `Task: ${task}` : '';
+
+  renderPool();
+  updateDrawProgress();
+  renderHistory();
+  toast(`Drew number ${num}${stu ? ' → ' + (stu.name||stu.id) : ''}`, 'gold');
+}
+
+function updateDrawProgress() {
+  const from = S.drawFrom||1, to = S.drawTo||20;
+  const total = to - from + 1;
+  const done = total - S.drawPool.length;
+  const pct = total > 0 ? Math.round(done/total*100) : 0;
+  document.getElementById('dpFill').style.width = pct + '%';
+  document.getElementById('dpText').textContent = `${done} / ${total} drawn`;
+  document.getElementById('dpRound').textContent = `Round ${S.drawRound}`;
+}
+
+// ══════════════════════════════════════════════
+//  CLEANING DUTY
+// ══════════════════════════════════════════════
+function getEligibleCleaners() {
+  // Boys who are not kids AND are present today
+  return S.students.filter(s => s.type === 'boy' && S.present.includes(s.id)).map(s => s.id);
+}
+
+function renderEligList() {
+  const allElig = getEligibleCleaners();
+  // From pool: those still in rotation AND present
+  const inPool = S.cleanPool.filter(id => allElig.includes(id));
+  const done = allElig.filter(id => !S.cleanPool.includes(id));
+  const lastPicked = S.cleanHistory.length ? S.cleanHistory[S.cleanHistory.length-1].id : null;
+
+  const warn = document.getElementById('cleanWarn');
+  if (!allElig.length) {
+    warn.style.display = 'block';
+    warn.textContent = '⚠️ No eligible cleaners — make sure boys are marked present in the sidebar.';
+  } else {
+    warn.style.display = 'none';
+  }
+
+  const list = document.getElementById('eligList');
+  if (!allElig.length) { list.innerHTML = ''; return; }
+
+  list.innerHTML = [...inPool, ...done].map(id => {
+    const s = findStu(id);
+    const isLast = id === lastPicked;
+    const isDone = done.includes(id);
+    let cls = 'echip';
+    if (isLast) cls += ' just-picked';
+    else if (isDone) cls += ' done-clean';
+    else cls += ' up-next';
+    return `<div class="${cls}" title="${isDone?'Done this round':isLast?'Last picked':'Eligible'}">${s?.name||id}</div>`;
+  }).join('');
+
+  // Progress
+  const total = allElig.length;
+  const remaining = inPool.length;
+  const doneCount = total - remaining;
+  const pct = total > 0 ? Math.round(doneCount/total*100) : 0;
+  document.getElementById('cleanFill').style.width = pct + '%';
+  document.getElementById('cleanProgText').textContent = `${doneCount} / ${total}`;
+  document.getElementById('cleanRoundLabel').textContent = `Round ${S.cleanRound}`;
+}
+
+function pickCleaner() {
+  const allElig = getEligibleCleaners();
+  if (!allElig.length) { toast('No boys are present.', 'r'); return; }
+
+  // Eligible from pool
+  let pool = S.cleanPool.filter(id => allElig.includes(id));
+
+  if (!pool.length) {
+    // New round — reset pool to all eligible boys
+    S.cleanRound++;
+    S.cleanPool = S.students.filter(s => s.type === 'boy').map(s => s.id);
+    pool = S.cleanPool.filter(id => allElig.includes(id));
+    toast(`New cleaning rotation! (Round ${S.cleanRound})`, 'g');
+  }
+
+  if (!pool.length) { toast('No eligible cleaners.', 'r'); return; }
+
+  const chosen = pool[Math.floor(Math.random() * pool.length)];
+  const stu = findStu(chosen);
+  S.cleanPool = S.cleanPool.filter(id => id !== chosen);
+
+  const rec = { type:'clean', id: chosen, name: stu?.name||chosen, round: S.cleanRound, ts: new Date().toISOString() };
+  S.cleanHistory.push({ id: chosen, name: stu?.name||chosen, round: S.cleanRound, ts: rec.ts });
+  S.history.push(rec);
+  save();
+
+  // Show result
+  const res = document.getElementById('cleanResult');
+  res.classList.add('visible');
+  document.getElementById('crName').textContent = stu?.name || chosen;
+  document.getElementById('crId').textContent = `ID: ${chosen}`;
+
+  renderEligList();
+  renderHistory();
+  toast(`Cleaner: ${stu?.name || chosen}`, 'g');
+}
+
+// ══════════════════════════════════════════════
+//  ATTENDANCE
+// ══════════════════════════════════════════════
+let attSession = 'morning';
+let attDate = '';
+let attDraft = {};
+let wkOffset = 0;
+let wkSelected = '';
+
+const DAY_SHORT = ['Sat','Sun','Mon','Tue','Wed'];
+
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function parseDt(s) { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function fmtDate(s) {
+  const d = parseDt(s);
+  return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]
+    + ', ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]
+    + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+
+function setSession(s) {
+  attSession = s;
+  document.getElementById('btnMorn').classList.toggle('active', s==='morning');
+  document.getElementById('btnEven').classList.toggle('active', s==='evening');
+  loadDraft();
+  renderAttGrid();
+  updateAttHeader();
+}
+
+function goToday() {
+  const t = todayStr();
+  document.getElementById('attDate').value = t;
+  attDate = t; wkOffset = 0;
+  loadDraft(); renderAttGrid(); updateAttHeader(); renderWeekStrip();
+}
+
+function updateAttHeader() {
+  const d = attDate || todayStr();
+  document.getElementById('attDateTitle').textContent = fmtDate(d) + ' · ' + (attSession==='morning'?'🌅 Morning':'🌆 Evening');
+}
+
+function loadDraft() {
+  const d = attDate || todayStr();
+  const saved = S.attendance[d]?.[attSession];
+  attDraft = {};
+  if (saved) {
+    S.students.forEach(s => { attDraft[s.id] = saved.present.includes(s.id); });
+    document.getElementById('attNote').value = saved.note || '';
+  } else {
+    S.students.forEach(s => { attDraft[s.id] = false; });
+    document.getElementById('attNote').value = '';
+  }
+  updateAttStats();
+}
+
+function renderAttGrid() {
+  const grid = document.getElementById('attGrid');
+  if (!S.students.length) { grid.innerHTML = `<div style="grid-column:1/-1;color:var(--muted);font-size:0.74rem;padding:20px">No students yet.</div>`; return; }
+  grid.innerHTML = S.students.map(s => {
+    const p = attDraft[s.id];
+    return `<div class="att-card ${p?'att-present':''}" onclick="toggleAttStu('${s.id}')">
+      <div class="att-cb">${p?'✓':''}</div>
+      <div class="att-info">
+        <div class="att-id ${p?'green':''}">${s.id}</div>
+        ${s.name?`<div class="att-nm">${s.name}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  updateAttStats();
+}
+
+function toggleAttStu(id) { attDraft[id] = !attDraft[id]; renderAttGrid(); }
+function attAll(val) { S.students.forEach(s=>{attDraft[s.id]=val;}); renderAttGrid(); }
+function attFromSidebar() { S.students.forEach(s=>{attDraft[s.id]=S.present.includes(s.id);}); renderAttGrid(); toast('Loaded from sidebar','g'); }
+function attApplyToSidebar() {
+  const d = attDate||todayStr();
+  const saved = S.attendance[d]?.[attSession];
+  if (!saved) { toast('Save attendance first','r'); return; }
+  S.present = [...saved.present]; save(); renderSidebar(); updateHeader(); renderEligList();
+  toast(`${saved.present.length} present loaded to sidebar`,'g');
+}
+
+function updateAttStats() {
+  const total = S.students.length;
+  const pres = Object.values(attDraft).filter(Boolean).length;
+  document.getElementById('attStats').textContent = total > 0
+    ? `${pres} present · ${total-pres} absent · ${Math.round(pres/total*100)}% attendance`
+    : '';
+}
+
+function saveAtt() {
+  const d = attDate || todayStr();
+  const presentIds = S.students.filter(s=>attDraft[s.id]).map(s=>s.id);
+  const note = document.getElementById('attNote').value.trim();
+  if (!S.attendance[d]) S.attendance[d] = {};
+  S.attendance[d][attSession] = { present: presentIds, note, savedAt: new Date().toISOString() };
+  save();
+  const msg = document.getElementById('attSavedMsg');
+  msg.style.display = 'inline';
+  setTimeout(()=>{msg.style.display='none';}, 2500);
+  renderWeekStrip();
+  toast(`${attSession==='morning'?'Morning':'Evening'} saved — ${presentIds.length} present`, 'g');
+}
+
+// Week strip
+function getWeekDates(offset) {
+  const today = new Date();
+  const dow = today.getDay();
+  const diff = dow >= 6 ? 0 : -(dow+1);
+  const sat = new Date(today); sat.setDate(today.getDate()+diff+offset*7);
+  const dates = [];
+  for (let i=0;i<5;i++) { const d=new Date(sat); d.setDate(sat.getDate()+i); dates.push(d.toISOString().slice(0,10)); }
+  return dates;
+}
+
+function renderWeekStrip() {
+  const dates = getWeekDates(wkOffset);
+  const today = todayStr();
+  const strip = document.getElementById('weekStrip');
+  const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  strip.innerHTML = dates.map((ds,i) => {
+    const d = parseDt(ds);
+    const hasM = !!S.attendance[ds]?.morning;
+    const hasE = !!S.attendance[ds]?.evening;
+    const hasData = hasM||hasE;
+    const isSel = ds===wkSelected;
+    let cls = 'day-cell'+(isSel?' sel':ds===today?' today':'')+(hasData?' has-data':'');
+    return `<div class="${cls}" onclick="selectDay('${ds}')">
+      <div class="day-name">${DAY_SHORT[i]}</div>
+      <div class="day-num">${d.getDate()}</div>
+      <div class="day-sess">${[hasM?'🌅':'',hasE?'🌆':''].filter(Boolean).join(' ')}</div>
+    </div>`;
+  }).join('');
+  const f=parseDt(dates[0]),l=parseDt(dates[4]);
+  document.getElementById('wkLabel').textContent=`${mo[f.getMonth()]} ${f.getDate()} – ${mo[l.getMonth()]} ${l.getDate()}, ${l.getFullYear()}`;
+}
+
+function wkNav(dir) { wkOffset+=dir; wkSelected=''; renderWeekStrip(); document.getElementById('recViewer').innerHTML=`<div class="rec-empty">Select a day to view its record.</div>`; }
+
+function selectDay(ds) {
+  wkSelected=ds; renderWeekStrip(); renderRecViewer(ds);
+}
+
+function renderRecViewer(ds) {
+  const viewer = document.getElementById('recViewer');
+  const rec = S.attendance[ds];
+  if (!rec||(!rec.morning&&!rec.evening)) {
+    viewer.innerHTML=`<div class="rec-empty">No attendance recorded for ${fmtDate(ds)}.</div>`;
+    return;
+  }
+  let html = `<div style="font-size:0.68rem;color:var(--muted);margin-bottom:12px">${fmtDate(ds)}</div>`;
+  ['morning','evening'].forEach(sess => {
+    const r = rec[sess]; if (!r) return;
+    const absent = S.students.filter(s=>!r.present.includes(s.id)).map(s=>s.id);
+    html += `<div style="margin-bottom:14px">
+      <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:7px">
+        ${sess==='morning'?'🌅 Morning':'🌆 Evening'} · ${r.present.length}/${S.students.length} present
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
+        ${r.present.map(id=>`<span style="font-size:0.7rem;padding:2px 8px;border-radius:4px;background:rgba(76,175,130,0.1);border:1px solid rgba(76,175,130,0.3);color:var(--green)">${id}</span>`).join('')||'<span style="color:var(--muted);font-size:0.7rem">None</span>'}
+      </div>
+      ${absent.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px">${absent.map(id=>`<span style="font-size:0.7rem;padding:2px 8px;border-radius:4px;background:rgba(224,80,80,0.08);border:1px solid rgba(224,80,80,0.2);color:var(--red)">${id}</span>`).join('')}</div>`:''}
+      ${r.note?`<div style="font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:4px">📝 ${r.note}</div>`:''}
+    </div>`;
+  });
+  html += `<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">
+    <button class="btn btn-ghost btn-sm" onclick="editRecord('${ds}')">✏️ Edit</button>
+    <button class="btn btn-ghost btn-sm" onclick="loadRecToSidebar('${ds}','morning')">→ Morning to sidebar</button>
+    <button class="btn btn-ghost btn-sm" onclick="loadRecToSidebar('${ds}','evening')">→ Evening to sidebar</button>
+  </div>`;
+  viewer.innerHTML = html;
+}
+
+function editRecord(ds) {
+  document.getElementById('attDate').value = ds;
+  attDate = ds; wkOffset = 0;
+  loadDraft(); renderAttGrid(); updateAttHeader(); renderWeekStrip();
+  document.getElementById('panel-attendance').scrollTop = 0;
+  toast('Record loaded for editing', 'b');
+}
+function loadRecToSidebar(ds, sess) {
+  const r = S.attendance[ds]?.[sess];
+  if (!r) { toast('No record for that session', 'r'); return; }
+  S.present = [...r.present]; save(); renderSidebar(); updateHeader(); renderEligList();
+  toast(`${r.present.length} students loaded to sidebar`, 'g');
+}
+
+document.getElementById('attDate').addEventListener('change', function() {
+  attDate = this.value; loadDraft(); renderAttGrid(); updateAttHeader(); updateReportDateLabel(); initHijriFields();
+});
+
+// ══════════════════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════════════════
+function renderHistory() {
+  const wrap = document.getElementById('histWrap');
+  const q = document.getElementById('histSearch').value.toLowerCase();
+  const rows = [...S.history].reverse().filter(h =>
+    !q || (h.id||'').toLowerCase().includes(q) || (h.name||'').toLowerCase().includes(q) || String(h.num||'').includes(q)
+  );
+  if (!rows.length) { wrap.innerHTML=`<div class="empty">No history yet.</div>`; return; }
+  wrap.innerHTML = `<table class="hist-table"><thead><tr>
+    <th>#</th><th>Type</th><th>Student / Number</th><th>Task / Round</th><th>Date & Time</th>
+  </tr></thead><tbody>` +
+  rows.map((h,i) => {
+    const dt = new Date(h.ts).toLocaleDateString()+' '+new Date(h.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const badge = h.type==='draw'
+      ? `<span class="mode-badge mb-draw">Draw #${h.num}</span>`
+      : `<span class="mode-badge mb-clean">🧹 Cleaning</span>`;
+    const who = h.type==='draw'
+      ? (h.name ? `${h.name} <span style="color:var(--muted)">(#${h.id||'?'})</span>` : `Number ${h.num} — unassigned`)
+      : (h.name || h.id);
+    const detail = h.type==='draw'
+      ? (h.task || `Round ${h.round}`)
+      : `Cleaning Round ${h.round}`;
+    return `<tr>
+      <td style="color:var(--muted)">${rows.length-i}</td>
+      <td>${badge}</td>
+      <td>${who}</td>
+      <td style="color:var(--muted)">${detail}</td>
+      <td style="color:var(--muted);font-size:0.68rem">${dt}</td>
+    </tr>`;
+  }).join('') + '</tbody></table>';
+}
+
+function exportHistory() {
+  if (!S.history.length) { toast('No history to export','r'); return; }
+  const rows=[['#','Type','ID','Name','Number','Task','Round','Date']];
+  S.history.forEach((h,i)=>rows.push([i+1,h.type,h.id||'',h.name||'',h.num||'',h.task||'',h.round,new Date(h.ts).toLocaleString()]));
+  dlCsv(rows, 'classpick_history.csv');
+}
+
+function clearHistory() {
+  if (!confirm('Clear all pick history?')) return;
+  S.history=[]; S.drawHistory=[]; S.cleanHistory=[];
+  S.drawPool=[]; initPool(false);
+  S.cleanPool = S.students.filter(s=>s.type==='boy').map(s=>s.id);
+  S.drawRound=1; S.cleanRound=1;
+  save(); renderAll(); toast('History cleared','r');
+}
+
+
+// ══════════════════════════════════════════════
+//  HIJRI DATE
+// ══════════════════════════════════════════════
+function toHijri(date) {
+  // Accurate Hijri conversion algorithm
+  const y = date.getFullYear(), m = date.getMonth()+1, d = date.getDate();
+  let jd = Math.floor((14+m-1)/12);
+  let jy = y + 4800 - jd;
+  let jm = m + 12*jd - 3;
+  let julianDay = d + Math.floor((153*jm+2)/5) + 365*jy + Math.floor(jy/4) - Math.floor(jy/100) + Math.floor(jy/400) - 32045;
+  let l = julianDay - 1948440 + 10632;
+  let n = Math.floor((l-1)/10631);
+  l = l - 10631*n + 354;
+  let j = Math.floor((10985-l)/5316)*Math.floor((50*l)/17719) + Math.floor(l/5670)*Math.floor((43*l)/15238);
+  l = l - Math.floor((30-j)/15)*Math.floor((17719*j)/50) - Math.floor(j/16)*Math.floor((15238*j)/43) + 29;
+  let hm = Math.floor((24*l)/709);
+  let hd = l - Math.floor((709*hm)/24);
+  let hy = 30*n + j - 30;
+  return { year: hy, month: hm, day: hd };
+}
+
+function hijriMonthName(m) {
+  return ['Muharram','Safar','Rabi\' al-Awwal','Rabi\' al-Thani',
+          'Jumada al-Ula','Jumada al-Thani','Rajab','Sha\'ban',
+          'Ramadan','Shawwal','Dhu al-Qi\'dah','Dhu al-Hijjah'][m-1];
+}
+
+// Read Hijri from manual fields (user-corrected)
+function getHijriFromFields() {
+  const day  = parseInt(document.getElementById('hijriDay').value)  || 1;
+  const month= parseInt(document.getElementById('hijriMonth').value)|| 1;
+  const year = parseInt(document.getElementById('hijriYear').value) || 1447;
+  return { day, month, year };
+}
+
+function fmtHijriFromFields() {
+  const h = getHijriFromFields();
+  return `${h.day} ${hijriMonthName(h.month)} ${h.year} AH`;
+}
+
+function autoDetectHijri() {
+  const d = attDate ? parseDt(attDate) : new Date();
+  const h = toHijri(d);
+  document.getElementById('hijriDay').value   = h.day;
+  document.getElementById('hijriMonth').value = h.month;
+  document.getElementById('hijriYear').value  = h.year;
+  updateHijriPreview();
+  toast('Hijri date auto-detected — please verify', 'gold');
+}
+
+function updateHijriPreview() {
+  const el = document.getElementById('hijriPreview');
+  if (el) el.textContent = fmtHijriFromFields();
+}
+
+function initHijriFields() {
+  // Populate fields with auto-detected value on load / date change
+  const d = attDate ? parseDt(attDate) : new Date();
+  const h = toHijri(d);
+  document.getElementById('hijriDay').value   = h.day;
+  document.getElementById('hijriMonth').value = h.month;
+  document.getElementById('hijriYear').value  = h.year;
+  updateHijriPreview();
+}
+
+// ══════════════════════════════════════════════
+//  REPORT CARD
+// ══════════════════════════════════════════════
+let reportDataURL = null;
+
+function generateReport() {
+  const d = attDate || todayStr();
+  const dateObj = parseDt(d);
+
+  // Get both sessions
+  const morning = S.attendance[d]?.morning;
+  const evening = S.attendance[d]?.evening;
+  const total = S.students.length;
+
+  // Day name
+  const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dateObj.getDay()];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const gregorian = `${dayName}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+  const hijri = fmtHijriFromFields();
+
+  // Canvas setup — portrait, WhatsApp-friendly
+  const W = 800, H = 1000;
+  const canvas = document.getElementById('reportCanvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // ── BACKGROUND ──
+  // Deep green gradient (Islamic feel)
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0, '#0d2b1f');
+  bgGrad.addColorStop(1, '#081a12');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Decorative border
+  ctx.strokeStyle = '#c8a84880';
+  ctx.lineWidth = 3;
+  roundRect(ctx, 18, 18, W-36, H-36, 16, false, true);
+
+  ctx.strokeStyle = '#c8a84830';
+  ctx.lineWidth = 1;
+  roundRect(ctx, 26, 26, W-52, H-52, 12, false, true);
+
+  // Corner ornaments
+  drawOrnament(ctx, 40, 40);
+  drawOrnament(ctx, W-40, 40, true);
+  drawOrnament(ctx, 40, H-40, false, true);
+  drawOrnament(ctx, W-40, H-40, true, true);
+
+  // ── HEADER ──
+  // School/App name
+  ctx.fillStyle = '#c8a848';
+  ctx.font = 'bold 22px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('بسم الله الرحمن الرحيم', W/2, 75);
+
+  // Divider line
+  drawDivider(ctx, W, 95);
+
+  ctx.fillStyle = '#f0e8d0';
+  ctx.font = 'bold 38px serif';
+  ctx.fillText('Daily Attendance Report', W/2, 148);
+
+  ctx.fillStyle = '#c8a848';
+  ctx.font = '18px monospace';
+  ctx.fillText('FairPick — Classroom Management', W/2, 178);
+
+  drawDivider(ctx, W, 198);
+
+  // ── DATE BLOCK ──
+  // Gregorian
+  ctx.fillStyle = '#f0e8d0';
+  ctx.font = 'bold 28px serif';
+  ctx.fillText(gregorian, W/2, 248);
+
+  // Hijri
+  ctx.fillStyle = '#c8a848';
+  ctx.font = '20px serif';
+  ctx.fillText(hijri, W/2, 280);
+
+  drawDivider(ctx, W, 308);
+
+  // ── SESSION BLOCKS ──
+  const blockY = 340;
+  const blockW = 310, blockH = 220;
+  const gap = 40;
+  const leftX = W/2 - blockW - gap/2;
+  const rightX = W/2 + gap/2;
+
+  // Morning block
+  drawSessionBlock(ctx, leftX, blockY, blockW, blockH,
+    '🌅 Morning Session', morning, total, '#f5a623', '#fff8e8');
+
+  // Evening block
+  drawSessionBlock(ctx, rightX, blockY, blockW, blockH,
+    '🌆 Evening Session', evening, total, '#5090d0', '#e8f0ff');
+
+  // ── COMBINED SUMMARY ──
+  const mPres = morning?.present?.length ?? null;
+  const ePres = evening?.present?.length ?? null;
+
+  drawDivider(ctx, W, blockY + blockH + 32);
+
+  ctx.fillStyle = '#c8a848';
+  ctx.font = 'bold 20px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('SUMMARY', W/2, blockY + blockH + 66);
+
+  // Summary pills
+  const summaryY = blockY + blockH + 100;
+  const items = [
+    { label: 'Total Students', value: String(total), color: '#f0e8d0' },
+    { label: 'Morning Present', value: mPres !== null ? String(mPres) : '—', color: '#f5a623' },
+    { label: 'Evening Present', value: ePres !== null ? String(ePres) : '—', color: '#5090d0' },
+  ];
+  const pillW = 200, pillH = 80, pillGap = 20;
+  const totalPillW = items.length * pillW + (items.length-1) * pillGap;
+  const pillStartX = (W - totalPillW) / 2;
+
+  items.forEach((item, i) => {
+    const px = pillStartX + i * (pillW + pillGap);
+    // Pill bg
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    roundRect(ctx, px, summaryY, pillW, pillH, 10, true, false);
+    ctx.strokeStyle = item.color + '50';
+    ctx.lineWidth = 1;
+    roundRect(ctx, px, summaryY, pillW, pillH, 10, false, true);
+    // Value
+    ctx.fillStyle = item.color;
+    ctx.font = 'bold 32px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(item.value, px + pillW/2, summaryY + 44);
+    // Label
+    ctx.fillStyle = '#a09070';
+    ctx.font = '13px monospace';
+    ctx.fillText(item.label, px + pillW/2, summaryY + 64);
+  });
+
+  // Absent list (if data exists)
+  let noteY = summaryY + pillH + 36;
+
+  if (morning?.present && morning.present.length < total) {
+    const absentM = S.students.filter(s=>!morning.present.includes(s.id)).map(s=>s.id);
+    if (absentM.length && absentM.length <= 15) {
+      ctx.fillStyle = '#a09070';
+      ctx.font = '13px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('Morning absent: ' + absentM.join(', '), W/2, noteY);
+      noteY += 22;
+    }
+  }
+  if (evening?.present && evening.present.length < total) {
+    const absentE = S.students.filter(s=>!evening.present.includes(s.id)).map(s=>s.id);
+    if (absentE.length && absentE.length <= 15) {
+      ctx.fillStyle = '#a09070';
+      ctx.font = '13px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('Evening absent: ' + absentE.join(', '), W/2, noteY);
+      noteY += 22;
+    }
+  }
+
+  // Notes
+  const note = morning?.note || evening?.note;
+  if (note) {
+    ctx.fillStyle = '#806040';
+    ctx.font = 'italic 14px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📝 ' + note, W/2, noteY + 8);
+    noteY += 28;
+  }
+
+  drawDivider(ctx, W, H - 60);
+
+  // Footer
+  ctx.fillStyle = '#604020';
+  ctx.font = '13px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Generated by FairPick · fairpick.netlify.app · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`, W/2, H - 36);
+
+  // Export
+  reportDataURL = canvas.toDataURL('image/png');
+  document.getElementById('reportImg').src = reportDataURL;
+  document.getElementById('reportPreview').style.display = 'block';
+  document.getElementById('shareWABtn').style.display = 'inline-flex';
+  document.getElementById('downloadRptBtn').style.display = 'inline-flex';
+  document.getElementById('reportDateLabel').textContent = gregorian;
+
+  toast('Report card generated!', 'gold');
+}
+
+// ── Canvas helpers ──
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w,y, x+w,y+r, r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w,y+h, x+w-r,y+h, r);
+  ctx.lineTo(x+r, y+h); ctx.arcTo(x,y+h, x,y+h-r, r);
+  ctx.lineTo(x, y+r); ctx.arcTo(x,y, x+r,y, r);
+  ctx.closePath();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
+}
+
+function drawDivider(ctx, W, y) {
+  const grad = ctx.createLinearGradient(60, y, W-60, y);
+  grad.addColorStop(0, 'transparent');
+  grad.addColorStop(0.3, '#c8a84860');
+  grad.addColorStop(0.7, '#c8a84860');
+  grad.addColorStop(1, 'transparent');
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(60, y); ctx.lineTo(W-60, y); ctx.stroke();
+  // Center diamond
+  ctx.fillStyle = '#c8a848';
+  ctx.beginPath();
+  ctx.moveTo(W/2, y-5); ctx.lineTo(W/2+5, y);
+  ctx.lineTo(W/2, y+5); ctx.lineTo(W/2-5, y);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawOrnament(ctx, x, y, flipX, flipY) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (flipX) ctx.scale(-1, 1);
+  if (flipY) ctx.scale(1, -1);
+  ctx.strokeStyle = '#c8a84870';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(20, 0);
+  ctx.moveTo(0, 0); ctx.lineTo(0, 20);
+  ctx.arc(12, 12, 8, Math.PI, Math.PI*1.5);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSessionBlock(ctx, x, y, w, h, title, data, total, accentColor, _unused) {
+  // Block background
+  const blockGrad = ctx.createLinearGradient(x, y, x, y+h);
+  blockGrad.addColorStop(0, 'rgba(255,255,255,0.07)');
+  blockGrad.addColorStop(1, 'rgba(255,255,255,0.02)');
+  ctx.fillStyle = blockGrad;
+  roundRect(ctx, x, y, w, h, 12, true, false);
+
+  ctx.strokeStyle = accentColor + '50';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, x, y, w, h, 12, false, true);
+
+  // Accent top bar
+  ctx.fillStyle = accentColor;
+  ctx.fillRect(x+12, y, w-24, 3);
+
+  // Title
+  ctx.fillStyle = '#f0e8d0';
+  ctx.font = 'bold 17px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(title, x + w/2, y + 32);
+
+  if (!data) {
+    ctx.fillStyle = '#606060';
+    ctx.font = '14px monospace';
+    ctx.fillText('No data recorded', x + w/2, y + h/2);
+    return;
+  }
+
+  const present = data.present?.length ?? 0;
+  const absent = total - present;
+  const rate = total > 0 ? Math.round(present/total*100) : 0;
+
+  // Big number
+  ctx.fillStyle = accentColor;
+  ctx.font = 'bold 72px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(String(present), x + w/2, y + 108);
+
+  ctx.fillStyle = '#a09070';
+  ctx.font = '14px monospace';
+  ctx.fillText(`present out of ${total}`, x + w/2, y + 130);
+
+  // Mini bar
+  const barX = x+20, barY = y+148, barW = w-40, barH = 10;
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  roundRect(ctx, barX, barY, barW, barH, 5, true, false);
+  if (rate > 0) {
+    ctx.fillStyle = accentColor;
+    roundRect(ctx, barX, barY, barW*(rate/100), barH, 5, true, false);
+  }
+
+  // Rate + absent
+  ctx.fillStyle = accentColor;
+  ctx.font = 'bold 18px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(`${rate}%`, x+20, y+190);
+
+  ctx.fillStyle = '#e05050';
+  ctx.textAlign = 'right';
+  ctx.fillText(`${absent} absent`, x+w-20, y+190);
+}
+
+// ── Share / Download ──
+function shareReportWhatsApp() {
+  if (!reportDataURL) { toast('Generate the report first', 'r'); return; }
+
+  // Try native share (works on mobile)
+  if (navigator.share && navigator.canShare) {
+    fetch(reportDataURL)
+      .then(r => r.blob())
+      .then(blob => {
+        const file = new File([blob], 'attendance-report.png', { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          navigator.share({
+            files: [file],
+            title: 'Attendance Report',
+            text: buildWhatsAppText(),
+          }).catch(() => fallbackShareWA());
+        } else {
+          fallbackShareWA();
+        }
+      });
+  } else {
+    fallbackShareWA();
+  }
+}
+
+function fallbackShareWA() {
+  // On desktop: download image + open WhatsApp with text
+  downloadReport();
+  const text = encodeURIComponent(buildWhatsAppText());
+  setTimeout(() => {
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  }, 600);
+}
+
+function buildWhatsAppText() {
+  const d = attDate || todayStr();
+  const dateObj = parseDt(d);
+  const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dateObj.getDay()];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const gregorian = `${dayName}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+  const hijri = fmtHijriFromFields();
+  const morning = S.attendance[d]?.morning;
+  const evening = S.attendance[d]?.evening;
+  const total = S.students.length;
+
+  let text = `🕌 *Daily Attendance Report*\n`;
+  text += `📅 ${gregorian}\n`;
+  text += `🗓 ${hijri}\n\n`;
+  if (morning) {
+    const rate = Math.round(morning.present.length/total*100);
+    text += `🌅 *Morning Session*\n`;
+    text += `✅ Present: ${morning.present.length}/${total} (${rate}%)\n`;
+    text += `❌ Absent: ${total - morning.present.length}\n\n`;
+  }
+  if (evening) {
+    const rate = Math.round(evening.present.length/total*100);
+    text += `🌆 *Evening Session*\n`;
+    text += `✅ Present: ${evening.present.length}/${total} (${rate}%)\n`;
+    text += `❌ Absent: ${total - evening.present.length}\n`;
+  }
+  text += `\n_Sent via FairPick · fairpick.netlify.app_`;
+  return text;
+}
+
+function downloadReport() {
+  if (!reportDataURL) { toast('Generate the report first', 'r'); return; }
+  const a = document.createElement('a');
+  a.href = reportDataURL;
+  const d = attDate || todayStr();
+  a.download = `attendance-${d}.png`;
+  a.click();
+  toast('Image saved!', 'g');
+}
+
+// Update report date label when date changes
+function updateReportDateLabel() {
+  const d = attDate || todayStr();
+  const dateObj = parseDt(d);
+  const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dateObj.getDay()];
+  const el = document.getElementById('reportDateLabel');
+  if (el) el.textContent = dayName + ', ' + d;
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const tabs=['draw','clean','attendance','students','history'];
+  document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name==='history') renderHistory();
+  if (name==='students') renderStudentTable();
+  if (name==='attendance') { renderAttGrid(); renderWeekStrip(); initHijriFields(); }
+  if (name==='clean') renderEligList();
+}
+
+// ══════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════
+let toastT;
+function toast(msg, type='') {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='show '+type;
+  clearTimeout(toastT); toastT=setTimeout(()=>{el.className='';},3000);
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function dlCsv(rows, filename) {
+  const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=filename; a.click();
+}
+
+// ══════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════
+function renderAll() {
+  renderSidebar();
+  updateHeader();
+  renderPool();
+  updateDrawProgress();
+  renderEligList();
+  renderStudentTable();
+  renderHistory();
+  const ec = document.getElementById('exportCount');
+  if (ec) ec.textContent = S.students.length ? `${S.students.length} students ready to export` : '';
+}
+
+// Init
+document.getElementById('rangeFrom').value = S.drawFrom || 1;
+document.getElementById('rangeTo').value = S.drawTo || 20;
+if (!S.drawPool.length) initPool(false);
+
+const t = todayStr();
+document.getElementById('attDate').value = t;
+attDate = t;
+const hr = new Date().getHours();
+setSession(hr < 14 ? 'morning' : 'evening');
+
+renderAll();
+renderWeekStrip();
+initHijriFields();
+</script>
+</body>
+</html>
