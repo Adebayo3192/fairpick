@@ -361,6 +361,7 @@ select option{background:var(--surface2)}
     <button class="tab active" onclick="switchTab('draw')">🎱 Number Draw</button>
     <button class="tab" onclick="switchTab('clean')">🧹 Cleaning Duty</button>
     <button class="tab" onclick="switchTab('attendance')">🗓 Attendance</button>
+    <button class="tab" onclick="switchTab('malams')">👨‍🏫 Malams</button>
     <button class="tab" onclick="switchTab('students')">👥 Students</button>
     <button class="tab" onclick="switchTab('history')">📋 History</button>
   </div>
@@ -644,6 +645,82 @@ select option{background:var(--surface2)}
     </div>
   </div>
 
+  <!-- ═══ MALAMS ═══ -->
+  <div class="panel" id="panel-malams">
+
+    <div class="card">
+      <div class="card-title">Add Malam / Teacher</div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div class="fi" style="flex:1;min-width:140px">
+          <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em">Full Name</label>
+          <input type="text" id="malamName" placeholder="e.g. Malam Abdullahi" maxlength="60"/>
+        </div>
+        <div class="fi" style="flex:0 0 auto">
+          <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em">Role (opt)</label>
+          <input type="text" id="malamRole" placeholder="e.g. Head Teacher" maxlength="40" style="max-width:160px"/>
+        </div>
+        <button class="btn btn-gold" onclick="addMalam()">+ Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Malam Roster</div>
+      <div id="malamRosterWrap">
+        <div class="empty" style="padding:30px;text-align:center;color:var(--muted);font-size:0.76rem">No malams added yet.</div>
+      </div>
+    </div>
+
+    <!-- Malam Attendance for selected date/session -->
+    <div class="card" style="border-color:rgba(80,144,208,0.3);background:rgba(80,144,208,0.03)">
+      <div class="card-title">Mark Malam Attendance</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:12px">
+        Marking for: <b style="color:var(--text)" id="malamAttLabel">—</b>
+        <span style="margin-left:10px;font-size:0.68rem;color:var(--muted)">(change date/session in the 🗓 Attendance tab)</span>
+      </div>
+      <div class="att-grid" id="malamAttGrid"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn btn-green btn-sm" onclick="saveMalamAtt()">💾 Save Malam Attendance</button>
+        <button class="btn btn-ghost btn-sm" onclick="malamMarkAll(true)">✓ All Present</button>
+        <button class="btn btn-ghost btn-sm" onclick="malamMarkAll(false)">✗ All Absent</button>
+        <span id="malamSavedMsg" style="font-size:0.68rem;color:var(--green);display:none">✓ Saved</span>
+      </div>
+    </div>
+
+    <!-- Monthly Report -->
+    <div class="card" style="border-color:rgba(212,168,83,0.3);background:rgba(212,168,83,0.04)">
+      <div class="card-title">📅 Monthly Attendance Report</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:14px;line-height:1.6">
+        Generates a report card showing each malam's attendance percentage for a full month. Best used on the last Wednesday of the month.
+      </div>
+      <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div>
+          <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em">Month</label>
+          <select id="monthlyMonth" style="font-size:0.76rem">
+            <option value="0">January</option><option value="1">February</option>
+            <option value="2">March</option><option value="3">April</option>
+            <option value="4">May</option><option value="5">June</option>
+            <option value="6">July</option><option value="7">August</option>
+            <option value="8">September</option><option value="9">October</option>
+            <option value="10">November</option><option value="11">December</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em">Year</label>
+          <input type="number" id="monthlyYear" style="width:90px;font-size:0.76rem" value="2026"/>
+        </div>
+        <button class="btn btn-gold" style="margin-top:18px" onclick="generateMonthlyReport()">📊 Generate Monthly Report</button>
+        <button class="btn btn-ghost btn-sm" onclick="shareMonthlyWA()" id="shareMonthlyBtn" style="display:none;margin-top:18px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Share to WhatsApp
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadMonthlyReport()" id="downloadMonthlyBtn" style="display:none;margin-top:18px">⬇ Save Image</button>
+      </div>
+      <div id="monthlyPreview" style="display:none;margin-top:10px">
+        <img id="monthlyImg" style="width:100%;max-width:520px;border-radius:8px;border:1px solid var(--border);display:block"/>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ HISTORY ═══ -->
   <div class="panel" id="panel-history">
     <div class="row" style="margin-bottom:14px">
@@ -663,7 +740,7 @@ select option{background:var(--surface2)}
 // ══════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════
-const LS_KEY = 'classpick_v4';
+const LS_KEY = 'classpick_v5';
 function loadState() {
   try { return JSON.parse(localStorage.getItem(LS_KEY)) || defaultState(); }
   catch { return defaultState(); }
@@ -674,25 +751,31 @@ function defaultState() {
     present: [],       // ids present today (sidebar)
 
     // Number Draw
-    drawPool: [],      // numbers still available this round
-    drawHistory: [],   // {num, id, name, task, round, ts}
+    drawPool: [],
+    drawHistory: [],
     drawRound: 1,
     drawFrom: 1,
     drawTo: 20,
 
     // Cleaning
-    cleanPool: [],     // eligible IDs remaining this rotation
-    cleanHistory: [],  // {id, name, round, ts}
+    cleanPool: [],
+    cleanHistory: [],
     cleanRound: 1,
 
     // Pick history (unified)
-    history: [],       // {type:'draw'|'clean', ...fields, ts}
+    history: [],
 
-    // Attendance
+    // Student Attendance
     attendance: {},    // {"YYYY-MM-DD": {morning:{present:[],note,savedAt}, evening:{...}}}
+
+    // Malams
+    malams: [],        // [{id, name, role}]
+    malamAttendance: {}, // {"YYYY-MM-DD": {morning:{present:[ids]}, evening:{present:[ids]}}}
   };
 }
 let S = loadState();
+if (!S.malams) S.malams = [];
+if (!S.malamAttendance) S.malamAttendance = {};
 function save() { localStorage.setItem(LS_KEY, JSON.stringify(S)); }
 function findStu(id) { return S.students.find(s => s.id === id); }
 
@@ -1431,124 +1514,124 @@ function generateReport() {
   const ctx = canvas.getContext('2d');
 
   // ── BACKGROUND ──
-  // Deep green gradient (Islamic feel)
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-  bgGrad.addColorStop(0, '#0d2b1f');
-  bgGrad.addColorStop(1, '#081a12');
-  ctx.fillStyle = bgGrad;
+  // Clean white with subtle warm tint
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
-  // Decorative border
-  ctx.strokeStyle = '#c8a84880';
-  ctx.lineWidth = 3;
-  roundRect(ctx, 18, 18, W-36, H-36, 16, false, true);
+  // Light warm top header band
+  const headerBand = ctx.createLinearGradient(0, 0, 0, 130);
+  headerBand.addColorStop(0, '#1a4a2e');
+  headerBand.addColorStop(1, '#1e5c38');
+  ctx.fillStyle = headerBand;
+  roundRect(ctx, 0, 0, W, 130, 0, true, false);
 
-  ctx.strokeStyle = '#c8a84830';
-  ctx.lineWidth = 1;
-  roundRect(ctx, 26, 26, W-52, H-52, 12, false, true);
+  // Gold accent line under header
+  ctx.fillStyle = '#c8a030';
+  ctx.fillRect(0, 126, W, 4);
 
-  // Corner ornaments
-  drawOrnament(ctx, 40, 40);
-  drawOrnament(ctx, W-40, 40, true);
-  drawOrnament(ctx, 40, H-40, false, true);
-  drawOrnament(ctx, W-40, H-40, true, true);
+  // Outer border
+  ctx.strokeStyle = '#c8a03060';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 10, 10, W-20, H-20, 12, false, true);
 
-  // ── HEADER ──
-  // School/App name
-  ctx.fillStyle = '#c8a848';
-  ctx.font = 'bold 22px serif';
+  // Corner ornaments (dark on white)
+  drawOrnament(ctx, 22, 140, false, false, '#c8a030');
+  drawOrnament(ctx, W-22, 140, true, false, '#c8a030');
+  drawOrnament(ctx, 22, H-22, false, true, '#c8a030');
+  drawOrnament(ctx, W-22, H-22, true, true, '#c8a030');
+
+  // ── HEADER (white text on green) ──
+  ctx.fillStyle = '#f0d060';
+  ctx.font = 'bold 24px serif';
   ctx.textAlign = 'center';
-  ctx.fillText('بسم الله الرحمن الرحيم', W/2, 75);
+  ctx.fillText('بسم الله الرحمن الرحيم', W/2, 52);
 
-  // Divider line
-  drawDivider(ctx, W, 95);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 36px serif';
+  ctx.fillText('Daily Attendance Report', W/2, 98);
 
-  ctx.fillStyle = '#f0e8d0';
-  ctx.font = 'bold 38px serif';
-  ctx.fillText('Daily Attendance Report', W/2, 148);
+  // ── APP NAME BADGE ──
+  ctx.fillStyle = '#f5f0e8';
+  ctx.font = 'bold 15px monospace';
+  ctx.fillStyle = '#4a8a5a';
+  ctx.fillText('FairPick — Halaqa Management', W/2, 158);
 
-  ctx.fillStyle = '#c8a848';
-  ctx.font = '18px monospace';
-  ctx.fillText('FairPick — Classroom Management', W/2, 178);
-
-  drawDivider(ctx, W, 198);
+  drawDivider(ctx, W, 174, '#c8a030');
 
   // ── DATE BLOCK ──
-  // Gregorian
-  ctx.fillStyle = '#f0e8d0';
-  ctx.font = 'bold 28px serif';
-  ctx.fillText(gregorian, W/2, 248);
+  ctx.fillStyle = '#111111';
+  ctx.font = 'bold 34px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(gregorian, W/2, 228);
 
-  // Hijri
-  ctx.fillStyle = '#c8a848';
-  ctx.font = '20px serif';
-  ctx.fillText(hijri, W/2, 280);
+  ctx.fillStyle = '#1a6a3a';
+  ctx.font = 'bold 22px serif';
+  ctx.fillText(hijri, W/2, 262);
 
-  drawDivider(ctx, W, 308);
+  drawDivider(ctx, W, 286, '#ddccaa');
 
   // ── SESSION BLOCKS ──
-  const blockY = 340;
-  const blockW = 310, blockH = 220;
-  const gap = 40;
+  const blockY = 308;
+  const blockW = 316, blockH = 230;
+  const gap = 36;
   const leftX = W/2 - blockW - gap/2;
   const rightX = W/2 + gap/2;
 
-  // Morning block
   drawSessionBlock(ctx, leftX, blockY, blockW, blockH,
-    '🌅 Morning Session', morning, total, '#f5a623', '#fff8e8');
+    '🌅 Morning Session', morning, total, '#d4830a', '#fff7e6');
 
-  // Evening block
   drawSessionBlock(ctx, rightX, blockY, blockW, blockH,
-    '🌆 Evening Session', evening, total, '#5090d0', '#e8f0ff');
+    '🌆 Evening Session', evening, total, '#1a6ab0', '#e8f2ff');
 
-  // ── COMBINED SUMMARY ──
+  // ── SUMMARY ──
   const mPres = morning?.present?.length ?? null;
   const ePres = evening?.present?.length ?? null;
 
-  drawDivider(ctx, W, blockY + blockH + 32);
+  drawDivider(ctx, W, blockY + blockH + 28, '#ddccaa');
 
-  ctx.fillStyle = '#c8a848';
-  ctx.font = 'bold 20px serif';
+  // SUMMARY label
+  ctx.fillStyle = '#1a4a2e';
+  ctx.font = 'bold 22px serif';
   ctx.textAlign = 'center';
-  ctx.fillText('SUMMARY', W/2, blockY + blockH + 66);
+  ctx.fillText('SUMMARY', W/2, blockY + blockH + 62);
 
   // Summary pills
-  const summaryY = blockY + blockH + 100;
+  const summaryY = blockY + blockH + 80;
   const items = [
-    { label: 'Total Students', value: String(total), color: '#f0e8d0' },
-    { label: 'Morning Present', value: mPres !== null ? String(mPres) : '—', color: '#f5a623' },
-    { label: 'Evening Present', value: ePres !== null ? String(ePres) : '—', color: '#5090d0' },
+    { label: 'Total Students', value: String(total),                              color: '#1a4a2e', bg: '#e8f5ec', border: '#a8d8b8' },
+    { label: 'Morning Present', value: mPres !== null ? String(mPres) : '—',      color: '#c07000', bg: '#fff3dc', border: '#f0c060' },
+    { label: 'Evening Present', value: ePres !== null ? String(ePres) : '—',      color: '#1a5a9a', bg: '#ddeeff', border: '#90b8e8' },
   ];
-  const pillW = 200, pillH = 80, pillGap = 20;
+  const pillW = 208, pillH = 90, pillGap = 18;
   const totalPillW = items.length * pillW + (items.length-1) * pillGap;
   const pillStartX = (W - totalPillW) / 2;
 
   items.forEach((item, i) => {
     const px = pillStartX + i * (pillW + pillGap);
     // Pill bg
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    ctx.fillStyle = item.bg;
     roundRect(ctx, px, summaryY, pillW, pillH, 10, true, false);
-    ctx.strokeStyle = item.color + '50';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = item.border;
+    ctx.lineWidth = 1.5;
     roundRect(ctx, px, summaryY, pillW, pillH, 10, false, true);
-    // Value
+    // Value — big bold
     ctx.fillStyle = item.color;
-    ctx.font = 'bold 32px serif';
+    ctx.font = 'bold 42px serif';
     ctx.textAlign = 'center';
-    ctx.fillText(item.value, px + pillW/2, summaryY + 44);
+    ctx.fillText(item.value, px + pillW/2, summaryY + 56);
     // Label
-    ctx.fillStyle = '#a09070';
-    ctx.font = '13px monospace';
-    ctx.fillText(item.label, px + pillW/2, summaryY + 64);
+    ctx.fillStyle = '#555555';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText(item.label, px + pillW/2, summaryY + 76);
   });
 
-  // Absent list (if data exists)
-  let noteY = summaryY + pillH + 36;
+  // Absent lists
+  let noteY = summaryY + pillH + 28;
 
   if (morning?.present && morning.present.length < total) {
     const absentM = S.students.filter(s=>!morning.present.includes(s.id)).map(s=>s.id);
-    if (absentM.length && absentM.length <= 15) {
-      ctx.fillStyle = '#a09070';
+    if (absentM.length && absentM.length <= 20) {
+      ctx.fillStyle = '#888888';
       ctx.font = '13px monospace';
       ctx.textAlign = 'center';
       ctx.fillText('Morning absent: ' + absentM.join(', '), W/2, noteY);
@@ -1557,8 +1640,8 @@ function generateReport() {
   }
   if (evening?.present && evening.present.length < total) {
     const absentE = S.students.filter(s=>!evening.present.includes(s.id)).map(s=>s.id);
-    if (absentE.length && absentE.length <= 15) {
-      ctx.fillStyle = '#a09070';
+    if (absentE.length && absentE.length <= 20) {
+      ctx.fillStyle = '#888888';
       ctx.font = '13px monospace';
       ctx.textAlign = 'center';
       ctx.fillText('Evening absent: ' + absentE.join(', '), W/2, noteY);
@@ -1566,23 +1649,39 @@ function generateReport() {
     }
   }
 
-  // Notes
+  // Session note
   const note = morning?.note || evening?.note;
   if (note) {
-    ctx.fillStyle = '#806040';
+    ctx.fillStyle = '#888888';
     ctx.font = 'italic 14px serif';
     ctx.textAlign = 'center';
     ctx.fillText('📝 ' + note, W/2, noteY + 8);
-    noteY += 28;
   }
 
-  drawDivider(ctx, W, H - 60);
+  // ── MALAM TABLE ──
+  // Expand canvas height dynamically if malams exist
+  if (S.malams.length) {
+    const extraH = 60 + S.malams.length * 46 + 30;
+    const newH = Math.max(H, noteY + extraH + 80);
+    if (newH > H) {
+      canvas.height = newH;
+      // Redraw bg extension
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, H, W, newH - H);
+    }
+    noteY = drawMalamTable(ctx, W, noteY + 24, d);
+  }
 
-  // Footer
-  ctx.fillStyle = '#604020';
+  // ── FOOTER BAND ──
+  const finalH = canvas.height;
+  ctx.fillStyle = '#1a4a2e';
+  ctx.fillRect(0, finalH - 52, W, 52);
+  ctx.fillStyle = '#c8a030';
+  ctx.fillRect(0, finalH - 53, W, 2);
+  ctx.fillStyle = '#a8c8b0';
   ctx.font = '13px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText(`Generated by FairPick · fairpick.netlify.app · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`, W/2, H - 36);
+  ctx.fillText(`Generated by FairPick · fairpick.netlify.app · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`, W/2, finalH - 22);
 
   // Export
   reportDataURL = canvas.toDataURL('image/png');
@@ -1608,29 +1707,31 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke) {
   if (stroke) ctx.stroke();
 }
 
-function drawDivider(ctx, W, y) {
+function drawDivider(ctx, W, y, color) {
+  color = color || '#c8a030';
   const grad = ctx.createLinearGradient(60, y, W-60, y);
   grad.addColorStop(0, 'transparent');
-  grad.addColorStop(0.3, '#c8a84860');
-  grad.addColorStop(0.7, '#c8a84860');
+  grad.addColorStop(0.3, color + 'aa');
+  grad.addColorStop(0.7, color + 'aa');
   grad.addColorStop(1, 'transparent');
   ctx.strokeStyle = grad;
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(60, y); ctx.lineTo(W-60, y); ctx.stroke();
   // Center diamond
-  ctx.fillStyle = '#c8a848';
+  ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(W/2, y-5); ctx.lineTo(W/2+5, y);
   ctx.lineTo(W/2, y+5); ctx.lineTo(W/2-5, y);
   ctx.closePath(); ctx.fill();
 }
 
-function drawOrnament(ctx, x, y, flipX, flipY) {
+function drawOrnament(ctx, x, y, flipX, flipY, color) {
+  color = color || '#c8a030';
   ctx.save();
   ctx.translate(x, y);
   if (flipX) ctx.scale(-1, 1);
   if (flipY) ctx.scale(1, -1);
-  ctx.strokeStyle = '#c8a84870';
+  ctx.strokeStyle = color + 'aa';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(0, 0); ctx.lineTo(20, 0);
@@ -1640,30 +1741,27 @@ function drawOrnament(ctx, x, y, flipX, flipY) {
   ctx.restore();
 }
 
-function drawSessionBlock(ctx, x, y, w, h, title, data, total, accentColor, _unused) {
-  // Block background
-  const blockGrad = ctx.createLinearGradient(x, y, x, y+h);
-  blockGrad.addColorStop(0, 'rgba(255,255,255,0.07)');
-  blockGrad.addColorStop(1, 'rgba(255,255,255,0.02)');
-  ctx.fillStyle = blockGrad;
+function drawSessionBlock(ctx, x, y, w, h, title, data, total, accentColor, bgColor) {
+  // Block background — light colored
+  ctx.fillStyle = bgColor || '#f8f8f8';
   roundRect(ctx, x, y, w, h, 12, true, false);
 
-  ctx.strokeStyle = accentColor + '50';
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = accentColor + '60';
+  ctx.lineWidth = 2;
   roundRect(ctx, x, y, w, h, 12, false, true);
 
   // Accent top bar
   ctx.fillStyle = accentColor;
-  ctx.fillRect(x+12, y, w-24, 3);
+  ctx.fillRect(x+12, y, w-24, 4);
 
   // Title
-  ctx.fillStyle = '#f0e8d0';
+  ctx.fillStyle = '#222222';
   ctx.font = 'bold 17px serif';
   ctx.textAlign = 'center';
-  ctx.fillText(title, x + w/2, y + 32);
+  ctx.fillText(title, x + w/2, y + 34);
 
   if (!data) {
-    ctx.fillStyle = '#606060';
+    ctx.fillStyle = '#aaaaaa';
     ctx.font = '14px monospace';
     ctx.fillText('No data recorded', x + w/2, y + h/2);
     return;
@@ -1673,34 +1771,35 @@ function drawSessionBlock(ctx, x, y, w, h, title, data, total, accentColor, _unu
   const absent = total - present;
   const rate = total > 0 ? Math.round(present/total*100) : 0;
 
-  // Big number
+  // Big number — bold dark
   ctx.fillStyle = accentColor;
-  ctx.font = 'bold 72px serif';
+  ctx.font = 'bold 76px serif';
   ctx.textAlign = 'center';
-  ctx.fillText(String(present), x + w/2, y + 108);
+  ctx.fillText(String(present), x + w/2, y + 112);
 
-  ctx.fillStyle = '#a09070';
-  ctx.font = '14px monospace';
-  ctx.fillText(`present out of ${total}`, x + w/2, y + 130);
+  ctx.fillStyle = '#555555';
+  ctx.font = 'bold 14px monospace';
+  ctx.fillText(`present out of ${total}`, x + w/2, y + 135);
 
-  // Mini bar
-  const barX = x+20, barY = y+148, barW = w-40, barH = 10;
-  ctx.fillStyle = 'rgba(255,255,255,0.1)';
-  roundRect(ctx, barX, barY, barW, barH, 5, true, false);
+  // Progress bar track
+  const barX = x+20, barY = y+152, barW = w-40, barH = 12;
+  ctx.fillStyle = '#dddddd';
+  roundRect(ctx, barX, barY, barW, barH, 6, true, false);
   if (rate > 0) {
     ctx.fillStyle = accentColor;
-    roundRect(ctx, barX, barY, barW*(rate/100), barH, 5, true, false);
+    roundRect(ctx, barX, barY, barW*(rate/100), barH, 6, true, false);
   }
 
-  // Rate + absent
+  // Rate + absent — bold
   ctx.fillStyle = accentColor;
-  ctx.font = 'bold 18px monospace';
+  ctx.font = 'bold 20px monospace';
   ctx.textAlign = 'left';
-  ctx.fillText(`${rate}%`, x+20, y+190);
+  ctx.fillText(`${rate}%`, x+20, y+198);
 
-  ctx.fillStyle = '#e05050';
+  ctx.fillStyle = '#cc3333';
+  ctx.font = 'bold 20px monospace';
   ctx.textAlign = 'right';
-  ctx.fillText(`${absent} absent`, x+w-20, y+190);
+  ctx.fillText(`${absent} absent`, x+w-20, y+198);
 }
 
 // ── Share / Download ──
@@ -1786,16 +1885,283 @@ function updateReportDateLabel() {
   if (el) el.textContent = dayName + ', ' + d;
 }
 
+// ══════════════════════════════════════════════
+//  MALAMS
+// ══════════════════════════════════════════════
+let malamDraft = {};
+let monthlyDataURL = null;
+
+function addMalam() {
+  const name = document.getElementById('malamName').value.trim();
+  const role = document.getElementById('malamRole').value.trim();
+  if (!name) { toast('Enter a name', 'r'); return; }
+  const id = 'M' + Date.now();
+  S.malams.push({ id, name, role });
+  save();
+  document.getElementById('malamName').value = '';
+  document.getElementById('malamRole').value = '';
+  renderMalamRoster(); renderMalamAttGrid();
+  toast(`Added ${name}`, 'g');
+}
+
+function removeMalam(id) {
+  const m = S.malams.find(m => m.id === id);
+  if (!confirm(`Remove ${m?.name}?`)) return;
+  S.malams = S.malams.filter(m => m.id !== id);
+  save(); renderMalamRoster(); renderMalamAttGrid();
+  toast('Removed', 'r');
+}
+
+function renderMalamRoster() {
+  const wrap = document.getElementById('malamRosterWrap');
+  if (!wrap) return;
+  if (!S.malams.length) {
+    wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:0.76rem">No malams added yet.</div>';
+    return;
+  }
+  wrap.innerHTML = `<table class="stu-table"><thead><tr>
+    <th>#</th><th>Name</th><th>Role</th><th></th>
+  </tr></thead><tbody>` +
+  S.malams.map((m,i) => `<tr>
+    <td style="color:var(--muted)">${i+1}</td>
+    <td style="font-weight:500;color:var(--gold)">${m.name}</td>
+    <td style="color:var(--muted)">${m.role||'—'}</td>
+    <td><button class="btn btn-red btn-sm" onclick="removeMalam('${m.id}')">✕</button></td>
+  </tr>`).join('') + '</tbody></table>';
+}
+
+function loadMalamDraft() {
+  const d = attDate || todayStr();
+  const saved = S.malamAttendance?.[d]?.[attSession];
+  malamDraft = {};
+  S.malams.forEach(m => { malamDraft[m.id] = saved?.present?.includes(m.id) || false; });
+}
+
+function renderMalamAttGrid() {
+  const grid = document.getElementById('malamAttGrid');
+  const lbl  = document.getElementById('malamAttLabel');
+  if (!grid) return;
+  if (lbl) {
+    const d = attDate || todayStr();
+    lbl.textContent = `${fmtDate(d)} · ${attSession==='morning'?'🌅 Morning':'🌆 Evening'}`;
+  }
+  if (!S.malams.length) {
+    grid.innerHTML = '<div style="color:var(--muted);font-size:0.74rem;padding:12px">No malams added yet.</div>';
+    return;
+  }
+  loadMalamDraft();
+  grid.innerHTML = S.malams.map(m => {
+    const p = malamDraft[m.id];
+    return `<div class="att-card ${p?'att-present':''}" onclick="toggleMalamAtt('${m.id}')">
+      <div class="att-cb">${p?'✓':''}</div>
+      <div class="att-info">
+        <div class="att-id ${p?'green':''}">${m.name}</div>
+        ${m.role?`<div class="att-nm">${m.role}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleMalamAtt(id) { malamDraft[id]=!malamDraft[id]; renderMalamAttGrid(); }
+function malamMarkAll(val) { S.malams.forEach(m=>{malamDraft[m.id]=val;}); renderMalamAttGrid(); }
+
+function saveMalamAtt() {
+  const d = attDate || todayStr();
+  const presentIds = S.malams.filter(m=>malamDraft[m.id]).map(m=>m.id);
+  if (!S.malamAttendance) S.malamAttendance = {};
+  if (!S.malamAttendance[d]) S.malamAttendance[d] = {};
+  S.malamAttendance[d][attSession] = { present: presentIds, savedAt: new Date().toISOString() };
+  save();
+  const msg = document.getElementById('malamSavedMsg');
+  if (msg) { msg.style.display='inline'; setTimeout(()=>{msg.style.display='none';},2500); }
+  toast(`Malam attendance saved — ${presentIds.length} present`,'g');
+}
+
+// ── Monthly Report Canvas ──
+function generateMonthlyReport() {
+  if (!S.malams.length) { toast('No malams added yet','r'); return; }
+  const month = parseInt(document.getElementById('monthlyMonth').value);
+  const year  = parseInt(document.getElementById('monthlyYear').value);
+  const mn = ['January','February','March','April','May','June','July','August','September','October','November','December'][month];
+
+  // All Sat–Wed dates in the month
+  const days = [];
+  const tmp = new Date(year, month, 1);
+  while (tmp.getMonth()===month) {
+    if ([6,0,1,2,3].includes(tmp.getDay())) days.push(tmp.toISOString().slice(0,10));
+    tmp.setDate(tmp.getDate()+1);
+  }
+  const totalSessions = days.length * 2;
+
+  const stats = S.malams.map(m => {
+    let mp=0, ep=0;
+    days.forEach(ds => {
+      if (S.malamAttendance?.[ds]?.morning?.present?.includes(m.id)) mp++;
+      if (S.malamAttendance?.[ds]?.evening?.present?.includes(m.id)) ep++;
+    });
+    const total = mp+ep;
+    const pct = totalSessions>0 ? Math.round(total/totalSessions*100) : 0;
+    return {...m, mp, ep, total, pct, totalDays:days.length};
+  });
+
+  const W = 800;
+  const rowH = 58;
+  const headerH = 290;
+  const footerH = 58;
+  const H = headerH + S.malams.length*rowH + footerH + 30;
+  const canvas = document.getElementById('reportCanvas');
+  canvas.width=W; canvas.height=H;
+  const ctx = canvas.getContext('2d');
+
+  // BG
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
+
+  // Header band
+  const hg=ctx.createLinearGradient(0,0,0,130);
+  hg.addColorStop(0,'#1a4a2e'); hg.addColorStop(1,'#1e5c38');
+  ctx.fillStyle=hg; roundRect(ctx,0,0,W,130,0,true,false);
+  ctx.fillStyle='#c8a030'; ctx.fillRect(0,126,W,4);
+
+  // Border
+  ctx.strokeStyle='#c8a03060'; ctx.lineWidth=2;
+  roundRect(ctx,10,10,W-20,H-20,12,false,true);
+
+  // Bismillah
+  ctx.fillStyle='#f0d060'; ctx.font='bold 22px serif'; ctx.textAlign='center';
+  ctx.fillText('بسم الله الرحمن الرحيم',W/2,50);
+
+  // Title
+  ctx.fillStyle='#ffffff'; ctx.font='bold 28px serif';
+  ctx.fillText('Monthly Staff Attendance Report',W/2,90);
+
+  // Month
+  ctx.fillStyle='#111111'; ctx.font='bold 30px serif'; ctx.textAlign='center';
+  ctx.fillText(`${mn} ${year}`,W/2,172);
+  ctx.fillStyle='#1a6a3a'; ctx.font='bold 16px serif';
+  ctx.fillText(`${days.length} school days · ${totalSessions} total sessions`,W/2,200);
+  ctx.fillStyle='#888888'; ctx.font='15px serif';
+  ctx.fillText(fmtHijriFromFields(),W/2,224);
+
+  drawDivider(ctx,W,245,'#ddccaa');
+
+  // Column headers
+  const nameX=60, mpX=410, epX=530, totX=640, pctX=730;
+  ctx.fillStyle='#1a4a2e'; ctx.font='bold 12px monospace'; ctx.textAlign='left';
+  ctx.fillText('MALAM / TEACHER',nameX,272);
+  ctx.textAlign='center';
+  ctx.fillStyle='#c07000'; ctx.fillText('MORNING',mpX,272);
+  ctx.fillStyle='#1a5a9a'; ctx.fillText('EVENING',epX,272);
+  ctx.fillStyle='#333333'; ctx.fillText('TOTAL',totX,272);
+  ctx.fillStyle='#1a4a2e'; ctx.fillText('RATE',pctX,272);
+  ctx.fillStyle='#c8a030'; ctx.fillRect(44,278,W-88,2);
+
+  stats.forEach((m,i)=>{
+    const y=headerH+i*rowH;
+    ctx.fillStyle=i%2===0?'#f8f8f8':'#ffffff';
+    ctx.fillRect(44,y,W-88,rowH);
+
+    ctx.fillStyle='#111111'; ctx.font='bold 16px serif'; ctx.textAlign='left';
+    ctx.fillText(m.name,nameX,y+22);
+    if (m.role) { ctx.fillStyle='#888888'; ctx.font='11px monospace'; ctx.fillText(m.role,nameX,y+38); }
+
+    ctx.font='bold 18px monospace'; ctx.textAlign='center';
+    ctx.fillStyle='#c07000'; ctx.fillText(`${m.mp}/${m.totalDays}`,mpX,y+32);
+    ctx.fillStyle='#1a5a9a'; ctx.fillText(`${m.ep}/${m.totalDays}`,epX,y+32);
+    ctx.fillStyle='#333333'; ctx.fillText(`${m.total}/${totalSessions}`,totX,y+32);
+
+    const pc=m.pct>=80?'#1a7a3a':m.pct>=60?'#c07000':'#cc3333';
+    ctx.fillStyle=pc; ctx.font='bold 20px monospace';
+    ctx.fillText(`${m.pct}%`,pctX,y+28);
+
+    const bx=pctX-28,by=y+34,bw=56,bh=6;
+    ctx.fillStyle='#dddddd'; roundRect(ctx,bx,by,bw,bh,3,true,false);
+    if (m.pct>0){ ctx.fillStyle=pc; roundRect(ctx,bx,by,bw*(m.pct/100),bh,3,true,false); }
+
+    ctx.fillStyle='#eeeeee'; ctx.fillRect(44,y+rowH-1,W-88,1);
+  });
+
+  // Footer
+  const footY=headerH+S.malams.length*rowH+14;
+  ctx.fillStyle='#1a4a2e'; ctx.fillRect(0,footY,W,footerH);
+  ctx.fillStyle='#c8a030'; ctx.fillRect(0,footY,W,2);
+  ctx.fillStyle='#a8c8b0'; ctx.font='13px monospace'; ctx.textAlign='center';
+  ctx.fillText(`Generated by FairPick · fairpick.netlify.app · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`,W/2,footY+34);
+
+  monthlyDataURL=canvas.toDataURL('image/png');
+  document.getElementById('monthlyImg').src=monthlyDataURL;
+  document.getElementById('monthlyPreview').style.display='block';
+  document.getElementById('shareMonthlyBtn').style.display='inline-flex';
+  document.getElementById('downloadMonthlyBtn').style.display='inline-flex';
+  toast(`Monthly report — ${mn} ${year}`,'gold');
+}
+
+function shareMonthlyWA() {
+  if (!monthlyDataURL) { toast('Generate first','r'); return; }
+  if (navigator.share&&navigator.canShare) {
+    fetch(monthlyDataURL).then(r=>r.blob()).then(blob=>{
+      const file=new File([blob],'monthly-report.png',{type:'image/png'});
+      if (navigator.canShare({files:[file]})) {
+        navigator.share({files:[file],title:'Monthly Attendance Report'}).catch(()=>dlMonthly());
+      } else dlMonthly();
+    });
+  } else dlMonthly();
+}
+function dlMonthly() { downloadMonthlyReport(); const m=parseInt(document.getElementById('monthlyMonth').value); const y=parseInt(document.getElementById('monthlyYear').value); const mn=['January','February','March','April','May','June','July','August','September','October','November','December'][m]; setTimeout(()=>window.open(`https://wa.me/?text=${encodeURIComponent('📅 *Monthly Staff Attendance Report*\n'+mn+' '+y+'\n\nFairPick · fairpick.netlify.app')}`, '_blank'),600); }
+function downloadMonthlyReport() {
+  if (!monthlyDataURL) { toast('Generate first','r'); return; }
+  const m=parseInt(document.getElementById('monthlyMonth').value);
+  const y=parseInt(document.getElementById('monthlyYear').value);
+  const a=document.createElement('a'); a.href=monthlyDataURL;
+  a.download=`malam-report-${y}-${String(m+1).padStart(2,'0')}.png`; a.click();
+  toast('Saved!','g');
+}
+
+// ── Draw malam table on daily report card ──
+function drawMalamTable(ctx, W, startY, d) {
+  if (!S.malams.length) return startY;
+  const morning = S.malamAttendance?.[d]?.morning;
+  const evening = S.malamAttendance?.[d]?.evening;
+
+  drawDivider(ctx,W,startY,'#ddccaa'); startY+=28;
+  ctx.fillStyle='#1a4a2e'; ctx.font='bold 20px serif'; ctx.textAlign='center';
+  ctx.fillText('MALAMS / TEACHERS',W/2,startY); startY+=20;
+
+  const nameX=60, mornX=490, evenX=640, rowH=46;
+  ctx.fillStyle='#555555'; ctx.font='bold 12px monospace'; ctx.textAlign='left';
+  ctx.fillText('NAME',nameX,startY+14);
+  ctx.textAlign='center';
+  ctx.fillStyle='#c07000'; ctx.fillText('MORNING',mornX,startY+14);
+  ctx.fillStyle='#1a5a9a'; ctx.fillText('EVENING',evenX,startY+14);
+  ctx.fillStyle='#888888'; ctx.fillRect(44,startY+18,W-88,1);
+  startY+=22;
+
+  S.malams.forEach((m,i)=>{
+    const y=startY+i*rowH;
+    ctx.fillStyle=i%2===0?'#f5f5f5':'#ffffff'; ctx.fillRect(44,y,W-88,rowH);
+    ctx.fillStyle='#111111'; ctx.font='bold 15px serif'; ctx.textAlign='left';
+    ctx.fillText(m.name,nameX,y+20);
+    if (m.role){ ctx.fillStyle='#888888'; ctx.font='11px monospace'; ctx.fillText(m.role,nameX,y+36); }
+    const mp=morning?.present?.includes(m.id);
+    ctx.font='bold 20px monospace'; ctx.textAlign='center';
+    ctx.fillStyle=mp?'#1a7a3a':'#cc3333'; ctx.fillText(mp?'✓':'✗',mornX,y+26);
+    const ep=evening?.present?.includes(m.id);
+    ctx.fillStyle=ep?'#1a7a3a':'#cc3333'; ctx.fillText(ep?'✓':'✗',evenX,y+26);
+    ctx.fillStyle='#eeeeee'; ctx.fillRect(44,y+rowH-1,W-88,1);
+  });
+  return startY+S.malams.length*rowH+16;
+}
+
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  const tabs=['draw','clean','attendance','students','history'];
+  const tabs=['draw','clean','attendance','malams','students','history'];
   document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
   if (name==='history') renderHistory();
   if (name==='students') renderStudentTable();
   if (name==='attendance') { renderAttGrid(); renderWeekStrip(); initHijriFields(); }
   if (name==='clean') renderEligList();
+  if (name==='malams') { renderMalamRoster(); renderMalamAttGrid(); document.getElementById('monthlyMonth').value=new Date().getMonth(); document.getElementById('monthlyYear').value=new Date().getFullYear(); }
 }
 
 // ══════════════════════════════════════════════
@@ -1829,6 +2195,8 @@ function renderAll() {
   renderEligList();
   renderStudentTable();
   renderHistory();
+  renderMalamRoster();
+  renderMalamAttGrid();
   const ec = document.getElementById('exportCount');
   if (ec) ec.textContent = S.students.length ? `${S.students.length} students ready to export` : '';
 }
