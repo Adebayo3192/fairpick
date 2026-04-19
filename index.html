@@ -1205,7 +1205,9 @@ function setSession(s) {
   document.getElementById('btnMorn').classList.toggle('active', s==='morning');
   document.getElementById('btnEven').classList.toggle('active', s==='evening');
   loadDraft();
+  loadMalamDraft();
   renderAttGrid();
+  renderMalamAttGrid();
   updateAttHeader();
 }
 
@@ -1213,7 +1215,7 @@ function goToday() {
   const t = todayStr();
   document.getElementById('attDate').value = t;
   attDate = t; wkOffset = 0;
-  loadDraft(); renderAttGrid(); updateAttHeader(); renderWeekStrip();
+  loadDraft(); loadMalamDraft(); renderAttGrid(); renderMalamAttGrid(); updateAttHeader(); renderWeekStrip();
 }
 
 function updateAttHeader() {
@@ -1368,7 +1370,7 @@ function loadRecToSidebar(ds, sess) {
 }
 
 document.getElementById('attDate').addEventListener('change', function() {
-  attDate = this.value; loadDraft(); renderAttGrid(); updateAttHeader(); updateReportDateLabel(); initHijriFields();
+  attDate = this.value; loadDraft(); loadMalamDraft(); renderAttGrid(); renderMalamAttGrid(); updateAttHeader(); updateReportDateLabel(); initHijriFields();
 });
 
 // ══════════════════════════════════════════════
@@ -1507,8 +1509,11 @@ function generateReport() {
   const gregorian = `${dayName}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
   const hijri = fmtHijriFromFields();
 
-  // Canvas setup — portrait, WhatsApp-friendly
-  const W = 800, H = 1000;
+  // Canvas setup — calculate full height BEFORE drawing (resizing canvas clears it)
+  const W = 800;
+  const malamRows = S.malams.length;
+  const malamExtraH = malamRows > 0 ? (60 + malamRows * 46 + 30) : 0;
+  const H = 1000 + malamExtraH;
   const canvas = document.getElementById('reportCanvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
@@ -1659,16 +1664,7 @@ function generateReport() {
   }
 
   // ── MALAM TABLE ──
-  // Expand canvas height dynamically if malams exist
   if (S.malams.length) {
-    const extraH = 60 + S.malams.length * 46 + 30;
-    const newH = Math.max(H, noteY + extraH + 80);
-    if (newH > H) {
-      canvas.height = newH;
-      // Redraw bg extension
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, H, W, newH - H);
-    }
     noteY = drawMalamTable(ctx, W, noteY + 24, d);
   }
 
@@ -1949,7 +1945,7 @@ function renderMalamAttGrid() {
     grid.innerHTML = '<div style="color:var(--muted);font-size:0.74rem;padding:12px">No malams added yet.</div>';
     return;
   }
-  loadMalamDraft();
+  // loadMalamDraft is called only on tab switch/session change, NOT here (would reset draft)
   grid.innerHTML = S.malams.map(m => {
     const p = malamDraft[m.id];
     return `<div class="att-card ${p?'att-present':''}" onclick="toggleMalamAtt('${m.id}')">
@@ -1962,7 +1958,22 @@ function renderMalamAttGrid() {
   }).join('');
 }
 
-function toggleMalamAtt(id) { malamDraft[id]=!malamDraft[id]; renderMalamAttGrid(); }
+function toggleMalamAtt(id) {
+  malamDraft[id] = !malamDraft[id];
+  // Re-render just the grid without resetting draft
+  const grid = document.getElementById('malamAttGrid');
+  if (!grid) return;
+  grid.innerHTML = S.malams.map(m => {
+    const p = malamDraft[m.id];
+    return `<div class="att-card ${p?'att-present':''}" onclick="toggleMalamAtt('${m.id}')">
+      <div class="att-cb">${p?'\u2713':''}</div>
+      <div class="att-info">
+        <div class="att-id ${p?'green':''}">${m.name}</div>
+        ${m.role?`<div class="att-nm">${m.role}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
 function malamMarkAll(val) { S.malams.forEach(m=>{malamDraft[m.id]=val;}); renderMalamAttGrid(); }
 
 function saveMalamAtt() {
@@ -2161,7 +2172,7 @@ function switchTab(name) {
   if (name==='students') renderStudentTable();
   if (name==='attendance') { renderAttGrid(); renderWeekStrip(); initHijriFields(); }
   if (name==='clean') renderEligList();
-  if (name==='malams') { renderMalamRoster(); renderMalamAttGrid(); document.getElementById('monthlyMonth').value=new Date().getMonth(); document.getElementById('monthlyYear').value=new Date().getFullYear(); }
+  if (name==='malams') { renderMalamRoster(); loadMalamDraft(); renderMalamAttGrid(); document.getElementById('monthlyMonth').value=new Date().getMonth(); document.getElementById('monthlyYear').value=new Date().getFullYear(); }
 }
 
 // ══════════════════════════════════════════════
