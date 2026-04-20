@@ -677,9 +677,17 @@ select option{background:var(--surface2)}
         Marking for: <b style="color:var(--text)" id="malamAttLabel">—</b>
         <span style="margin-left:10px;font-size:0.68rem;color:var(--muted)">(change date/session in the 🗓 Attendance tab)</span>
       </div>
+
       <div class="att-grid" id="malamAttGrid"></div>
+
+      <!-- Single note for the session -->
+      <div style="margin-top:14px">
+        <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.08em">📝 Session Notes</label>
+        <textarea id="malamSessionNote" placeholder="e.g. Malam Abdullahi absent — communicated via WhatsApp. Malam Umar arrived late due to family reason." style="min-height:72px;font-size:0.78rem;line-height:1.6"></textarea>
+      </div>
+
       <div class="row" style="margin-top:10px">
-        <button class="btn btn-green btn-sm" onclick="saveMalamAtt()">💾 Save Malam Attendance</button>
+        <button class="btn btn-green btn-sm" onclick="saveMalamAtt()">💾 Save</button>
         <button class="btn btn-ghost btn-sm" onclick="malamMarkAll(true)">✓ All Present</button>
         <button class="btn btn-ghost btn-sm" onclick="malamMarkAll(false)">✗ All Absent</button>
         <span id="malamSavedMsg" style="font-size:0.68rem;color:var(--green);display:none">✓ Saved</span>
@@ -1512,7 +1520,8 @@ function generateReport() {
   // Canvas setup — calculate full height BEFORE drawing (resizing canvas clears it)
   const W = 800;
   const malamRows = S.malams.length;
-  const malamExtraH = malamRows > 0 ? (60 + malamRows * 46 + 30) : 0;
+  const malamNoteLines = ((S.malamAttendance?.[d]?.morning?.note ? 1 : 0) + (S.malamAttendance?.[d]?.evening?.note ? 1 : 0));
+  const malamExtraH = malamRows > 0 ? (60 + malamRows * 46 + malamNoteLines * 50 + 40) : 0;
   const H = 1000 + malamExtraH;
   const canvas = document.getElementById('reportCanvas');
   canvas.width = W; canvas.height = H;
@@ -1931,6 +1940,9 @@ function loadMalamDraft() {
   const saved = S.malamAttendance?.[d]?.[attSession];
   malamDraft = {};
   S.malams.forEach(m => { malamDraft[m.id] = saved?.present?.includes(m.id) || false; });
+  // Load session note
+  const noteEl = document.getElementById('malamSessionNote');
+  if (noteEl) noteEl.value = saved?.note || '';
 }
 
 function renderMalamAttGrid() {
@@ -1979,9 +1991,10 @@ function malamMarkAll(val) { S.malams.forEach(m=>{malamDraft[m.id]=val;}); rende
 function saveMalamAtt() {
   const d = attDate || todayStr();
   const presentIds = S.malams.filter(m=>malamDraft[m.id]).map(m=>m.id);
+  const note = (document.getElementById('malamSessionNote')?.value || '').trim();
   if (!S.malamAttendance) S.malamAttendance = {};
   if (!S.malamAttendance[d]) S.malamAttendance[d] = {};
-  S.malamAttendance[d][attSession] = { present: presentIds, savedAt: new Date().toISOString() };
+  S.malamAttendance[d][attSession] = { present: presentIds, note, savedAt: new Date().toISOString() };
   save();
   const msg = document.getElementById('malamSavedMsg');
   if (msg) { msg.style.display='inline'; setTimeout(()=>{msg.style.display='none';},2500); }
@@ -2159,7 +2172,45 @@ function drawMalamTable(ctx, W, startY, d) {
     ctx.fillStyle=ep?'#1a7a3a':'#cc3333'; ctx.fillText(ep?'✓':'✗',evenX,y+26);
     ctx.fillStyle='#eeeeee'; ctx.fillRect(44,y+rowH-1,W-88,1);
   });
-  return startY+S.malams.length*rowH+16;
+
+  startY += S.malams.length * rowH + 14;
+
+  // ── Session notes (morning then evening) ──
+  const notes = [];
+  if (morning?.note) notes.push({ label: '🌅 Morning', text: morning.note });
+  if (evening?.note) notes.push({ label: '🌆 Evening', text: evening.note });
+
+  if (notes.length) {
+    // Note box background
+    ctx.fillStyle='#fffbf0';
+    roundRect(ctx, 44, startY, W-88, 20 + notes.length * 40, 6, true, false);
+    ctx.strokeStyle='#f0d080'; ctx.lineWidth=1;
+    roundRect(ctx, 44, startY, W-88, 20 + notes.length * 40, 6, false, true);
+
+    startY += 14;
+    notes.forEach(n => {
+      // Label
+      ctx.fillStyle='#c07000'; ctx.font='bold 13px monospace'; ctx.textAlign='left';
+      ctx.fillText(n.label + ' Notes:', 60, startY);
+      // Note text — wrap long text
+      ctx.fillStyle='#333333'; ctx.font='14px serif';
+      const maxW = W - 130;
+      const words = n.text.split(' ');
+      let line = '', lineY = startY;
+      words.forEach(word => {
+        const test = line + (line ? ' ' : '') + word;
+        if (ctx.measureText(test).width > maxW && line) {
+          ctx.fillText(line, 60, lineY + 18);
+          line = word; lineY += 18;
+        } else { line = test; }
+      });
+      ctx.fillText(line, 60, lineY + 18);
+      startY += 40;
+    });
+    startY += 12;
+  }
+
+  return startY;
 }
 
 function switchTab(name) {
