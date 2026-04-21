@@ -308,6 +308,9 @@ select option{background:var(--surface2)}
 .sb-quick{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
 .srch{width:100%;font-size:0.7rem;padding:5px 8px;margin-bottom:6px}
 
+.day-check{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border:1px solid var(--border);border-radius:5px;font-size:0.72rem;cursor:pointer;user-select:none;transition:all 0.12s;background:var(--surface2);color:var(--muted)}
+.day-check:has(input:checked){border-color:var(--green);background:rgba(76,175,130,0.12);color:var(--green)}
+.day-check input{width:12px;height:12px;accent-color:var(--green);cursor:pointer}
 #toast{position:fixed;bottom:18px;right:18px;padding:9px 15px;background:var(--surface);border:1px solid var(--border);border-radius:7px;font-size:0.74rem;z-index:999;transform:translateY(50px);opacity:0;transition:all 0.22s;pointer-events:none;max-width:280px}
 #toast.show{transform:translateY(0);opacity:1}
 #toast.g{border-color:var(--green);color:var(--green)}
@@ -650,7 +653,7 @@ select option{background:var(--surface2)}
 
     <div class="card">
       <div class="card-title">Add Malam / Teacher</div>
-      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
         <div class="fi" style="flex:1;min-width:140px">
           <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em">Full Name</label>
           <input type="text" id="malamName" placeholder="e.g. Malam Abdullahi" maxlength="60"/>
@@ -659,8 +662,29 @@ select option{background:var(--surface2)}
           <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em">Role (opt)</label>
           <input type="text" id="malamRole" placeholder="e.g. Head Teacher" maxlength="40" style="max-width:160px"/>
         </div>
-        <button class="btn btn-gold" onclick="addMalam()">+ Add</button>
       </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
+          <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:0.08em">Scheduled Days</label>
+          <div style="display:flex;gap:5px;flex-wrap:wrap" id="newMalamDays">
+            <label class="day-check"><input type="checkbox" value="6" checked/> Sat</label>
+            <label class="day-check"><input type="checkbox" value="0" checked/> Sun</label>
+            <label class="day-check"><input type="checkbox" value="1" checked/> Mon</label>
+            <label class="day-check"><input type="checkbox" value="2" checked/> Tue</label>
+            <label class="day-check"><input type="checkbox" value="3" checked/> Wed</label>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:0.08em">Scheduled Sessions</label>
+          <div style="display:flex;gap:5px;flex-wrap:wrap" id="newMalamSessions">
+            <label class="day-check"><input type="checkbox" value="morning" checked/> 🌅 Morning</label>
+            <label class="day-check"><input type="checkbox" value="evening" checked/> 🌆 Evening</label>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:0.65rem;color:var(--muted);margin-bottom:10px">Only selected days & sessions count toward their attendance percentage.</div>
+      <button class="btn btn-gold" onclick="addMalam()">+ Add Malam</button>
     </div>
 
     <div class="card">
@@ -1519,7 +1543,9 @@ function generateReport() {
 
   // Canvas setup — calculate full height BEFORE drawing (resizing canvas clears it)
   const W = 800;
-  const malamRows = S.malams.length;
+  const dow = parseDt(d).getDay();
+  const scheduledToday = S.malams.filter(m => (m.days||[6,0,1,2,3]).includes(dow));
+  const malamRows = scheduledToday.length;
   const malamNoteLines = ((S.malamAttendance?.[d]?.morning?.note ? 1 : 0) + (S.malamAttendance?.[d]?.evening?.note ? 1 : 0));
   const malamExtraH = malamRows > 0 ? (60 + malamRows * 46 + malamNoteLines * 50 + 40) : 0;
   const H = 1000 + malamExtraH;
@@ -1900,11 +1926,17 @@ function addMalam() {
   const name = document.getElementById('malamName').value.trim();
   const role = document.getElementById('malamRole').value.trim();
   if (!name) { toast('Enter a name', 'r'); return; }
+  const days = [...document.querySelectorAll('#newMalamDays input:checked')].map(cb => parseInt(cb.value));
+  const sessions = [...document.querySelectorAll('#newMalamSessions input:checked')].map(cb => cb.value);
+  if (!days.length) { toast('Select at least one day', 'r'); return; }
+  if (!sessions.length) { toast('Select at least one session', 'r'); return; }
   const id = 'M' + Date.now();
-  S.malams.push({ id, name, role });
+  S.malams.push({ id, name, role, days, sessions }); // sessions = ['morning','evening'] or one of them
   save();
   document.getElementById('malamName').value = '';
   document.getElementById('malamRole').value = '';
+  document.querySelectorAll('#newMalamDays input').forEach(cb => { cb.checked = true; });
+  document.querySelectorAll('#newMalamSessions input').forEach(cb => { cb.checked = true; });
   renderMalamRoster(); renderMalamAttGrid();
   toast(`Added ${name}`, 'g');
 }
@@ -1917,6 +1949,24 @@ function removeMalam(id) {
   toast('Removed', 'r');
 }
 
+function updateMalamDays(id, dayVal, checked) {
+  const m = S.malams.find(m => m.id === id);
+  if (!m) return;
+  if (!m.days) m.days = [6,0,1,2,3];
+  if (checked) { if (!m.days.includes(dayVal)) m.days.push(dayVal); }
+  else { m.days = m.days.filter(d => d !== dayVal); }
+  save(); renderMalamRoster();
+}
+
+function updateMalamSessions(id, sessVal, checked) {
+  const m = S.malams.find(m => m.id === id);
+  if (!m) return;
+  if (!m.sessions) m.sessions = ['morning','evening'];
+  if (checked) { if (!m.sessions.includes(sessVal)) m.sessions.push(sessVal); }
+  else { m.sessions = m.sessions.filter(s => s !== sessVal); }
+  save(); renderMalamRoster();
+}
+
 function renderMalamRoster() {
   const wrap = document.getElementById('malamRosterWrap');
   if (!wrap) return;
@@ -1924,15 +1974,35 @@ function renderMalamRoster() {
     wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:0.76rem">No malams added yet.</div>';
     return;
   }
+  const DAY_LABELS = [{v:6,l:'Sat'},{v:0,l:'Sun'},{v:1,l:'Mon'},{v:2,l:'Tue'},{v:3,l:'Wed'}];
+  const SESS_LABELS = [{v:'morning',l:'🌅 Morn'},{v:'evening',l:'🌆 Even'}];
   wrap.innerHTML = `<table class="stu-table"><thead><tr>
-    <th>#</th><th>Name</th><th>Role</th><th></th>
+    <th>#</th><th>Name</th><th>Role</th><th>Days</th><th>Sessions</th><th></th>
   </tr></thead><tbody>` +
-  S.malams.map((m,i) => `<tr>
-    <td style="color:var(--muted)">${i+1}</td>
-    <td style="font-weight:500;color:var(--gold)">${m.name}</td>
-    <td style="color:var(--muted)">${m.role||'—'}</td>
-    <td><button class="btn btn-red btn-sm" onclick="removeMalam('${m.id}')">✕</button></td>
-  </tr>`).join('') + '</tbody></table>';
+  S.malams.map((m,i) => {
+    const days = m.days || [6,0,1,2,3];
+    const sessions = m.sessions || ['morning','evening'];
+    const dayPills = DAY_LABELS.map(d => {
+      const on = days.includes(d.v);
+      return `<label class="day-check" style="padding:3px 7px;font-size:0.63rem">
+        <input type="checkbox" ${on?'checked':''} onchange="updateMalamDays('${m.id}',${d.v},this.checked)"/> ${d.l}
+      </label>`;
+    }).join('');
+    const sessPills = SESS_LABELS.map(s => {
+      const on = sessions.includes(s.v);
+      return `<label class="day-check" style="padding:3px 7px;font-size:0.63rem">
+        <input type="checkbox" ${on?'checked':''} onchange="updateMalamSessions('${m.id}','${s.v}',this.checked)"/> ${s.l}
+      </label>`;
+    }).join('');
+    return `<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td style="font-weight:500;color:var(--gold)">${m.name}</td>
+      <td style="color:var(--muted)">${m.role||'—'}</td>
+      <td><div style="display:flex;gap:3px;flex-wrap:wrap">${dayPills}</div></td>
+      <td><div style="display:flex;gap:3px;flex-wrap:wrap">${sessPills}</div></td>
+      <td><button class="btn btn-red btn-sm" onclick="removeMalam('${m.id}')">✕</button></td>
+    </tr>`;
+  }).join('') + '</tbody></table>';
 }
 
 function loadMalamDraft() {
@@ -1945,20 +2015,20 @@ function loadMalamDraft() {
   if (noteEl) noteEl.value = saved?.note || '';
 }
 
-function renderMalamAttGrid() {
-  const grid = document.getElementById('malamAttGrid');
-  const lbl  = document.getElementById('malamAttLabel');
-  if (!grid) return;
-  if (lbl) {
-    const d = attDate || todayStr();
-    lbl.textContent = `${fmtDate(d)} · ${attSession==='morning'?'🌅 Morning':'🌆 Evening'}`;
-  }
-  if (!S.malams.length) {
-    grid.innerHTML = '<div style="color:var(--muted);font-size:0.74rem;padding:12px">No malams added yet.</div>';
-    return;
-  }
-  // loadMalamDraft is called only on tab switch/session change, NOT here (would reset draft)
-  grid.innerHTML = S.malams.map(m => {
+function getMalamScheduledForDate(d, sess) {
+  // Returns only malams scheduled for this day AND this session
+  const dow = parseDt(d).getDay();
+  const session = sess || attSession;
+  return S.malams.filter(m => {
+    const days = m.days || [6,0,1,2,3];
+    const sessions = m.sessions || ['morning','evening'];
+    return days.includes(dow) && sessions.includes(session);
+  });
+}
+
+function buildMalamGrid(scheduledMalams) {
+  if (!scheduledMalams.length) return '<div style="color:var(--muted);font-size:0.74rem;padding:12px">No malams scheduled for this day.</div>';
+  return scheduledMalams.map(m => {
     const p = malamDraft[m.id];
     return `<div class="att-card ${p?'att-present':''}" onclick="toggleMalamAtt('${m.id}')">
       <div class="att-cb">${p?'✓':''}</div>
@@ -1970,23 +2040,36 @@ function renderMalamAttGrid() {
   }).join('');
 }
 
+function renderMalamAttGrid() {
+  const grid = document.getElementById('malamAttGrid');
+  const lbl  = document.getElementById('malamAttLabel');
+  if (!grid) return;
+  const d = attDate || todayStr();
+  if (lbl) lbl.textContent = `${fmtDate(d)} · ${attSession==='morning'?'🌅 Morning':'🌆 Evening'}`;
+  if (!S.malams.length) {
+    grid.innerHTML = '<div style="color:var(--muted);font-size:0.74rem;padding:12px">No malams added yet.</div>';
+    return;
+  }
+  const scheduled = getMalamScheduledForDate(d, attSession);
+  // loadMalamDraft is called only on tab switch/session change, NOT here (would reset draft)
+  grid.innerHTML = buildMalamGrid(scheduled);
+}
+
 function toggleMalamAtt(id) {
   malamDraft[id] = !malamDraft[id];
-  // Re-render just the grid without resetting draft
   const grid = document.getElementById('malamAttGrid');
   if (!grid) return;
-  grid.innerHTML = S.malams.map(m => {
-    const p = malamDraft[m.id];
-    return `<div class="att-card ${p?'att-present':''}" onclick="toggleMalamAtt('${m.id}')">
-      <div class="att-cb">${p?'\u2713':''}</div>
-      <div class="att-info">
-        <div class="att-id ${p?'green':''}">${m.name}</div>
-        ${m.role?`<div class="att-nm">${m.role}</div>`:''}
-      </div>
-    </div>`;
-  }).join('');
+  const d = attDate || todayStr();
+  const scheduled = getMalamScheduledForDate(d, attSession);
+  grid.innerHTML = buildMalamGrid(scheduled);
 }
-function malamMarkAll(val) { S.malams.forEach(m=>{malamDraft[m.id]=val;}); renderMalamAttGrid(); }
+
+function malamMarkAll(val) {
+  const d = attDate || todayStr();
+  const scheduled = getMalamScheduledForDate(d, attSession);
+  scheduled.forEach(m => { malamDraft[m.id] = val; });
+  renderMalamAttGrid();
+}
 
 function saveMalamAtt() {
   const d = attDate || todayStr();
@@ -2015,17 +2098,24 @@ function generateMonthlyReport() {
     if ([6,0,1,2,3].includes(tmp.getDay())) days.push(tmp.toISOString().slice(0,10));
     tmp.setDate(tmp.getDate()+1);
   }
-  const totalSessions = days.length * 2;
+  const totalSessions = days.length * 2; // school-wide total (for display)
 
   const stats = S.malams.map(m => {
+    const mDays = m.days || [6,0,1,2,3]; // this malam's scheduled days of week
+    // Filter the school days to only those this malam is scheduled for
+    const mSessions = m.sessions || ['morning','evening'];
+    const hasMorn = mSessions.includes('morning');
+    const hasEven = mSessions.includes('evening');
+    const scheduledDays = days.filter(ds => mDays.includes(parseDt(ds).getDay()));
+    const myTotalSessions = scheduledDays.length * (hasMorn ? 1 : 0) + scheduledDays.length * (hasEven ? 1 : 0);
     let mp=0, ep=0;
-    days.forEach(ds => {
-      if (S.malamAttendance?.[ds]?.morning?.present?.includes(m.id)) mp++;
-      if (S.malamAttendance?.[ds]?.evening?.present?.includes(m.id)) ep++;
+    scheduledDays.forEach(ds => {
+      if (hasMorn && S.malamAttendance?.[ds]?.morning?.present?.includes(m.id)) mp++;
+      if (hasEven && S.malamAttendance?.[ds]?.evening?.present?.includes(m.id)) ep++;
     });
     const total = mp+ep;
-    const pct = totalSessions>0 ? Math.round(total/totalSessions*100) : 0;
-    return {...m, mp, ep, total, pct, totalDays:days.length};
+    const pct = myTotalSessions>0 ? Math.round(total/myTotalSessions*100) : 0;
+    return {...m, mp, ep, total, pct, totalDays:scheduledDays.length, myTotalSessions, hasMorn, hasEven};
   });
 
   const W = 800;
@@ -2089,9 +2179,9 @@ function generateMonthlyReport() {
     if (m.role) { ctx.fillStyle='#888888'; ctx.font='11px monospace'; ctx.fillText(m.role,nameX,y+38); }
 
     ctx.font='bold 18px monospace'; ctx.textAlign='center';
-    ctx.fillStyle='#c07000'; ctx.fillText(`${m.mp}/${m.totalDays}`,mpX,y+32);
-    ctx.fillStyle='#1a5a9a'; ctx.fillText(`${m.ep}/${m.totalDays}`,epX,y+32);
-    ctx.fillStyle='#333333'; ctx.fillText(`${m.total}/${totalSessions}`,totX,y+32);
+    ctx.fillStyle='#c07000'; ctx.fillText(m.hasMorn ? `${m.mp}/${m.totalDays}` : '—', mpX, y+32);
+    ctx.fillStyle='#1a5a9a'; ctx.fillText(m.hasEven ? `${m.ep}/${m.totalDays}` : '—', epX, y+32);
+    ctx.fillStyle='#333333'; ctx.fillText(`${m.total}/${m.myTotalSessions}`,totX,y+32);
 
     const pc=m.pct>=80?'#1a7a3a':m.pct>=60?'#c07000':'#cc3333';
     ctx.fillStyle=pc; ctx.font='bold 20px monospace';
@@ -2145,6 +2235,14 @@ function drawMalamTable(ctx, W, startY, d) {
   if (!S.malams.length) return startY;
   const morning = S.malamAttendance?.[d]?.morning;
   const evening = S.malamAttendance?.[d]?.evening;
+  // Only show malams scheduled for morning OR evening on this day
+  const dowT = parseDt(d).getDay();
+  const scheduled = S.malams.filter(m => {
+    const mDays = m.days||[6,0,1,2,3];
+    const mSess = m.sessions||['morning','evening'];
+    return mDays.includes(dowT) && (mSess.includes('morning') || mSess.includes('evening'));
+  });
+  if (!scheduled.length) return startY;
 
   drawDivider(ctx,W,startY,'#ddccaa'); startY+=28;
   ctx.fillStyle='#1a4a2e'; ctx.font='bold 20px serif'; ctx.textAlign='center';
@@ -2159,21 +2257,33 @@ function drawMalamTable(ctx, W, startY, d) {
   ctx.fillStyle='#888888'; ctx.fillRect(44,startY+18,W-88,1);
   startY+=22;
 
-  S.malams.forEach((m,i)=>{
+  scheduled.forEach((m,i)=>{
     const y=startY+i*rowH;
     ctx.fillStyle=i%2===0?'#f5f5f5':'#ffffff'; ctx.fillRect(44,y,W-88,rowH);
     ctx.fillStyle='#111111'; ctx.font='bold 15px serif'; ctx.textAlign='left';
     ctx.fillText(m.name,nameX,y+20);
     if (m.role){ ctx.fillStyle='#888888'; ctx.font='11px monospace'; ctx.fillText(m.role,nameX,y+36); }
-    const mp=morning?.present?.includes(m.id);
+    const mSessions = m.sessions||['morning','evening'];
     ctx.font='bold 20px monospace'; ctx.textAlign='center';
-    ctx.fillStyle=mp?'#1a7a3a':'#cc3333'; ctx.fillText(mp?'✓':'✗',mornX,y+26);
-    const ep=evening?.present?.includes(m.id);
-    ctx.fillStyle=ep?'#1a7a3a':'#cc3333'; ctx.fillText(ep?'✓':'✗',evenX,y+26);
+    // Morning column
+    if (mSessions.includes('morning')) {
+      const mp=morning?.present?.includes(m.id);
+      ctx.fillStyle=mp?'#1a7a3a':'#cc3333'; ctx.fillText(mp?'✓':'✗',mornX,y+26);
+    } else {
+      ctx.fillStyle='#cccccc'; ctx.font='16px monospace'; ctx.fillText('—',mornX,y+26);
+    }
+    // Evening column
+    ctx.font='bold 20px monospace';
+    if (mSessions.includes('evening')) {
+      const ep=evening?.present?.includes(m.id);
+      ctx.fillStyle=ep?'#1a7a3a':'#cc3333'; ctx.fillText(ep?'✓':'✗',evenX,y+26);
+    } else {
+      ctx.fillStyle='#cccccc'; ctx.font='16px monospace'; ctx.fillText('—',evenX,y+26);
+    }
     ctx.fillStyle='#eeeeee'; ctx.fillRect(44,y+rowH-1,W-88,1);
   });
 
-  startY += S.malams.length * rowH + 14;
+  startY += scheduled.length * rowH + 14;
 
   // ── Session notes (morning then evening) ──
   const notes = [];
