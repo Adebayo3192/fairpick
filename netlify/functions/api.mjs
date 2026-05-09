@@ -144,6 +144,47 @@ export default async function handler(req) {
       return jsonRes({ok:true});
     }
 
+    // ── BULK MIGRATE (single request) ──
+    if (action==='migrate' && method==='POST') {
+      const { students=[], malams=[], attendance=[], malamAttendance=[], appState={} } = await req.json();
+      const c = await pool.connect();
+      try {
+        // Students
+        for (const s of students) {
+          await c.query(
+            'INSERT INTO students(id,name,type,draw_num,archived)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO UPDATE SET name=$2,type=$3,draw_num=$4,archived=$5',
+            [s.id, s.name||'', s.type||'boy', s.drawNum||null, s.archived||false]
+          );
+        }
+        // Malams
+        for (const m of malams) {
+          await c.query(
+            'INSERT INTO malams(id,name,role,days,sessions)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO UPDATE SET name=$2,role=$3,days=$4,sessions=$5',
+            [m.id, m.name, m.role||'', m.days||[6,0,1,2,3], m.sessions||['morning','evening']]
+          );
+        }
+        // Attendance
+        for (const a of attendance) {
+          await c.query(
+            'INSERT INTO attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3,$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3,note=$4',
+            [a.date, a.session, a.present, a.note||'']
+          );
+        }
+        // Malam attendance
+        for (const a of malamAttendance) {
+          await c.query(
+            'INSERT INTO malam_attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3,$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3,note=$4',
+            [a.date, a.session, a.present, a.note||'']
+          );
+        }
+        // App state
+        for (const [k,v] of Object.entries(appState)) {
+          await c.query('INSERT INTO app_state(key,value)VALUES($1,$2)ON CONFLICT(key)DO UPDATE SET value=EXCLUDED.value',[k,JSON.stringify(v)]);
+        }
+      } finally { c.release(); }
+      return jsonRes({ ok: true, students: students.length, malams: malams.length, attendance: attendance.length });
+    }
+
     return jsonRes({error:'Unknown action: '+action},404);
   } catch(err) {
     console.error('API error:',err);
