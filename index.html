@@ -2055,11 +2055,6 @@ function fallbackShareWA() {
 
 function buildWhatsAppText() {
   const d = attDate || todayStr();
-  const dateObj = parseDt(d);
-  const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dateObj.getDay()];
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const gregorian = `${dayName}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
-  const hijri = fmtHijriFromFields();
   const morning = S.attendance[d]?.morning;
   const evening = S.attendance[d]?.evening;
   const total    = S.students.length;
@@ -2067,24 +2062,52 @@ function buildWhatsAppText() {
   const inactive = total - active;
 
   let text = `🕌 *Daily Attendance Report*\n`;
-  text += `📅 ${gregorian}\n`;
-  text += `🗓 ${hijri}\n\n`;
+  text += `━━━━━━━━━━━━━━━━━━\n`;
+
+  // Students summary
   text += `👥 *Students*\n`;
-  text += `Total Enrolled: ${total}\n`;
-  text += `Active: ${active} · Inactive: ${inactive}\n\n`;
+  text += `Total: ${total} | Active: ${active} | Inactive: ${inactive}\n\n`;
+
+  // Morning
   if (morning) {
-    const rate = Math.round(morning.present.length/active*100);
-    text += `🌅 *Morning Session*\n`;
-    text += `✅ Present: ${morning.present.length}/${active} (${rate}%)\n`;
-    text += `❌ Absent: ${active - morning.present.length}\n\n`;
+    const pres = morning.present.length;
+    const abs  = active - pres;
+    text += `🌅 *Morning*\n`;
+    text += `✅ Present: ${pres}  ❌ Absent: ${abs}\n`;
+    if (morning.note) text += `📝 ${morning.note}\n`;
+    text += `\n`;
   }
+
+  // Evening
   if (evening) {
-    const rate = Math.round(evening.present.length/active*100);
-    text += `🌆 *Evening Session*\n`;
-    text += `✅ Present: ${evening.present.length}/${active} (${rate}%)\n`;
-    text += `❌ Absent: ${active - evening.present.length}\n`;
+    const pres = evening.present.length;
+    const abs  = active - pres;
+    text += `🌆 *Evening*\n`;
+    text += `✅ Present: ${pres}  ❌ Absent: ${abs}\n`;
+    if (evening.note) text += `📝 ${evening.note}\n`;
+    text += `\n`;
   }
-  text += `\n_Sent via FairPick · fairpick.netlify.app_`;
+
+  // Malams
+  const dow = parseDt(d).getDay();
+  const scheduledMalams = S.malams.filter(m => (m.days||[6,0,1,2,3]).includes(dow));
+  if (scheduledMalams.length) {
+    text += `👨‍🏫 *Malams*\n`;
+    scheduledMalams.forEach(m => {
+      const mSess = m.sessions || ['morning','evening'];
+      const mornTick = mSess.includes('morning')
+        ? (S.malamAttendance?.[d]?.morning?.present?.includes(m.id) ? '✅' : '❌') : '—';
+      const evenTick = mSess.includes('evening')
+        ? (S.malamAttendance?.[d]?.evening?.present?.includes(m.id) ? '✅' : '❌') : '—';
+      text += `${m.name}: 🌅${mornTick} 🌆${evenTick}\n`;
+    });
+    // Malam notes
+    const mn = S.malamAttendance?.[d];
+    if (mn?.morning?.note) text += `📝 Morning: ${mn.morning.note}\n`;
+    if (mn?.evening?.note) text += `📝 Evening: ${mn.evening.note}\n`;
+  }
+
+  text += `\n_FairPick · fairpick.netlify.app_`;
   return text;
 }
 
