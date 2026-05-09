@@ -574,7 +574,10 @@ select option{background:var(--surface2)}
     <div class="card">
       <div class="card-title">Add Student</div>
       <div class="add-form">
-        <div class="fi"><label>ID / Number</label><input type="text" id="newId" placeholder="e.g. 01" maxlength="20"/></div>
+        <div class="fi">
+          <label>ID <span id="nextIdHint" style="color:var(--gold);font-size:0.6rem"></span></label>
+          <input type="text" id="newId" placeholder="auto" maxlength="20"/>
+        </div>
         <div class="fi"><label>Full Name</label><input type="text" id="newName" placeholder="Name" maxlength="60"/></div>
         <div class="fi"><label>Type</label>
           <select id="newType">
@@ -583,7 +586,7 @@ select option{background:var(--surface2)}
             <option value="kid">Kid</option>
           </select>
         </div>
-        <div class="fi"><label>Draw # <span id="nextNumHint" style="color:var(--gold);font-size:0.6rem"></span></label><input type="number" id="newNum" placeholder="auto" min="1" style="width:70px"/></div>
+        <div class="fi"><label>Draw #</label><input type="number" id="newNum" placeholder="auto" min="1" style="width:70px"/></div>
         <div style="margin-top:18px"><button class="btn btn-gold" onclick="addStudent()">+ Add</button></div>
       </div>
     </div>
@@ -637,6 +640,9 @@ select option{background:var(--surface2)}
 
     <div class="card">
       <div class="card-title">Student Roster</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:12px">
+        To hide a student from attendance (e.g. they left), click <span style="color:var(--gold)">📦 Archive</span>. They'll be hidden but their history is kept. Scroll down to see archived students and restore them anytime.
+      </div>
       <div class="filter-row" id="filterRow">
         <div class="fchip active" data-f="all" onclick="setFilter('all')">All</div>
         <div class="fchip" data-f="boy" onclick="setFilter('boy')">Boys</div>
@@ -822,30 +828,43 @@ function setFilter(f) {
   renderStudentTable();
 }
 
+function getNextId() {
+  // Auto-calculate next student ID = max numeric ID + 1
+  const nums = S.students
+    .map(s => parseInt(s.id))
+    .filter(n => !isNaN(n));
+  return nums.length ? Math.max(...nums) + 1 : 1;
+}
+
 function getNextDrawNum() {
-  // Auto-calculate next draw number = max existing + 1
   const nums = S.students.map(s => s.drawNum).filter(Boolean);
   return nums.length ? Math.max(...nums) + 1 : 1;
 }
 
-function refreshNextNumHint() {
-  const hint = document.getElementById('nextNumHint');
-  const numInput = document.getElementById('newNum');
-  if (!hint || !numInput) return;
-  const next = getNextDrawNum();
+function refreshNextIdHint() {
+  const hint = document.getElementById('nextIdHint');
+  const idInput = document.getElementById('newId');
+  if (!hint || !idInput) return;
+  const next = getNextId();
   hint.textContent = `(next: ${next})`;
   // Auto-fill if empty
-  if (!numInput.value) numInput.value = next;
+  if (!idInput.value) idInput.value = next;
+}
+
+function refreshNextNumHint() {
+  // kept for compatibility — draw # field no longer auto-fills
+  const numInput = document.getElementById('newNum');
+  if (numInput && !numInput.value) numInput.value = getNextDrawNum();
 }
 
 function addStudent() {
-  const id = document.getElementById('newId').value.trim();
+  // Auto-assign ID if not entered
+  const enteredId = document.getElementById('newId').value.trim();
+  const id = enteredId || String(getNextId());
   const name = document.getElementById('newName').value.trim();
   const type = document.getElementById('newType').value;
-  // Auto-assign draw number if not entered
   const enteredNum = document.getElementById('newNum').value;
   const num = parseInt(enteredNum) || getNextDrawNum();
-  if (!id) { toast('Enter an ID', 'r'); return; }
   if (S.students.find(s => s.id === id)) { toast(`"${id}" already exists`, 'r'); return; }
   S.students.push({ id, name, type, drawNum: num, archived: false });
   if (!S.cleanPool.includes(id) && type === 'boy') S.cleanPool.push(id);
@@ -853,9 +872,9 @@ function addStudent() {
   document.getElementById('newId').value = '';
   document.getElementById('newName').value = '';
   document.getElementById('newNum').value = '';
-  refreshNextNumHint();
+  refreshNextIdHint();
   renderAll();
-  toast(`Added ${id} — Draw #${num}`, 'g');
+  toast(`Added student ${id}${name ? ' — ' + name : ''}`, 'g');
 }
 
 function archiveStudent(id) {
@@ -917,8 +936,8 @@ function renderStudentTable() {
       <td>${s.drawNum || '—'}</td>
       <td>${S.present.includes(s.id) ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--border)">—</span>'}</td>
       <td style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" title="Archive — hide from attendance" onclick="archiveStudent('${s.id}')">📦 Archive</button>
-        <button class="btn btn-red btn-sm" onclick="removeStudent('${s.id}')">✕</button>
+        <button class="btn btn-sm" style="background:rgba(212,168,83,0.15);border:1px solid rgba(212,168,83,0.5);color:var(--gold)" title="Archive — hides from attendance but keeps history" onclick="archiveStudent('${s.id}')">📦 Archive</button>
+        <button class="btn btn-red btn-sm" title="Permanently delete" onclick="removeStudent('${s.id}')">🗑 Delete</button>
       </td>
     </tr>`).join('') + '</tbody></table>';
   }
@@ -926,8 +945,8 @@ function renderStudentTable() {
   // Archived section
   if (archived.length) {
     html += `<div style="margin-top:20px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px">
-      <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:10px">
-        📦 Archived Students (${archived.length}) — not shown in attendance
+      <div style="font-size:0.72rem;font-weight:500;color:var(--gold);margin-bottom:10px">
+        📦 Archived Students (${archived.length}) — hidden from attendance & sidebar. Click ↩ Restore to bring back.
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:7px">
         ${archived.map(s => `<div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;font-size:0.74rem;opacity:0.7">
@@ -2408,7 +2427,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
   if (name==='history') renderHistory();
-  if (name==='students') { renderStudentTable(); refreshNextNumHint(); }
+  if (name==='students') { renderStudentTable(); refreshNextIdHint(); }
   if (name==='attendance') { renderAttGrid(); renderWeekStrip(); initHijriFields(); }
   if (name==='clean') renderEligList();
   if (name==='malams') { renderMalamRoster(); loadMalamDraft(); renderMalamAttGrid(); document.getElementById('monthlyMonth').value=new Date().getMonth(); document.getElementById('monthlyYear').value=new Date().getFullYear(); }
@@ -2465,6 +2484,7 @@ setSession(hr < 14 ? 'morning' : 'evening');
 renderAll();
 renderWeekStrip();
 initHijriFields();
+refreshNextIdHint();
 </script>
 </body>
 </html>
