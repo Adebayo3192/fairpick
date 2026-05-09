@@ -656,9 +656,21 @@ select option{background:#fff}
 
     <div class="card">
       <div class="card-title">Import / Export Students</div>
+      <div style="margin-bottom:14px;padding:12px 14px;background:#f0f7f3;border:1.5px solid #86efac;border-radius:8px">
+        <div style="font-size:0.8rem;font-weight:700;color:#1a4a2e;margin-bottom:4px">⬆ Migrate local data to database</div>
+        <div style="font-size:0.72rem;color:#64748b;margin-bottom:10px">Transfer student data saved on this device to the shared database.</div>
+        <button class="btn btn-green btn-sm" onclick="forceMigration()">⬆ Run Migration Now</button>
+      </div>
       <div style="font-size:0.72rem;color:var(--muted);margin-bottom:12px;line-height:1.6">
         Export your students as a CSV file to back them up or move them to another device.<br>
         Next time, just import that same file — no need to retype everyone.
+      </div>
+
+      <!-- Migrate from local storage -->
+      <div style="margin-bottom:16px;padding:12px 14px;background:#f0f7f3;border:1.5px solid #86efac;border-radius:8px">
+        <div style="font-size:0.76rem;font-weight:600;color:#1a4a2e;margin-bottom:4px">⬆ Migrate local data to database</div>
+        <div style="font-size:0.72rem;color:#64748b;margin-bottom:10px">If you have existing student data saved on this device from before the database upgrade, click below to transfer it.</div>
+        <button class="btn btn-green btn-sm" onclick="forceMigration()">⬆ Run Migration</button>
       </div>
 
       <!-- Export -->
@@ -2679,13 +2691,19 @@ function findLocalData() {
   return null;
 }
 
-function checkMigration() {
-  // Don't show if already migrated
-  if (localStorage.getItem(MIGRATED_KEY)) return;
+async function checkMigration() {
   const found = findLocalData();
-  if (!found) return;
+  if (!found) return; // no local data at all
   const { data } = found;
   const students = data.students || [];
+  if (!students.length) return;
+
+  // Check if DB already has students — if yes, skip banner
+  try {
+    const dbData = await api('load');
+    if (dbData.students && dbData.students.length > 0) return; // already in DB
+  } catch(e) { return; }
+
   const active = students.filter(s => !s.archived).length;
   const archived = students.length - active;
   const attDates = Object.keys(data.attendance || {}).length;
@@ -2759,6 +2777,22 @@ async function runMigration() {
     info.textContent = 'Error: ' + e.message;
     toast('Migration failed: ' + e.message, 'r');
   }
+}
+
+async function forceMigration() {
+  const found = findLocalData();
+  if (!found) { toast('No local data found on this device', 'r'); return; }
+  const { data } = found;
+  document.getElementById('migInfo').textContent = `Found ${(data.students||[]).length} students...`;
+  document.getElementById('migBanner').style.display = 'block';
+  await runMigration();
+}
+
+async function forceMigration() {
+  const found = findLocalData();
+  if (!found) { toast('No local data found on this device', 'r'); return; }
+  document.getElementById('migBanner').style.display = 'block';
+  await runMigration();
 }
 
 function dismissMigration() {
