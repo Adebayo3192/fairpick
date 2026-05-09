@@ -1708,7 +1708,11 @@ function generateReport() {
   // Get both sessions
   const morning = S.attendance[d]?.morning;
   const evening = S.attendance[d]?.evening;
-  const total = S.students.length;
+
+  // Student counts
+  const total    = S.students.length;
+  const active   = S.students.filter(s => !s.archived).length;
+  const inactive = total - active;
 
   // Day name
   const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dateObj.getDay()];
@@ -1810,38 +1814,45 @@ function generateReport() {
   ctx.textAlign = 'center';
   ctx.fillText('SUMMARY', W/2, blockY + blockH + 62);
 
-  // Summary pills
-  const summaryY = blockY + blockH + 80;
-  const items = [
-    { label: 'Total Students', value: String(total),                              color: '#1a4a2e', bg: '#e8f5ec', border: '#a8d8b8' },
-    { label: 'Morning Present', value: mPres !== null ? String(mPres) : '—',      color: '#c07000', bg: '#fff3dc', border: '#f0c060' },
-    { label: 'Evening Present', value: ePres !== null ? String(ePres) : '—',      color: '#1a5a9a', bg: '#ddeeff', border: '#90b8e8' },
+  // ── Row 1: Total / Active / Inactive ──
+  const row1Y = blockY + blockH + 80;
+  const r1items = [
+    { label: 'Total Enrolled', value: String(total),    color: '#1a4a2e', bg: '#e8f5ec', border: '#a8d8b8' },
+    { label: 'Active',         value: String(active),   color: '#1a5a9a', bg: '#ddeeff', border: '#90b8e8' },
+    { label: 'Inactive',       value: String(inactive), color: '#888888', bg: '#f5f5f5', border: '#cccccc' },
   ];
-  const pillW = 208, pillH = 90, pillGap = 18;
-  const totalPillW = items.length * pillW + (items.length-1) * pillGap;
-  const pillStartX = (W - totalPillW) / 2;
+  const r1pillW = 208, r1pillH = 88, r1gap = 18;
+  const r1startX = (W - (r1items.length * r1pillW + (r1items.length-1)*r1gap)) / 2;
+  r1items.forEach((item, i) => {
+    const px = r1startX + i*(r1pillW+r1gap);
+    ctx.fillStyle = item.bg; roundRect(ctx,px,row1Y,r1pillW,r1pillH,10,true,false);
+    ctx.strokeStyle = item.border; ctx.lineWidth=1.5; roundRect(ctx,px,row1Y,r1pillW,r1pillH,10,false,true);
+    ctx.fillStyle = item.color; ctx.font='bold 40px serif'; ctx.textAlign='center';
+    ctx.fillText(item.value, px+r1pillW/2, row1Y+54);
+    ctx.fillStyle = '#555'; ctx.font='bold 12px monospace';
+    ctx.fillText(item.label, px+r1pillW/2, row1Y+74);
+  });
 
-  items.forEach((item, i) => {
-    const px = pillStartX + i * (pillW + pillGap);
-    // Pill bg
-    ctx.fillStyle = item.bg;
-    roundRect(ctx, px, summaryY, pillW, pillH, 10, true, false);
-    ctx.strokeStyle = item.border;
-    ctx.lineWidth = 1.5;
-    roundRect(ctx, px, summaryY, pillW, pillH, 10, false, true);
-    // Value — big bold
-    ctx.fillStyle = item.color;
-    ctx.font = 'bold 42px serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(item.value, px + pillW/2, summaryY + 56);
-    // Label
-    ctx.fillStyle = '#555555';
-    ctx.font = 'bold 13px monospace';
-    ctx.fillText(item.label, px + pillW/2, summaryY + 76);
+  // ── Row 2: Morning Present / Evening Present ──
+  const row2Y = row1Y + r1pillH + 14;
+  const r2items = [
+    { label: 'Morning Present', value: mPres !== null ? String(mPres) : '—', color: '#c07000', bg: '#fff3dc', border: '#f0c060' },
+    { label: 'Evening Present', value: ePres !== null ? String(ePres) : '—', color: '#1a5a9a', bg: '#ddeeff', border: '#90b8e8' },
+  ];
+  const r2pillW = 310, r2pillH = 88, r2gap = 24;
+  const r2startX = (W - (r2items.length * r2pillW + (r2items.length-1)*r2gap)) / 2;
+  r2items.forEach((item, i) => {
+    const px = r2startX + i*(r2pillW+r2gap);
+    ctx.fillStyle = item.bg; roundRect(ctx,px,row2Y,r2pillW,r2pillH,10,true,false);
+    ctx.strokeStyle = item.border; ctx.lineWidth=1.5; roundRect(ctx,px,row2Y,r2pillW,r2pillH,10,false,true);
+    ctx.fillStyle = item.color; ctx.font='bold 40px serif'; ctx.textAlign='center';
+    ctx.fillText(item.value, px+r2pillW/2, row2Y+54);
+    ctx.fillStyle = '#555'; ctx.font='bold 12px monospace';
+    ctx.fillText(item.label, px+r2pillW/2, row2Y+74);
   });
 
   // Absent lists
-  let noteY = summaryY + pillH + 28;
+  let noteY = row2Y + r2pillH + 28;
 
   if (morning?.present && morning.present.length < total) {
     const absentM = S.students.filter(s=>!morning.present.includes(s.id)).map(s=>s.id);
@@ -2051,22 +2062,27 @@ function buildWhatsAppText() {
   const hijri = fmtHijriFromFields();
   const morning = S.attendance[d]?.morning;
   const evening = S.attendance[d]?.evening;
-  const total = S.students.length;
+  const total    = S.students.length;
+  const active   = S.students.filter(s => !s.archived).length;
+  const inactive = total - active;
 
   let text = `🕌 *Daily Attendance Report*\n`;
   text += `📅 ${gregorian}\n`;
   text += `🗓 ${hijri}\n\n`;
+  text += `👥 *Students*\n`;
+  text += `Total Enrolled: ${total}\n`;
+  text += `Active: ${active} · Inactive: ${inactive}\n\n`;
   if (morning) {
-    const rate = Math.round(morning.present.length/total*100);
+    const rate = Math.round(morning.present.length/active*100);
     text += `🌅 *Morning Session*\n`;
-    text += `✅ Present: ${morning.present.length}/${total} (${rate}%)\n`;
-    text += `❌ Absent: ${total - morning.present.length}\n\n`;
+    text += `✅ Present: ${morning.present.length}/${active} (${rate}%)\n`;
+    text += `❌ Absent: ${active - morning.present.length}\n\n`;
   }
   if (evening) {
-    const rate = Math.round(evening.present.length/total*100);
+    const rate = Math.round(evening.present.length/active*100);
     text += `🌆 *Evening Session*\n`;
-    text += `✅ Present: ${evening.present.length}/${total} (${rate}%)\n`;
-    text += `❌ Absent: ${total - evening.present.length}\n`;
+    text += `✅ Present: ${evening.present.length}/${active} (${rate}%)\n`;
+    text += `❌ Absent: ${active - evening.present.length}\n`;
   }
   text += `\n_Sent via FairPick · fairpick.netlify.app_`;
   return text;
