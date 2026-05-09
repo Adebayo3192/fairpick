@@ -820,9 +820,30 @@ select option{background:#fff}
 //  STATE
 // ══════════════════════════════════════════════
 const LS_KEY = 'classpick_v5';
+const LS_KEY_OLD = 'classpick_v4';
 function loadState() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY)) || defaultState(); }
-  catch { return defaultState(); }
+  try {
+    // Try loading v5 first
+    const v5 = localStorage.getItem(LS_KEY);
+    if (v5) {
+      const parsed = JSON.parse(v5);
+      // Merge any missing fields from defaultState
+      const def = defaultState();
+      return { ...def, ...parsed };
+    }
+    // Fall back to v4 and migrate
+    const v4 = localStorage.getItem(LS_KEY_OLD);
+    if (v4) {
+      const parsed = JSON.parse(v4);
+      const migrated = { ...defaultState(), ...parsed };
+      // Ensure all students have archived field
+      migrated.students = (migrated.students || []).map(s => ({...s, archived: s.archived || false}));
+      localStorage.setItem(LS_KEY, JSON.stringify(migrated));
+      console.log('Migrated data from classpick_v4 to classpick_v5');
+      return migrated;
+    }
+    return defaultState();
+  } catch { return defaultState(); }
 }
 function defaultState() {
   return {
@@ -855,6 +876,8 @@ function defaultState() {
 let S = loadState();
 if (!S.malams) S.malams = [];
 if (!S.malamAttendance) S.malamAttendance = {};
+// Ensure every student has the archived field (safe migration for any old data)
+S.students = S.students.map(s => ({ archived: false, ...s }));
 function save() { localStorage.setItem(LS_KEY, JSON.stringify(S)); }
 function findStu(id) { return S.students.find(s => s.id === id); }
 
