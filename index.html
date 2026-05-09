@@ -836,8 +836,11 @@ function loadState() {
     if (v4) {
       const parsed = JSON.parse(v4);
       const migrated = { ...defaultState(), ...parsed };
-      // Ensure all students have archived field
-      migrated.students = (migrated.students || []).map(s => ({...s, archived: s.archived || false}));
+      // Ensure all students have archived field without overwriting existing values
+      migrated.students = (migrated.students || []).map(s => {
+        if (s.archived === undefined || s.archived === null) s.archived = false;
+        return s;
+      });
       localStorage.setItem(LS_KEY, JSON.stringify(migrated));
       console.log('Migrated data from classpick_v4 to classpick_v5');
       return migrated;
@@ -876,9 +879,14 @@ function defaultState() {
 let S = loadState();
 if (!S.malams) S.malams = [];
 if (!S.malamAttendance) S.malamAttendance = {};
-// Ensure every student has the archived field (safe migration for any old data)
-S.students = S.students.map(s => ({ archived: false, ...s }));
-function save() { localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+// Ensure every student has the archived field — but DON'T overwrite existing true values
+S.students = S.students.map(s => {
+  if (s.archived === undefined || s.archived === null) s.archived = false;
+  return s;
+});
+function save() {
+  localStorage.setItem(LS_KEY, JSON.stringify(S));
+}
 function findStu(id) { return S.students.find(s => s.id === id); }
 
 // ══════════════════════════════════════════════
@@ -942,14 +950,20 @@ function addStudent() {
 
 function archiveStudent(id) {
   const s = S.students.find(s => s.id === id);
-  if (!s) return;
+  if (!s) { toast('Student not found', 'r'); return; }
   s.archived = true;
-  // Remove from present, queue, cleanPool
   S.present = S.present.filter(x => x !== id);
   S.queue = S.queue.filter(x => x !== id);
   S.cleanPool = S.cleanPool.filter(x => x !== id);
-  save(); renderAll();
-  toast(`${s.name || id} archived — hidden from attendance`, 'b');
+  // Save and verify
+  localStorage.setItem(LS_KEY, JSON.stringify(S));
+  const verify = JSON.parse(localStorage.getItem(LS_KEY));
+  const saved = verify.students.find(s => s.id === id);
+  if (!saved || !saved.archived) {
+    toast('Save failed — please try again', 'r'); return;
+  }
+  renderAll();
+  toast(`✓ ${s.name || id} archived successfully`, 'g');
 }
 
 function unarchiveStudent(id) {
