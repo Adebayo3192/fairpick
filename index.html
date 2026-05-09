@@ -338,7 +338,8 @@ select option{background:var(--surface2)}
   <h1>Class<span>Pick</span></h1>
   <span style="font-size:0.65rem;color:var(--muted)">Classroom management</span>
   <div class="hbadges">
-    <div class="hbadge"><b id="hTotal">0</b> students</div>
+    <div class="hbadge" style="background:rgba(212,168,83,0.15);border-color:rgba(212,168,83,0.4)">Total: <b id="hTotal" style="font-size:1rem;color:var(--gold2)">0</b></div>
+    <div class="hbadge">Active: <b id="hActive">0</b></div>
     <div class="hbadge">Present: <b id="hPresent">0</b></div>
   </div>
 </header>
@@ -582,7 +583,7 @@ select option{background:var(--surface2)}
             <option value="kid">Kid</option>
           </select>
         </div>
-        <div class="fi"><label>Draw #</label><input type="number" id="newNum" placeholder="—" min="1" style="width:70px"/></div>
+        <div class="fi"><label>Draw # <span id="nextNumHint" style="color:var(--gold);font-size:0.6rem"></span></label><input type="number" id="newNum" placeholder="auto" min="1" style="width:70px"/></div>
         <div style="margin-top:18px"><button class="btn btn-gold" onclick="addStudent()">+ Add</button></div>
       </div>
     </div>
@@ -779,7 +780,7 @@ function loadState() {
 }
 function defaultState() {
   return {
-    students: [],      // {id, name, type:'boy'|'girl'|'kid', drawNum?:number}
+    students: [],      // {id, name, type:'boy'|'girl'|'kid', drawNum?:number, archived?:bool}
     present: [],       // ids present today (sidebar)
 
     // Number Draw
@@ -821,25 +822,67 @@ function setFilter(f) {
   renderStudentTable();
 }
 
+function getNextDrawNum() {
+  // Auto-calculate next draw number = max existing + 1
+  const nums = S.students.map(s => s.drawNum).filter(Boolean);
+  return nums.length ? Math.max(...nums) + 1 : 1;
+}
+
+function refreshNextNumHint() {
+  const hint = document.getElementById('nextNumHint');
+  const numInput = document.getElementById('newNum');
+  if (!hint || !numInput) return;
+  const next = getNextDrawNum();
+  hint.textContent = `(next: ${next})`;
+  // Auto-fill if empty
+  if (!numInput.value) numInput.value = next;
+}
+
 function addStudent() {
   const id = document.getElementById('newId').value.trim();
   const name = document.getElementById('newName').value.trim();
   const type = document.getElementById('newType').value;
-  const num = parseInt(document.getElementById('newNum').value) || null;
+  // Auto-assign draw number if not entered
+  const enteredNum = document.getElementById('newNum').value;
+  const num = parseInt(enteredNum) || getNextDrawNum();
   if (!id) { toast('Enter an ID', 'r'); return; }
   if (S.students.find(s => s.id === id)) { toast(`"${id}" already exists`, 'r'); return; }
-  S.students.push({ id, name, type, drawNum: num });
+  S.students.push({ id, name, type, drawNum: num, archived: false });
   if (!S.cleanPool.includes(id) && type === 'boy') S.cleanPool.push(id);
   save();
   document.getElementById('newId').value = '';
   document.getElementById('newName').value = '';
   document.getElementById('newNum').value = '';
+  refreshNextNumHint();
   renderAll();
-  toast(`Added ${id}`, 'g');
+  toast(`Added ${id} — Draw #${num}`, 'g');
+}
+
+function archiveStudent(id) {
+  const s = S.students.find(s => s.id === id);
+  if (!s) return;
+  s.archived = true;
+  // Remove from present, queue, cleanPool
+  S.present = S.present.filter(x => x !== id);
+  S.queue = S.queue.filter(x => x !== id);
+  S.cleanPool = S.cleanPool.filter(x => x !== id);
+  save(); renderAll();
+  toast(`${s.name || id} archived — hidden from attendance`, 'b');
+}
+
+function unarchiveStudent(id) {
+  const s = S.students.find(s => s.id === id);
+  if (!s) return;
+  s.archived = false;
+  // Re-add to queue and cleanPool if applicable
+  if (!S.queue.includes(id)) S.queue.push(id);
+  if (s.type === 'boy' && !S.cleanPool.includes(id)) S.cleanPool.push(id);
+  save(); renderAll();
+  toast(`${s.name || id} restored to active`, 'g');
 }
 
 function removeStudent(id) {
-  if (!confirm(`Remove student "${id}"?`)) return;
+  if (!confirm(`Permanently delete student "${id}"? This cannot be undone.\n\nTip: Use Archive instead to just hide them.`)) return;
   S.students = S.students.filter(s => s.id !== id);
   S.present = S.present.filter(x => x !== id);
   S.cleanPool = S.cleanPool.filter(x => x !== id);
@@ -850,25 +893,54 @@ function renderStudentTable() {
   const wrap = document.getElementById('stuTableWrap');
   const q = document.getElementById('stuSearch').value.toLowerCase();
   let list = S.students.filter(s => {
+    if (s.archived) return false; // active only in main table
     if (q && !s.id.toLowerCase().includes(q) && !(s.name||'').toLowerCase().includes(q)) return false;
     if (stuFilter === 'boy') return s.type === 'boy';
     if (stuFilter === 'girl') return s.type === 'girl';
     if (stuFilter === 'kid') return s.type === 'kid';
-    if (stuFilter === 'eligible') return s.type === 'boy'; // non-kid boys
+    if (stuFilter === 'eligible') return s.type === 'boy';
     return true;
   });
-  if (!list.length) { wrap.innerHTML = `<div class="empty">No students found.</div>`; return; }
-  wrap.innerHTML = `<table class="stu-table"><thead><tr>
-    <th>ID</th><th>Name</th><th>Type</th><th>Draw #</th><th>Present</th><th></th>
-  </tr></thead><tbody>` +
-  list.map(s => `<tr>
-    <td style="font-weight:500;color:var(--gold)">${s.id}</td>
-    <td>${s.name||'—'}</td>
-    <td><span class="type-badge type-${s.type}">${s.type}</span></td>
-    <td>${s.drawNum || '—'}</td>
-    <td>${S.present.includes(s.id) ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--border)">—</span>'}</td>
-    <td><button class="btn btn-red btn-sm" onclick="removeStudent('${s.id}')">✕</button></td>
-  </tr>`).join('') + '</tbody></table>';
+  const archived = S.students.filter(s => s.archived);
+
+  let html = '';
+  if (!list.length && !archived.length) { wrap.innerHTML = `<div class="empty">No students found.</div>`; return; }
+
+  if (list.length) {
+    html += `<table class="stu-table"><thead><tr>
+      <th>ID</th><th>Name</th><th>Type</th><th>Draw #</th><th>Present</th><th></th>
+    </tr></thead><tbody>` +
+    list.map(s => `<tr>
+      <td style="font-weight:500;color:var(--gold)">${s.id}</td>
+      <td>${s.name||'—'}</td>
+      <td><span class="type-badge type-${s.type}">${s.type}</span></td>
+      <td>${s.drawNum || '—'}</td>
+      <td>${S.present.includes(s.id) ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--border)">—</span>'}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" title="Archive — hide from attendance" onclick="archiveStudent('${s.id}')">📦 Archive</button>
+        <button class="btn btn-red btn-sm" onclick="removeStudent('${s.id}')">✕</button>
+      </td>
+    </tr>`).join('') + '</tbody></table>';
+  }
+
+  // Archived section
+  if (archived.length) {
+    html += `<div style="margin-top:20px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px">
+      <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:10px">
+        📦 Archived Students (${archived.length}) — not shown in attendance
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        ${archived.map(s => `<div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;font-size:0.74rem;opacity:0.7">
+          <span style="color:var(--muted)">${s.id}</span>
+          <span>${s.name||''}</span>
+          <button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:0.62rem" onclick="unarchiveStudent('${s.id}')">↩ Restore</button>
+          <button class="btn btn-red btn-sm" style="padding:2px 7px;font-size:0.62rem" onclick="removeStudent('${s.id}')">✕</button>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  wrap.innerHTML = html;
 }
 function exportStudents() {
   if (!S.students.length) { toast('No students to export', 'r'); return; }
@@ -1010,28 +1082,33 @@ function checkByType(t) { S.present = S.students.filter(s=>s.type===t).map(s=>s.
 
 function renderSidebar() {
   const list = document.getElementById('sidebarList');
-  if (!S.students.length) {
-    list.innerHTML = `<div class="empty">No students yet. Add them in the 👥 Students tab.</div>`;
+  const activeStudents = S.students.filter(s => !s.archived);
+  if (!activeStudents.length) {
+    list.innerHTML = `<div class="empty">No active students. Add them in the Students tab.</div>`;
     document.getElementById('selectCnt').textContent = '';
     return;
   }
   const q = document.getElementById('sbSearch').value.toLowerCase();
-  const filtered = S.students.filter(s => !q || s.id.toLowerCase().includes(q) || (s.name||'').toLowerCase().includes(q));
+  const filtered = activeStudents.filter(s => !q || s.id.toLowerCase().includes(q) || (s.name||'').toLowerCase().includes(q));
   list.innerHTML = filtered.map(s => {
     const isP = S.present.includes(s.id);
     return `<div class="stu ${isP?'present':''}" onclick="togglePresent('${s.id}')">
-      <div class="cb">${isP?'✓':''}</div>
+      <div class="cb">${isP?'\u2713':''}</div>
       <span class="stu-id">${s.id}</span>
       ${s.name?`<span class="stu-nm">${s.name}</span>`:''}
       <span class="stu-type type-${s.type}">${s.type[0].toUpperCase()}</span>
     </div>`;
   }).join('');
-  document.getElementById('selectCnt').innerHTML = `<b>${S.present.length}</b> of ${S.students.length} present`;
+  document.getElementById('selectCnt').innerHTML = `<b>${S.present.length}</b> of ${activeStudents.length} present`;
 }
 
 function updateHeader() {
-  document.getElementById('hTotal').textContent = S.students.length;
-  document.getElementById('hPresent').textContent = S.present.length;
+  const total = S.students.length;
+  const active = S.students.filter(s => !s.archived).length;
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setEl('hTotal', total);
+  setEl('hActive', active);
+  setEl('hPresent', S.present.length);
 }
 
 // ══════════════════════════════════════════════
@@ -1271,7 +1348,8 @@ function loadDraft() {
 
 function renderAttGrid() {
   const grid = document.getElementById('attGrid');
-  if (!S.students.length) { grid.innerHTML = `<div style="grid-column:1/-1;color:var(--muted);font-size:0.74rem;padding:20px">No students yet.</div>`; return; }
+  const activeStudents2 = S.students.filter(s=>!s.archived);
+  if (!activeStudents2.length) { grid.innerHTML = `<div style="grid-column:1/-1;color:var(--muted);font-size:0.74rem;padding:20px">No students yet.</div>`; return; }
   grid.innerHTML = S.students.map(s => {
     const p = attDraft[s.id];
     return `<div class="att-card ${p?'att-present':''}" onclick="toggleAttStu('${s.id}')">
@@ -1286,7 +1364,7 @@ function renderAttGrid() {
 }
 
 function toggleAttStu(id) { attDraft[id] = !attDraft[id]; renderAttGrid(); }
-function attAll(val) { S.students.forEach(s=>{attDraft[s.id]=val;}); renderAttGrid(); }
+function attAll(val) { S.students.filter(s=>!s.archived).forEach(s=>{attDraft[s.id]=val;}); renderAttGrid(); }
 function attFromSidebar() { S.students.forEach(s=>{attDraft[s.id]=S.present.includes(s.id);}); renderAttGrid(); toast('Loaded from sidebar','g'); }
 function attApplyToSidebar() {
   const d = attDate||todayStr();
@@ -1693,7 +1771,7 @@ function generateReport() {
   const note = morning?.note || evening?.note;
   if (note) {
     ctx.fillStyle = '#888888';
-    ctx.font = 'italic 14px serif';
+    ctx.font = 'bold 15px serif';
     ctx.textAlign = 'center';
     ctx.fillText('📝 ' + note, W/2, noteY + 8);
   }
@@ -2300,22 +2378,22 @@ function drawMalamTable(ctx, W, startY, d) {
     startY += 14;
     notes.forEach(n => {
       // Label
-      ctx.fillStyle='#c07000'; ctx.font='bold 13px monospace'; ctx.textAlign='left';
+      ctx.fillStyle='#8a5a00'; ctx.font='bold 14px monospace'; ctx.textAlign='left';
       ctx.fillText(n.label + ' Notes:', 60, startY);
-      // Note text — wrap long text
-      ctx.fillStyle='#333333'; ctx.font='14px serif';
-      const maxW = W - 130;
+      // Note text — bold, larger, dark, wraps long text
+      ctx.fillStyle='#111111'; ctx.font='bold 16px serif';
+      const maxW = W - 120;
       const words = n.text.split(' ');
       let line = '', lineY = startY;
       words.forEach(word => {
         const test = line + (line ? ' ' : '') + word;
         if (ctx.measureText(test).width > maxW && line) {
-          ctx.fillText(line, 60, lineY + 18);
-          line = word; lineY += 18;
+          ctx.fillText(line, 60, lineY + 22);
+          line = word; lineY += 22;
         } else { line = test; }
       });
-      ctx.fillText(line, 60, lineY + 18);
-      startY += 40;
+      ctx.fillText(line, 60, lineY + 22);
+      startY += Math.max(48, lineY - startY + 36);
     });
     startY += 12;
   }
@@ -2330,7 +2408,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
   if (name==='history') renderHistory();
-  if (name==='students') renderStudentTable();
+  if (name==='students') { renderStudentTable(); refreshNextNumHint(); }
   if (name==='attendance') { renderAttGrid(); renderWeekStrip(); initHijriFields(); }
   if (name==='clean') renderEligList();
   if (name==='malams') { renderMalamRoster(); loadMalamDraft(); renderMalamAttGrid(); document.getElementById('monthlyMonth').value=new Date().getMonth(); document.getElementById('monthlyYear').value=new Date().getFullYear(); }
