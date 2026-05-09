@@ -94,13 +94,15 @@ export default async function handler(req) {
     if (action==='students/bulk' && method==='POST') {
       const {students}=await req.json();
       const c=await pool.connect();
-      try{for(const s of students){await c.query('INSERT INTO students(id,name,type,draw_num,archived)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO NOTHING',[s.id,s.name||'',s.type||'boy',s.drawNum||null,s.archived||false]);}}finally{c.release();}
+      try{for(const s of students){await c.query('INSERT INTO students(id,name,type,draw_num,archived)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO NOTHING',[String(s.id),s.name||'',s.type||'boy',s.drawNum||null,s.archived===true]);}}finally{c.release();}
       return jsonRes({ok:true,imported:students.length});
     }
     if (action==='malams' && method==='POST') {
       const {id,name,role,days,sessions}=await req.json();
+      const d = Array.isArray(days) ? '{'+days.map(Number).join(',')+'}' : '{6,0,1,2,3}';
+      const s = Array.isArray(sessions) ? '{'+sessions.map(x=>'"'+x+'"').join(',')+'}' : '{"morning","evening"}';
       const c=await pool.connect();
-      try{await c.query('INSERT INTO malams(id,name,role,days,sessions)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO UPDATE SET name=$2,role=$3,days=$4,sessions=$5',[id,name,role||'',days||[6,0,1,2,3],sessions||['morning','evening']]);}finally{c.release();}
+      try{await c.query('INSERT INTO malams(id,name,role,days,sessions)VALUES($1,$2,$3,$4::integer[],$5::text[])ON CONFLICT(id)DO UPDATE SET name=$2,role=$3,days=$4::integer[],sessions=$5::text[]',[id,name,role||'',d,s]);}finally{c.release();}
       return jsonRes({ok:true});
     }
     if (action==='malams/delete' && method==='POST') {
@@ -111,14 +113,16 @@ export default async function handler(req) {
     }
     if (action==='attendance' && method==='POST') {
       const {date,session,present,note}=await req.json();
+      const arr = Array.isArray(present) ? '{'+present.map(p=>'"'+p+'"').join(',')+'}' : '{}';
       const c=await pool.connect();
-      try{await c.query('INSERT INTO attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3,$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3,note=$4,saved_at=NOW()',[date,session,present,note||'']);}finally{c.release();}
+      try{await c.query('INSERT INTO attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3::text[],$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3::text[],note=$4,saved_at=NOW()',[date,session,arr,note||'']);}finally{c.release();}
       return jsonRes({ok:true});
     }
     if (action==='malam-attendance' && method==='POST') {
       const {date,session,present,note}=await req.json();
+      const arr = Array.isArray(present) ? '{'+present.map(p=>'"'+p+'"').join(',')+'}' : '{}';
       const c=await pool.connect();
-      try{await c.query('INSERT INTO malam_attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3,$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3,note=$4,saved_at=NOW()',[date,session,present,note||'']);}finally{c.release();}
+      try{await c.query('INSERT INTO malam_attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3::text[],$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3::text[],note=$4,saved_at=NOW()',[date,session,arr,note||'']);}finally{c.release();}
       return jsonRes({ok:true});
     }
     if (action==='state' && method==='POST') {
@@ -153,33 +157,40 @@ export default async function handler(req) {
         for (const s of students) {
           await c.query(
             'INSERT INTO students(id,name,type,draw_num,archived)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO UPDATE SET name=$2,type=$3,draw_num=$4,archived=$5',
-            [s.id, s.name||'', s.type||'boy', s.drawNum||null, s.archived||false]
+            [String(s.id), s.name||'', s.type||'boy', s.drawNum||null, s.archived===true]
           );
         }
-        // Malams
+        // Malams — cast arrays to text then to pg array
         for (const m of malams) {
+          const days = Array.isArray(m.days) ? m.days.map(Number) : [6,0,1,2,3];
+          const sessions = Array.isArray(m.sessions) ? m.sessions : ['morning','evening'];
           await c.query(
-            'INSERT INTO malams(id,name,role,days,sessions)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO UPDATE SET name=$2,role=$3,days=$4,sessions=$5',
-            [m.id, m.name, m.role||'', m.days||[6,0,1,2,3], m.sessions||['morning','evening']]
+            `INSERT INTO malams(id,name,role,days,sessions)VALUES($1,$2,$3,$4::integer[],$5::text[])ON CONFLICT(id)DO UPDATE SET name=$2,role=$3,days=$4::integer[],sessions=$5::text[]`,
+            [m.id, m.name||'', m.role||'', '{'+days.join(',')+'}', '{'+sessions.map(s=>'"'+s+'"').join(',')+'}']
           );
         }
         // Attendance
         for (const a of attendance) {
+          const present = Array.isArray(a.present) ? a.present : [];
           await c.query(
-            'INSERT INTO attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3,$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3,note=$4',
-            [a.date, a.session, a.present, a.note||'']
+            `INSERT INTO attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3::text[],$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3::text[],note=$4`,
+            [a.date, a.session, '{'+present.map(p=>'"'+p+'"').join(',')+'}', a.note||'']
           );
         }
         // Malam attendance
         for (const a of malamAttendance) {
+          const present = Array.isArray(a.present) ? a.present : [];
           await c.query(
-            'INSERT INTO malam_attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3,$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3,note=$4',
-            [a.date, a.session, a.present, a.note||'']
+            `INSERT INTO malam_attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3::text[],$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3::text[],note=$4`,
+            [a.date, a.session, '{'+present.map(p=>'"'+p+'"').join(',')+'}', a.note||'']
           );
         }
         // App state
         for (const [k,v] of Object.entries(appState)) {
-          await c.query('INSERT INTO app_state(key,value)VALUES($1,$2)ON CONFLICT(key)DO UPDATE SET value=EXCLUDED.value',[k,JSON.stringify(v)]);
+          await c.query(
+            'INSERT INTO app_state(key,value)VALUES($1,$2)ON CONFLICT(key)DO UPDATE SET value=EXCLUDED.value',
+            [k, JSON.stringify(v)]
+          );
         }
       } finally { c.release(); }
       return jsonRes({ ok: true, students: students.length, malams: malams.length, attendance: attendance.length });
