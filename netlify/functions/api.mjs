@@ -2,7 +2,9 @@ import pg from 'pg';
 const { Pool } = pg;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 5 });
 
-export const config = { path: '/api/:action' };
+// No config.path — function is at /.netlify/functions/api
+// We handle routing via query param: /api?action=load etc
+// index.html will call /.netlify/functions/api?action=load
 
 async function initDB() {
   const client = await pool.connect();
@@ -25,40 +27,42 @@ function jsonRes(data, status=200) {
   return new Response(JSON.stringify(data), { status, headers: {'Content-Type':'application/json'} });
 }
 async function getState(key) {
-  const client = await pool.connect();
-  try { const r = await client.query('SELECT value FROM app_state WHERE key=$1',[key]); return r.rows.length ? JSON.parse(r.rows[0].value) : null; }
-  finally { client.release(); }
+  const c = await pool.connect();
+  try { const r = await c.query('SELECT value FROM app_state WHERE key=$1',[key]); return r.rows.length ? JSON.parse(r.rows[0].value) : null; }
+  finally { c.release(); }
 }
 async function setState(key, value) {
-  const client = await pool.connect();
-  try { await client.query('INSERT INTO app_state(key,value) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value',[key,JSON.stringify(value)]); }
-  finally { client.release(); }
+  const c = await pool.connect();
+  try { await c.query('INSERT INTO app_state(key,value)VALUES($1,$2)ON CONFLICT(key)DO UPDATE SET value=EXCLUDED.value',[key,JSON.stringify(value)]); }
+  finally { c.release(); }
 }
 
 export default async function handler(req) {
   const url = new URL(req.url);
-  const action = url.pathname.replace('/api/','');
+  const action = url.searchParams.get('action') || '';
   const method = req.method;
-  try {
 
+  try {
     if (action==='load' && method==='GET') {
-      const client = await pool.connect();
+      const c = await pool.connect();
       let students,malams,attendance,malamAtt,drawHist,cleanHist;
       try {
         [students,malams,attendance,malamAtt,drawHist,cleanHist] = await Promise.all([
-          client.query('SELECT * FROM students ORDER BY id').then(r=>r.rows),
-          client.query('SELECT * FROM malams ORDER BY created_at').then(r=>r.rows),
-          client.query('SELECT * FROM attendance ORDER BY date').then(r=>r.rows),
-          client.query('SELECT * FROM malam_attendance ORDER BY date').then(r=>r.rows),
-          client.query('SELECT * FROM draw_history ORDER BY created_at').then(r=>r.rows),
-          client.query('SELECT * FROM clean_history ORDER BY created_at').then(r=>r.rows),
+          c.query('SELECT * FROM students ORDER BY id').then(r=>r.rows),
+          c.query('SELECT * FROM malams ORDER BY created_at').then(r=>r.rows),
+          c.query('SELECT * FROM attendance ORDER BY date').then(r=>r.rows),
+          c.query('SELECT * FROM malam_attendance ORDER BY date').then(r=>r.rows),
+          c.query('SELECT * FROM draw_history ORDER BY created_at').then(r=>r.rows),
+          c.query('SELECT * FROM clean_history ORDER BY created_at').then(r=>r.rows),
         ]);
-      } finally { client.release(); }
+      } finally { c.release(); }
+
       const attMap={};
       for(const r of attendance){if(!attMap[r.date])attMap[r.date]={};attMap[r.date][r.session]={present:r.present_ids,note:r.note,savedAt:r.saved_at};}
       const malamAttMap={};
       for(const r of malamAtt){if(!malamAttMap[r.date])malamAttMap[r.date]={};malamAttMap[r.date][r.session]={present:r.present_ids,note:r.note,savedAt:r.saved_at};}
       const [drawPool,drawRound,drawFrom,drawTo,cleanPool,cleanRound,present]=await Promise.all([getState('draw_pool'),getState('draw_round'),getState('draw_from'),getState('draw_to'),getState('clean_pool'),getState('clean_round'),getState('present')]);
+
       return jsonRes({
         students:students.map(s=>({id:s.id,name:s.name,type:s.type,drawNum:s.draw_num,archived:s.archived})),
         malams:malams.map(m=>({id:m.id,name:m.name,role:m.role,days:m.days,sessions:m.sessions})),
@@ -140,7 +144,7 @@ export default async function handler(req) {
       return jsonRes({ok:true});
     }
 
-    return jsonRes({error:'Not found'},404);
+    return jsonRes({error:'Unknown action: '+action},404);
   } catch(err) {
     console.error('API error:',err);
     return jsonRes({error:err.message},500);

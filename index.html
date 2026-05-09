@@ -365,6 +365,29 @@ select option{background:#fff}
 </style>
 </head>
 <body>
+<!-- MIGRATION BANNER -->
+<div id="migrationBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:2000;background:#1a4a2e;color:#fff;padding:16px 20px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);font-family:'IBM Plex Mono',monospace">
+  <div style="max-width:700px;margin:0 auto">
+    <div style="font-size:0.9rem;font-weight:600;margin-bottom:6px">📦 Local data found on this device</div>
+    <div style="font-size:0.78rem;color:#86efac;margin-bottom:12px" id="migrationInfo"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button onclick="runMigration()" style="background:#86efac;color:#1a4a2e;border:none;padding:9px 18px;border-radius:8px;font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer">⬆ Migrate to database</button>
+      <button onclick="dismissMigration()" style="background:transparent;color:#86efac;border:1px solid #86efac;padding:9px 18px;border-radius:8px;font-family:inherit;font-size:0.82rem;cursor:pointer">✕ Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<!-- MIGRATION BANNER -->
+<div id="migBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:2000;background:#1a4a2e;color:#fff;padding:16px 20px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);font-family:'IBM Plex Mono',monospace">
+  <div style="max-width:700px;margin:0 auto">
+    <div style="font-size:0.9rem;font-weight:600;margin-bottom:6px">📦 Existing data found on this device</div>
+    <div style="font-size:0.78rem;color:#86efac;margin-bottom:12px" id="migInfo"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button onclick="runMigration()" style="background:#86efac;color:#1a4a2e;border:none;padding:9px 18px;border-radius:8px;font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer">⬆ Migrate to database now</button>
+      <button onclick="dismissMigration()" style="background:transparent;color:#86efac;border:1px solid #86efac;padding:9px 18px;border-radius:8px;font-family:inherit;font-size:0.82rem;cursor:pointer">✕ Dismiss</button>
+    </div>
+  </div>
+</div>
 <div class="shell">
 
 <!-- HEADER -->
@@ -820,13 +843,14 @@ select option{background:#fff}
 //  STATE
 // ══════════════════════════════════════════════
 // ── API-based storage ──
-const API = '/api';
+const API = '/.netlify/functions/api';
 
 async function api(action, body) {
   const opts = body
     ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
     : { method: 'GET' };
-  const res = await fetch(`${API}/${action}`, opts);
+  const res = await fetch(`${API}?action=${action}`, opts);
+  if (!res.ok) throw new Error(`API ${action} failed: ${res.status}`);
   return res.json();
 }
 
@@ -2637,6 +2661,112 @@ function renderAll() {
   if (ec) ec.textContent = S.students.length ? `${S.students.length} students ready to export` : '';
 }
 
+// ══════════════════════════════════════════════
+//  LOCAL STORAGE MIGRATION
+// ══════════════════════════════════════════════
+const LEGACY_KEYS = ['classpick_main','classpick_v5','classpick_v4','classpick_v3'];
+const MIGRATED_KEY = 'classpick_migrated_to_db';
+
+function findLocalData() {
+  for (const k of LEGACY_KEYS) {
+    try {
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+      const d = JSON.parse(raw);
+      if (d && Array.isArray(d.students) && d.students.length > 0) return { key: k, data: d };
+    } catch(e) {}
+  }
+  return null;
+}
+
+function checkMigration() {
+  // Don't show if already migrated
+  if (localStorage.getItem(MIGRATED_KEY)) return;
+  const found = findLocalData();
+  if (!found) return;
+  const { data } = found;
+  const students = data.students || [];
+  const active = students.filter(s => !s.archived).length;
+  const archived = students.length - active;
+  const attDates = Object.keys(data.attendance || {}).length;
+  document.getElementById('migInfo').textContent =
+    `Found ${students.length} students (${active} active, ${archived} inactive) + ${attDates} attendance records`;
+  document.getElementById('migBanner').style.display = 'block';
+}
+
+async function runMigration() {
+  const found = findLocalData();
+  if (!found) return;
+  const { data } = found;
+  const btn = document.querySelector('#migBanner button');
+  btn.textContent = '⏳ Migrating...';
+  btn.disabled = true;
+
+  try {
+    // 1. Migrate students
+    const students = (data.students || []).map(s => ({
+      id: String(s.id), name: s.name || '', type: s.type || 'boy',
+      drawNum: s.drawNum || null, archived: s.archived === true
+    }));
+    if (students.length) {
+      await api('students/bulk', { students });
+    }
+
+    // 2. Migrate malams
+    for (const m of (data.malams || [])) {
+      await api('malams', { id: m.id, name: m.name, role: m.role||'', days: m.days||[6,0,1,2,3], sessions: m.sessions||['morning','evening'] });
+    }
+
+    // 3. Migrate attendance
+    for (const [date, sessions] of Object.entries(data.attendance || {})) {
+      for (const [session, rec] of Object.entries(sessions)) {
+        if (rec && rec.present) {
+          await api('attendance', { date, session, present: rec.present, note: rec.note||'' });
+        }
+      }
+    }
+
+    // 4. Migrate malam attendance
+    for (const [date, sessions] of Object.entries(data.malamAttendance || {})) {
+      for (const [session, rec] of Object.entries(sessions)) {
+        if (rec && rec.present) {
+          await api('malam-attendance', { date, session, present: rec.present, note: rec.note||'' });
+        }
+      }
+    }
+
+    // 5. Migrate app state
+    await api('state', {
+      present: data.present || [],
+      draw_pool: data.drawPool || data.queue || [],
+      draw_round: data.drawRound || data.currentRound || 1,
+      draw_from: data.drawFrom || 1,
+      draw_to: data.drawTo || 20,
+      clean_pool: data.cleanPool || [],
+      clean_round: data.cleanRound || 1,
+    });
+
+    // Mark as migrated
+    localStorage.setItem(MIGRATED_KEY, '1');
+    document.getElementById('migBanner').style.display = 'none';
+    toast(`✓ Migrated ${students.length} students to database successfully!`, 'g');
+
+    // Reload data from DB
+    S = await loadState();
+    renderAll();
+
+  } catch(e) {
+    btn.textContent = '⬆ Migrate to database now';
+    btn.disabled = false;
+    toast('Migration failed: ' + e.message, 'r');
+  }
+}
+
+function dismissMigration() {
+  localStorage.setItem(MIGRATED_KEY, 'dismissed');
+  document.getElementById('migBanner').style.display = 'none';
+}
+
 // ── ASYNC BOOT ──
 async function boot() {
   // Show loading indicator
@@ -2668,6 +2798,9 @@ async function boot() {
 
   document.body.style.opacity = '1';
   document.body.style.pointerEvents = '';
+
+  // Check if local data needs migrating to DB
+  checkMigration();
 }
 
 boot();
