@@ -1,0 +1,12 @@
+{
+  "name": "fairpick",
+  "version": "2.0.0",
+  "description": "FairPick — Halaqa Management System with database",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@netlify/database": "^1.0.0"
+  }
+}

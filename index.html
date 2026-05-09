@@ -819,56 +819,36 @@ select option{background:#fff}
 // ══════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════
-// ── Storage: try all known keys, pick the one with real student data ──
-const LS_KEY = 'classpick_main';
-const LEGACY_KEYS = ['classpick_v5','classpick_v4','classpick_v3','classpick_v2','classpick_v1'];
+// ── API-based storage ──
+const API = '/api';
 
-function loadState() {
-  try {
-    // 1. Try our primary key first
-    const main = localStorage.getItem(LS_KEY);
-    if (main) {
-      const d = JSON.parse(main);
-      if (d && Array.isArray(d.students)) return sanitize(d);
-    }
-    // 2. Search legacy keys for one that has real student data
-    for (const k of LEGACY_KEYS) {
-      const raw = localStorage.getItem(k);
-      if (!raw) continue;
-      try {
-        const d = JSON.parse(raw);
-        if (d && Array.isArray(d.students) && d.students.length > 0) {
-          console.log('Loaded data from legacy key:', k);
-          const migrated = sanitize({ ...defaultState(), ...d });
-          localStorage.setItem(LS_KEY, JSON.stringify(migrated));
-          return migrated;
-        }
-      } catch(e) {}
-    }
-    return defaultState();
-  } catch(e) { return defaultState(); }
+async function api(action, body) {
+  const opts = body
+    ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    : { method: 'GET' };
+  const res = await fetch(`${API}/${action}`, opts);
+  return res.json();
 }
 
-function sanitize(d) {
-  // Make sure all required fields exist and students have archived field
-  const base = defaultState();
-  const out = { ...base, ...d };
-  out.students = (out.students || []).map(s => {
-    return {
-      id: String(s.id || ''),
-      name: s.name || '',
-      type: s.type || 'boy',
-      drawNum: s.drawNum || null,
-      archived: s.archived === true  // explicit boolean — only true if explicitly set
-    };
-  });
-  out.present = out.present || [];
-  out.queue = out.queue || [];
-  out.history = out.history || [];
-  out.malams = out.malams || [];
-  out.malamAttendance = out.malamAttendance || {};
-  out.attendance = out.attendance || {};
-  return out;
+async function loadState() {
+  try {
+    const data = await api('load');
+    return { ...defaultState(), ...data };
+  } catch(e) {
+    console.error('Failed to load from DB, falling back to localStorage', e);
+    // Fallback: try localStorage if offline
+    const keys = ['classpick_main','classpick_v5','classpick_v4'];
+    for (const k of keys) {
+      try {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          const d = JSON.parse(raw);
+          if (d && Array.isArray(d.students) && d.students.length > 0) return { ...defaultState(), ...d };
+        }
+      } catch(e2) {}
+    }
+    return defaultState();
+  }
 }
 function defaultState() {
   return {
@@ -898,10 +878,22 @@ function defaultState() {
     malamAttendance: {}, // {"YYYY-MM-DD": {morning:{present:[ids]}, evening:{present:[ids]}}}
   };
 }
-let S = loadState();
+let S = defaultState(); // will be populated on boot
+let _saving = false;
+
 function save() {
-  localStorage.setItem(LS_KEY, JSON.stringify(S));
+  // Save app state (present, draw pool etc) to DB
+  api('state', {
+    present: S.present,
+    draw_pool: S.drawPool,
+    draw_round: S.drawRound,
+    draw_from: S.drawFrom,
+    draw_to: S.drawTo,
+    clean_pool: S.cleanPool,
+    clean_round: S.cleanRound,
+  }).catch(e => console.error('State save error', e));
 }
+
 function findStu(id) { return S.students.find(s => s.id === id); }
 
 // ══════════════════════════════════════════════
@@ -943,8 +935,7 @@ function refreshNextNumHint() {
   if (numInput && !numInput.value) numInput.value = getNextDrawNum();
 }
 
-function addStudent() {
-  // Auto-assign ID if not entered
+async function addStudent() {
   const enteredId = document.getElementById('newId').value.trim();
   const id = enteredId || String(getNextId());
   const name = document.getElementById('newName').value.trim();
@@ -952,9 +943,13 @@ function addStudent() {
   const enteredNum = document.getElementById('newNum').value;
   const num = parseInt(enteredNum) || getNextDrawNum();
   if (S.students.find(s => s.id === id)) { toast(`"${id}" already exists`, 'r'); return; }
-  S.students.push({ id, name, type, drawNum: num, archived: false });
+  const student = { id, name, type, drawNum: num, archived: false };
+  S.students.push(student);
   if (!S.cleanPool.includes(id) && type === 'boy') S.cleanPool.push(id);
-  save();
+  try {
+    await api('students', { id, name, type, drawNum: num });
+    save();
+  } catch(e) { console.error('addStudent API error', e); }
   document.getElementById('newId').value = '';
   document.getElementById('newName').value = '';
   document.getElementById('newNum').value = '';
@@ -963,27 +958,33 @@ function addStudent() {
   toast(`Added student ${id}${name ? ' — ' + name : ''}`, 'g');
 }
 
-function archiveStudent(id) {
+async function archiveStudent(id) {
   const idx = S.students.findIndex(s => s.id === id);
   if (idx === -1) { toast('Student not found', 'r'); return; }
   S.students[idx].archived = true;
-  S.present  = S.present.filter(x => x !== id);
-  S.queue    = S.queue.filter(x => x !== id);
-  S.cleanPool= S.cleanPool.filter(x => x !== id);
-  save();
+  S.present   = S.present.filter(x => x !== id);
+  S.queue     = S.queue.filter(x => x !== id);
+  S.cleanPool = S.cleanPool.filter(x => x !== id);
+  try {
+    await api('students/archive', { id, archived: true });
+    save();
+  } catch(e) { console.error('archiveStudent error', e); }
   renderAll();
   updateHeader();
   toast(`✓ ${S.students[idx].name || id} archived`, 'g');
 }
 
-function unarchiveStudent(id) {
+async function unarchiveStudent(id) {
   const idx = S.students.findIndex(s => s.id === id);
   if (idx === -1) return;
   S.students[idx].archived = false;
   const s = S.students[idx];
   if (!S.queue.includes(id)) S.queue.push(id);
   if (s.type === 'boy' && !S.cleanPool.includes(id)) S.cleanPool.push(id);
-  save();
+  try {
+    await api('students/archive', { id, archived: false });
+    save();
+  } catch(e) { console.error('unarchiveStudent error', e); }
   renderAll();
   updateHeader();
   toast(`✓ ${s.name || id} restored`, 'g');
@@ -2145,7 +2146,8 @@ function addMalam() {
   if (!days.length) { toast('Select at least one day', 'r'); return; }
   if (!sessions.length) { toast('Select at least one session', 'r'); return; }
   const id = 'M' + Date.now();
-  S.malams.push({ id, name, role, days, sessions }); // sessions = ['morning','evening'] or one of them
+  S.malams.push({ id, name, role, days, sessions });
+  api('malams', { id, name, role, days, sessions }).catch(e=>console.error('addMalam error',e));
   save();
   document.getElementById('malamName').value = '';
   document.getElementById('malamRole').value = '';
@@ -2159,6 +2161,7 @@ function removeMalam(id) {
   const m = S.malams.find(m => m.id === id);
   if (!confirm(`Remove ${m?.name}?`)) return;
   S.malams = S.malams.filter(m => m.id !== id);
+  api('malams/delete', { id }).catch(e=>console.error('removeMalam error',e));
   save(); renderMalamRoster(); renderMalamAttGrid();
   toast('Removed', 'r');
 }
@@ -2285,14 +2288,16 @@ function malamMarkAll(val) {
   renderMalamAttGrid();
 }
 
-function saveMalamAtt() {
+async function saveMalamAtt() {
   const d = attDate || todayStr();
   const presentIds = S.malams.filter(m=>malamDraft[m.id]).map(m=>m.id);
   const note = (document.getElementById('malamSessionNote')?.value || '').trim();
   if (!S.malamAttendance) S.malamAttendance = {};
   if (!S.malamAttendance[d]) S.malamAttendance[d] = {};
   S.malamAttendance[d][attSession] = { present: presentIds, note, savedAt: new Date().toISOString() };
-  save();
+  try {
+    await api('malam-attendance', { date: d, session: attSession, present: presentIds, note });
+  } catch(e) { console.error('saveMalamAtt error', e); }
   const msg = document.getElementById('malamSavedMsg');
   if (msg) { msg.style.display='inline'; setTimeout(()=>{msg.style.display='none';},2500); }
   toast(`Malam attendance saved — ${presentIds.length} present`,'g');
@@ -2632,24 +2637,43 @@ function renderAll() {
   if (ec) ec.textContent = S.students.length ? `${S.students.length} students ready to export` : '';
 }
 
-// Init
-document.getElementById('rangeFrom').value = S.drawFrom || 1;
-document.getElementById('rangeTo').value = S.drawTo || 20;
-if (!S.drawPool.length) initPool(false);
+// ── ASYNC BOOT ──
+async function boot() {
+  // Show loading indicator
+  document.body.style.opacity = '0.6';
+  document.body.style.pointerEvents = 'none';
 
-const t = todayStr();
-document.getElementById('attDate').value = t;
-attDate = t;
-const hr = new Date().getHours();
-setSession(hr < 14 ? 'morning' : 'evening');
+  try {
+    S = await loadState();
+  } catch(e) {
+    console.error('Boot load failed', e);
+    S = defaultState();
+  }
 
-renderAll();
-renderWeekStrip();
-initHijriFields();
-refreshNextIdHint();
+  // Init UI
+  document.getElementById('rangeFrom').value = S.drawFrom || 1;
+  document.getElementById('rangeTo').value = S.drawTo || 20;
+  if (!S.drawPool || !S.drawPool.length) initPool(false);
+
+  const t = todayStr();
+  document.getElementById('attDate').value = t;
+  attDate = t;
+  const hr = new Date().getHours();
+  setSession(hr < 14 ? 'morning' : 'evening');
+
+  renderAll();
+  renderWeekStrip();
+  initHijriFields();
+  refreshNextIdHint();
+
+  document.body.style.opacity = '1';
+  document.body.style.pointerEvents = '';
+}
+
+boot();
 </script>
 <!-- STUDENT MODAL -->
-<div class="modal-overlay" id="studentModal" onclick="closeStudentModal(event)">
+<div class="modal-overlay" id="studentModal" onclick="closeModalBg(event)">
   <div class="modal-box">
     <div class="modal-header">
       <h2 id="modalTitle">Students</h2>
