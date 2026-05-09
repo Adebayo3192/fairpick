@@ -819,34 +819,56 @@ select option{background:#fff}
 // ══════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════
-const LS_KEY = 'classpick_v5';
-const LS_KEY_OLD = 'classpick_v4';
+// ── Storage: try all known keys, pick the one with real student data ──
+const LS_KEY = 'classpick_main';
+const LEGACY_KEYS = ['classpick_v5','classpick_v4','classpick_v3','classpick_v2','classpick_v1'];
+
 function loadState() {
   try {
-    // Try loading v5 first
-    const v5 = localStorage.getItem(LS_KEY);
-    if (v5) {
-      const parsed = JSON.parse(v5);
-      // Merge any missing fields from defaultState
-      const def = defaultState();
-      return { ...def, ...parsed };
+    // 1. Try our primary key first
+    const main = localStorage.getItem(LS_KEY);
+    if (main) {
+      const d = JSON.parse(main);
+      if (d && Array.isArray(d.students)) return sanitize(d);
     }
-    // Fall back to v4 and migrate
-    const v4 = localStorage.getItem(LS_KEY_OLD);
-    if (v4) {
-      const parsed = JSON.parse(v4);
-      const migrated = { ...defaultState(), ...parsed };
-      // Ensure all students have archived field without overwriting existing values
-      migrated.students = (migrated.students || []).map(s => {
-        if (s.archived === undefined || s.archived === null) s.archived = false;
-        return s;
-      });
-      localStorage.setItem(LS_KEY, JSON.stringify(migrated));
-      console.log('Migrated data from classpick_v4 to classpick_v5');
-      return migrated;
+    // 2. Search legacy keys for one that has real student data
+    for (const k of LEGACY_KEYS) {
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+      try {
+        const d = JSON.parse(raw);
+        if (d && Array.isArray(d.students) && d.students.length > 0) {
+          console.log('Loaded data from legacy key:', k);
+          const migrated = sanitize({ ...defaultState(), ...d });
+          localStorage.setItem(LS_KEY, JSON.stringify(migrated));
+          return migrated;
+        }
+      } catch(e) {}
     }
     return defaultState();
-  } catch { return defaultState(); }
+  } catch(e) { return defaultState(); }
+}
+
+function sanitize(d) {
+  // Make sure all required fields exist and students have archived field
+  const base = defaultState();
+  const out = { ...base, ...d };
+  out.students = (out.students || []).map(s => {
+    return {
+      id: String(s.id || ''),
+      name: s.name || '',
+      type: s.type || 'boy',
+      drawNum: s.drawNum || null,
+      archived: s.archived === true  // explicit boolean — only true if explicitly set
+    };
+  });
+  out.present = out.present || [];
+  out.queue = out.queue || [];
+  out.history = out.history || [];
+  out.malams = out.malams || [];
+  out.malamAttendance = out.malamAttendance || {};
+  out.attendance = out.attendance || {};
+  return out;
 }
 function defaultState() {
   return {
@@ -877,13 +899,6 @@ function defaultState() {
   };
 }
 let S = loadState();
-if (!S.malams) S.malams = [];
-if (!S.malamAttendance) S.malamAttendance = {};
-// Ensure every student has the archived field — but DON'T overwrite existing true values
-S.students = S.students.map(s => {
-  if (s.archived === undefined || s.archived === null) s.archived = false;
-  return s;
-});
 function save() {
   localStorage.setItem(LS_KEY, JSON.stringify(S));
 }
@@ -949,32 +964,29 @@ function addStudent() {
 }
 
 function archiveStudent(id) {
-  const s = S.students.find(s => s.id === id);
-  if (!s) { toast('Student not found', 'r'); return; }
-  s.archived = true;
-  S.present = S.present.filter(x => x !== id);
-  S.queue = S.queue.filter(x => x !== id);
-  S.cleanPool = S.cleanPool.filter(x => x !== id);
-  // Save and verify
-  localStorage.setItem(LS_KEY, JSON.stringify(S));
-  const verify = JSON.parse(localStorage.getItem(LS_KEY));
-  const saved = verify.students.find(s => s.id === id);
-  if (!saved || !saved.archived) {
-    toast('Save failed — please try again', 'r'); return;
-  }
+  const idx = S.students.findIndex(s => s.id === id);
+  if (idx === -1) { toast('Student not found', 'r'); return; }
+  S.students[idx].archived = true;
+  S.present  = S.present.filter(x => x !== id);
+  S.queue    = S.queue.filter(x => x !== id);
+  S.cleanPool= S.cleanPool.filter(x => x !== id);
+  save();
   renderAll();
-  toast(`✓ ${s.name || id} archived successfully`, 'g');
+  updateHeader();
+  toast(`✓ ${S.students[idx].name || id} archived`, 'g');
 }
 
 function unarchiveStudent(id) {
-  const s = S.students.find(s => s.id === id);
-  if (!s) return;
-  s.archived = false;
-  // Re-add to queue and cleanPool if applicable
+  const idx = S.students.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  S.students[idx].archived = false;
+  const s = S.students[idx];
   if (!S.queue.includes(id)) S.queue.push(id);
   if (s.type === 'boy' && !S.cleanPool.includes(id)) S.cleanPool.push(id);
-  save(); renderAll();
-  toast(`${s.name || id} restored to active`, 'g');
+  save();
+  renderAll();
+  updateHeader();
+  toast(`✓ ${s.name || id} restored`, 'g');
 }
 
 function removeStudent(id) {
