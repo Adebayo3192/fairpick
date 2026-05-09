@@ -148,19 +148,30 @@ export default async function handler(req) {
       return jsonRes({ok:true});
     }
 
-    // ── BULK MIGRATE (single request) ──
+    // ── TEST DB CONNECTION ──
+    if (action==='test' && method==='GET') {
+      const c = await pool.connect();
+      try {
+        const r = await c.query('SELECT COUNT(*) as n FROM students');
+        return jsonRes({ ok: true, students: r.rows[0].n, db: 'connected' });
+      } finally { c.release(); }
+    }
     if (action==='migrate' && method==='POST') {
-      const { students=[], malams=[], attendance=[], malamAttendance=[], appState={} } = await req.json();
+      const body = await req.json();
+      const { students=[], malams=[], attendance=[], malamAttendance=[], appState={} } = body;
+      console.log('migrate: students='+students.length+' malams='+malams.length+' att='+attendance.length);
       const c = await pool.connect();
       try {
         // Students
+        console.log('inserting students...');
         for (const s of students) {
           await c.query(
             'INSERT INTO students(id,name,type,draw_num,archived)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO UPDATE SET name=$2,type=$3,draw_num=$4,archived=$5',
             [String(s.id), s.name||'', s.type||'boy', s.drawNum||null, s.archived===true]
           );
         }
-        // Malams — cast arrays to text then to pg array
+        // Malams
+        console.log('inserting malams...');
         for (const m of malams) {
           const days = Array.isArray(m.days) ? m.days.map(Number) : [6,0,1,2,3];
           const sessions = Array.isArray(m.sessions) ? m.sessions : ['morning','evening'];
@@ -170,6 +181,7 @@ export default async function handler(req) {
           );
         }
         // Attendance
+        console.log('inserting attendance...');
         for (const a of attendance) {
           const present = Array.isArray(a.present) ? a.present : [];
           await c.query(

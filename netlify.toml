@@ -5,3 +5,6 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+
+[functions."api"]
+  timeout = 30
