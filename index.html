@@ -2490,7 +2490,7 @@ function showStudentModal(mode) {
         <span class="msname">${s.name||'—'}</span>
         <span class="type-badge type-${s.type}" style="font-size:0.7rem;padding:2px 7px">${s.type}</span>
         <button class="btn btn-ghost btn-sm" style="font-size:0.72rem;border-color:#1a4a2e;color:#1a4a2e" onclick="unarchiveStudent('${s.id}');showStudentModal('archived')">↩ Restore</button>
-        <button class="btn btn-red btn-sm" style="font-size:0.72rem" onclick="removeStudentFromModal('${s.id}')">🗑 Delete</button>
+        <button class="btn btn-red btn-sm" style="font-size:0.72rem" onclick="removeStudentFromModal('${s.id}')">🗑 Del</button>
       </div>`).join('') : '<p style="color:var(--muted);text-align:center;padding:20px">No archived students.</p>';
   }
   modal.classList.add('open');
@@ -2565,7 +2565,7 @@ refreshNextIdHint();
   <div class="modal-box">
     <div class="modal-header">
       <h2 id="modalTitle">Students</h2>
-      <button class="modal-close" onclick="closeStudentModalDirect()">✕</button>
+      <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body" id="modalBody"></div>
   </div>
