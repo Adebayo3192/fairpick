@@ -2693,22 +2693,21 @@ function findLocalData() {
 
 async function checkMigration() {
   const found = findLocalData();
-  if (!found) return; // no local data at all
+  if (!found) return;
   const { data } = found;
   const students = data.students || [];
   if (!students.length) return;
 
-  // Check if DB already has students — if yes, skip banner
   try {
     const dbData = await api('load');
-    if (dbData.students && dbData.students.length > 0) return; // already in DB
+    if (dbData.students && dbData.students.length > 0) return;
   } catch(e) { return; }
 
   const active = students.filter(s => !s.archived).length;
   const archived = students.length - active;
   const attDates = Object.keys(data.attendance || {}).length;
   document.getElementById('migInfo').textContent =
-    `Found ${students.length} students (${active} active, ${archived} inactive) + ${attDates} attendance records`;
+    `Found ${students.length} students (${active} active, ${archived} inactive) + ${attDates} attendance records — click below to migrate`;
   document.getElementById('migBanner').style.display = 'block';
 }
 
@@ -2722,32 +2721,48 @@ async function runMigration() {
   btn.disabled = true;
 
   try {
-    // Build full migration payload and send in ONE request
     const students = (data.students || []).map(s => ({
       id: String(s.id), name: s.name || '', type: s.type || 'boy',
       drawNum: s.drawNum || null, archived: s.archived === true
     }));
 
-    const malams = (data.malams || []).map(m => ({
-      id: m.id, name: m.name, role: m.role||'',
-      days: m.days||[6,0,1,2,3], sessions: m.sessions||['morning','evening']
-    }));
+    // Step 1: Students in chunks of 20
+    info.textContent = `Migrating ${students.length} students...`;
+    const chunkSize = 20;
+    for (let i = 0; i < students.length; i += chunkSize) {
+      const chunk = students.slice(i, i + chunkSize);
+      const res = await api('students/bulk', { students: chunk });
+      if (res.error) throw new Error('Students: ' + res.error);
+      info.textContent = `Students: ${Math.min(i+chunkSize, students.length)}/${students.length}...`;
+    }
 
-    const attendance = [];
+    // Step 2: Malams
+    info.textContent = 'Migrating malams...';
+    for (const m of (data.malams || [])) {
+      await api('malams', { id: m.id, name: m.name, role: m.role||'', days: m.days||[6,0,1,2,3], sessions: m.sessions||['morning','evening'] });
+    }
+
+    // Step 3: Attendance
+    const attList = [];
     for (const [date, sessions] of Object.entries(data.attendance || {})) {
       for (const [session, rec] of Object.entries(sessions)) {
-        if (rec && rec.present) attendance.push({ date, session, present: rec.present, note: rec.note||'' });
+        if (rec && rec.present) attList.push({ date, session, present: rec.present, note: rec.note||'' });
       }
     }
+    info.textContent = `Migrating ${attList.length} attendance records...`;
+    for (const a of attList) {
+      await api('attendance', { date: a.date, session: a.session, present: a.present, note: a.note });
+    }
 
-    const malamAttendance = [];
+    // Step 4: Malam attendance
     for (const [date, sessions] of Object.entries(data.malamAttendance || {})) {
       for (const [session, rec] of Object.entries(sessions)) {
-        if (rec && rec.present) malamAttendance.push({ date, session, present: rec.present, note: rec.note||'' });
+        if (rec && rec.present) await api('malam-attendance', { date, session, present: rec.present, note: rec.note||'' });
       }
     }
 
-    const appState = {
+    // Step 5: App state
+    await api('state', {
       present: data.present || [],
       draw_pool: data.drawPool || data.queue || [],
       draw_round: data.drawRound || data.currentRound || 1,
@@ -2755,19 +2770,11 @@ async function runMigration() {
       draw_to: data.drawTo || 20,
       clean_pool: data.cleanPool || [],
       clean_round: data.cleanRound || 1,
-    };
-
-    info.textContent = `Sending ${students.length} students, ${malams.length} malams, ${attendance.length} attendance records...`;
-
-    // Single batch request
-    const res = await api('migrate', { students, malams, attendance, malamAttendance, appState });
-
-    if (!res.ok) throw new Error(res.error || 'Migration failed');
+    });
 
     localStorage.setItem(MIGRATED_KEY, '1');
     document.getElementById('migBanner').style.display = 'none';
     toast(`✓ Migrated ${students.length} students to database!`, 'g');
-
     S = await loadState();
     renderAll();
 
