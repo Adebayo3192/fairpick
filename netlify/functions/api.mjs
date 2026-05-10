@@ -49,7 +49,7 @@ export default async function handler(req) {
       let students,malams,attendance,malamAtt,drawHist,cleanHist;
       try {
         [students,malams,attendance,malamAtt,drawHist,cleanHist] = await Promise.all([
-          c.query('SELECT * FROM students ORDER BY id').then(r=>r.rows),
+          c.query('SELECT * FROM students ORDER BY LPAD(regexp_replace(id, '[^0-9]', '', 'g'), 10, '0')').then(r=>r.rows),
           c.query('SELECT * FROM malams ORDER BY created_at').then(r=>r.rows),
           c.query('SELECT * FROM attendance ORDER BY date').then(r=>r.rows),
           c.query('SELECT * FROM malam_attendance ORDER BY date').then(r=>r.rows),
