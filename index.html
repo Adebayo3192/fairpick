@@ -974,17 +974,17 @@ async function addStudent() {
 async function archiveStudent(id) {
   const idx = S.students.findIndex(s => s.id === id);
   if (idx === -1) { toast('Student not found', 'r'); return; }
+  // Update local state immediately
   S.students[idx].archived = true;
   S.present   = S.present.filter(x => x !== id);
   S.queue     = S.queue.filter(x => x !== id);
   S.cleanPool = S.cleanPool.filter(x => x !== id);
-  try {
-    await api('students/archive', { id, archived: true });
-    save();
-  } catch(e) { console.error('archiveStudent error', e); }
+  // Re-render immediately so UI updates without waiting for API
   renderAll();
   updateHeader();
   toast(`✓ ${S.students[idx].name || id} archived`, 'g');
+  // Then save to DB in background
+  api('students/archive', { id, archived: true }).catch(e => console.error('archiveStudent error', e));
 }
 
 async function unarchiveStudent(id) {
@@ -994,13 +994,12 @@ async function unarchiveStudent(id) {
   const s = S.students[idx];
   if (!S.queue.includes(id)) S.queue.push(id);
   if (s.type === 'boy' && !S.cleanPool.includes(id)) S.cleanPool.push(id);
-  try {
-    await api('students/archive', { id, archived: false });
-    save();
-  } catch(e) { console.error('unarchiveStudent error', e); }
+  // Re-render immediately
   renderAll();
   updateHeader();
   toast(`✓ ${s.name || id} restored`, 'g');
+  // Then save to DB in background
+  api('students/archive', { id, archived: false }).catch(e => console.error('unarchiveStudent error', e));
 }
 
 function removeStudent(id) {
