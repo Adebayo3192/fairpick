@@ -1825,10 +1825,10 @@ function generateReport() {
   const rightX = W/2 + gap/2;
 
   drawSessionBlock(ctx, leftX, blockY, blockW, blockH,
-    '🌅 Morning Session', morning, total, '#d4830a', '#fff7e6');
+    '🌅 Morning Session', morning, active, '#d4830a', '#fff7e6');
 
   drawSessionBlock(ctx, rightX, blockY, blockW, blockH,
-    '🌆 Evening Session', evening, total, '#1a6ab0', '#e8f2ff');
+    '🌆 Evening Session', evening, active, '#1a6ab0', '#e8f2ff');
 
   // ── SUMMARY ──
   const mPres = morning?.present?.length ?? null;
@@ -1882,8 +1882,8 @@ function generateReport() {
   // Absent lists
   let noteY = row2Y + r2pillH + 28;
 
-  if (morning?.present && morning.present.length < total) {
-    const absentM = S.students.filter(s=>!morning.present.includes(s.id)).map(s=>s.id);
+  if (morning?.present && morning.present.length < active) {
+    const absentM = S.students.filter(s=>!s.archived&&!morning.present.includes(s.id)).map(s=>s.id);
     if (absentM.length && absentM.length <= 20) {
       ctx.fillStyle = '#888888';
       ctx.font = '13px monospace';
@@ -1892,8 +1892,8 @@ function generateReport() {
       noteY += 22;
     }
   }
-  if (evening?.present && evening.present.length < total) {
-    const absentE = S.students.filter(s=>!evening.present.includes(s.id)).map(s=>s.id);
+  if (evening?.present && evening.present.length < active) {
+    const absentE = S.students.filter(s=>!s.archived&&!evening.present.includes(s.id)).map(s=>s.id);
     if (absentE.length && absentE.length <= 20) {
       ctx.fillStyle = '#888888';
       ctx.font = '13px monospace';
