@@ -971,35 +971,42 @@ async function addStudent() {
   toast(`Added student ${id}${name ? ' — ' + name : ''}`, 'g');
 }
 
-async function archiveStudent(id) {
+function archiveStudent(id) {
   const idx = S.students.findIndex(s => s.id === id);
-  if (idx === -1) { toast('Student not found', 'r'); return; }
-  // Update local state immediately
+  if (idx === -1) { alert('Student not found: ' + id); return; }
+  const name = S.students[idx].name || id;
   S.students[idx].archived = true;
   S.present   = S.present.filter(x => x !== id);
   S.queue     = S.queue.filter(x => x !== id);
   S.cleanPool = S.cleanPool.filter(x => x !== id);
-  // Re-render immediately so UI updates without waiting for API
-  renderAll();
+  renderStudentTable();
+  renderSidebar();
   updateHeader();
-  toast(`✓ ${S.students[idx].name || id} archived`, 'g');
-  // Then save to DB in background
-  api('students/archive', { id, archived: true }).catch(e => console.error('archiveStudent error', e));
+  toast(`✓ ${name} archived`, 'g');
+  // Save to DB
+  fetch('/.netlify/functions/api?action=students/archive', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ id, archived: true })
+  }).catch(e => console.error('archive save failed', e));
 }
 
-async function unarchiveStudent(id) {
+function unarchiveStudent(id) {
   const idx = S.students.findIndex(s => s.id === id);
   if (idx === -1) return;
   S.students[idx].archived = false;
   const s = S.students[idx];
   if (!S.queue.includes(id)) S.queue.push(id);
   if (s.type === 'boy' && !S.cleanPool.includes(id)) S.cleanPool.push(id);
-  // Re-render immediately
-  renderAll();
+  renderStudentTable();
+  renderSidebar();
   updateHeader();
   toast(`✓ ${s.name || id} restored`, 'g');
-  // Then save to DB in background
-  api('students/archive', { id, archived: false }).catch(e => console.error('unarchiveStudent error', e));
+  fetch('/.netlify/functions/api?action=students/archive', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ id, archived: false })
+  }).catch(e => console.error('unarchive save failed', e));
 }
 
 function removeStudent(id) {
