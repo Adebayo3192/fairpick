@@ -976,14 +976,13 @@ function archiveStudent(id) {
   if (idx === -1) { alert('Student not found: ' + id); return; }
   const name = S.students[idx].name || id;
   S.students[idx].archived = true;
-  S.present   = S.present.filter(x => x !== id);
-  S.queue     = S.queue.filter(x => x !== id);
-  S.cleanPool = S.cleanPool.filter(x => x !== id);
+  S.present   = (S.present   || []).filter(x => x !== id);
+  S.queue     = (S.queue     || []).filter(x => x !== id);
+  S.cleanPool = (S.cleanPool || []).filter(x => x !== id);
   renderStudentTable();
   renderSidebar();
   updateHeader();
   toast(`✓ ${name} archived`, 'g');
-  // Save to DB
   fetch('/.netlify/functions/api?action=students/archive', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -996,6 +995,8 @@ function unarchiveStudent(id) {
   if (idx === -1) return;
   S.students[idx].archived = false;
   const s = S.students[idx];
+  S.queue     = S.queue     || [];
+  S.cleanPool = S.cleanPool || [];
   if (!S.queue.includes(id)) S.queue.push(id);
   if (s.type === 'boy' && !S.cleanPool.includes(id)) S.cleanPool.push(id);
   renderStudentTable();
@@ -2793,6 +2794,13 @@ async function boot() {
 
   try {
     S = await loadState();
+    // Ensure all arrays exist
+    S.present   = Array.isArray(S.present)   ? S.present   : [];
+    S.queue     = Array.isArray(S.queue)     ? S.queue     : [];
+    S.cleanPool = Array.isArray(S.cleanPool) ? S.cleanPool : [];
+    S.drawPool  = Array.isArray(S.drawPool)  ? S.drawPool  : [];
+    S.students  = Array.isArray(S.students)  ? S.students  : [];
+    S.malams    = Array.isArray(S.malams)    ? S.malams    : [];
   } catch(e) {
     console.error('Boot load failed', e);
     S = defaultState();
