@@ -1500,13 +1500,20 @@ function updateAttStats() {
     : '';
 }
 
-function saveAtt() {
+async function saveAtt() {
   const d = attDate || todayStr();
-  const presentIds = S.students.filter(s=>attDraft[s.id]).map(s=>s.id);
+  const presentIds = S.students.filter(s=>!s.archived&&attDraft[s.id]).map(s=>s.id);
   const note = document.getElementById('attNote').value.trim();
   if (!S.attendance[d]) S.attendance[d] = {};
   S.attendance[d][attSession] = { present: presentIds, note, savedAt: new Date().toISOString() };
-  save();
+  // Save to database
+  try {
+    await fetch('/.netlify/functions/api?action=attendance', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ date: d, session: attSession, present: presentIds, note })
+    });
+  } catch(e) { console.error('saveAtt DB error', e); }
   const msg = document.getElementById('attSavedMsg');
   msg.style.display = 'inline';
   setTimeout(()=>{msg.style.display='none';}, 2500);
