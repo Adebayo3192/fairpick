@@ -1,58 +1,66 @@
 # 🕌 FairPick — Halaqa Management System
 
-A free, browser-based tool built specifically for Islamic halaqas and madrasahs to manage daily operations fairly and efficiently. No app download, no subscription, no server — runs entirely in your browser.
+A free, cloud-based classroom management tool built specifically for Islamic halaqas and madrasahs. Data syncs across all devices in real time via a PostgreSQL database.
 
 🔗 **Live at:** [fairpick.netlify.app](https://fairpick.netlify.app)
+
+---
+
+## What's New — Cloud Database
+
+FairPick now stores all data in a **cloud database (Neon PostgreSQL)**. This means:
+
+- ✅ Open the app on your phone, tablet, or any browser — same data everywhere
+- ✅ Multiple teachers can use the app simultaneously
+- ✅ Data is never lost if you clear your browser cache
+- ✅ Attendance records, students, malams — all synced instantly
 
 ---
 
 ## Features
 
 ### 🗓 Student Attendance
-- Mark morning and evening sessions separately (Saturday–Wednesday)
+- Mark morning and evening sessions (Saturday–Wednesday)
 - Students categorised as **Active** or **Inactive (Archived)**
-- Save attendance records permanently — browse and edit any past date
-- Load saved attendance into the sidebar for use with other features
+- Saves permanently to the cloud — browse and edit any past date
+- Load saved attendance into the sidebar for picks and duty rotation
 
 ### 📊 Daily Attendance Report Card
 - Generates a shareable image showing:
   - Gregorian and Hijri date (manually correctable)
   - Total enrolled, Active, and Inactive student counts
   - Morning and evening: present & absent numbers
-  - Malam attendance table with ✓ / ✗ per session
+  - Malam attendance table ✓ / ✗ per session
   - Session notes
-- WhatsApp caption: totals, attendance, malam ticks, notes — short and clean, no dates
+- WhatsApp caption: totals, attendance, malam ticks, notes — short and clean
 - Share directly to WhatsApp group or download as PNG
 
 ### 👨‍🏫 Malam (Teacher) Attendance
 - Add malams with name, role, scheduled days and sessions
-- Per-malam scheduling — e.g. Malam Nurudeen: Saturday & Sunday, Morning only
-- On unscheduled days/sessions they don't appear — no false absents
+- Per-malam scheduling — e.g. Saturday & Sunday, Morning only
 - Session notes for absence reasons, late arrivals, etc.
-- Saved permanently per date and session
+- Monthly report showing each malam's attendance percentage
 
 ### 📅 Monthly Malam Report
-- Generated at end of month (last Wednesday)
 - Each malam's percentage based on their own scheduled days only
 - Colour-coded: 🟢 ≥80% · 🟡 ≥60% · 🔴 <60%
-- Share to WhatsApp or download as image
+- Share to WhatsApp or download as PNG
 
 ### 🎱 Number Draw (Presentations)
-- Students pick a physical number (e.g. 1–30)
+- Students hold physical numbers (e.g. 1–30)
 - Click the ball → random number drawn → that student presents
 - Fair rotation: no number repeats until all have been drawn
 
 ### 🧹 Cleaning Duty Rotation
 - Only present, non-kid boys are eligible
 - Fair round-robin: yesterday's cleaner skipped until everyone has gone
-- Resets automatically when all eligible students have had a turn
 
 ### 👥 Student Management
 - ID auto-assigned, name, category (Boy / Girl / Kid)
-- **Archive** students who leave — hidden from attendance, history kept
-- Restore archived students anytime
-- Active and Inactive counts visible in the header at all times
-- Import from CSV / Export as CSV backup
+- Archive inactive students — hidden from attendance, history kept
+- Active and Inactive counts always visible in the header
+- Import students from CSV — bulk upload
+- Export student list as CSV backup
 
 ---
 
@@ -61,29 +69,30 @@ A free, browser-based tool built specifically for Islamic halaqas and madrasahs 
 Any madrasah or halaqa with:
 - Morning & evening sessions, Saturday to Wednesday
 - Mixed student body (boys, girls, younger kids)
-- Multiple teachers with different schedules
-- Fair task and duty rotation needs
+- Multiple teachers (malams) with different schedules
 - WhatsApp-based staff communication
 
 ---
 
-## How to Use
+## Can Anyone Use This?
 
-Open [fairpick.netlify.app](https://fairpick.netlify.app) on any browser — phone or desktop. No installation needed.
+**Currently:** The app is live at fairpick.netlify.app but all users share the same database. It is set up for one specific halaqa.
 
-To self-host: download `index.html`, open in any browser, or drag onto [netlify.com/drop](https://netlify.com/drop).
-
----
-
-## Data & Privacy
-
-All data is stored in your **browser's localStorage** — it never leaves your device. Export your student list as CSV regularly. Clearing browser data will erase app data.
+**To use it for your own halaqa:**
+1. Fork this repo on GitHub
+2. Create a free Neon database at [neon.tech](https://neon.tech)
+3. Deploy to Netlify and set `DATABASE_URL` as an environment variable
+4. Done — your own private instance, completely free
 
 ---
 
 ## Tech Stack
 
-Pure HTML + CSS + JavaScript. Zero dependencies. Zero backend. Zero cost.
+- **Frontend:** Pure HTML + CSS + JavaScript (no framework)
+- **Backend:** Netlify Serverless Functions (Node.js)
+- **Database:** Neon PostgreSQL (free tier)
+- **Hosting:** Netlify (free tier)
+- **Total cost:** $0
 
 ---
 
@@ -91,13 +100,13 @@ Pure HTML + CSS + JavaScript. Zero dependencies. Zero backend. Zero cost.
 
 ```bash
 cd fairpick
-copy path\to\updated\file.html index.html
-git add index.html
-git commit -m "Update"
+# update files
+git add .
+git commit -m "Update description"
 git push
 ```
 
-Netlify auto-deploys from GitHub — same link, always up to date.
+Netlify auto-deploys from GitHub on every push.
 
 ---
 
