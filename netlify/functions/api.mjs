@@ -152,8 +152,15 @@ export default async function handler(req) {
     if (action==='test' && method==='GET') {
       const c = await pool.connect();
       try {
+        // Try creating tables if they don't exist
+        await c.query(`CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', type TEXT NOT NULL DEFAULT 'boy', draw_num INTEGER, archived BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW())`);
         const r = await c.query('SELECT COUNT(*) as n FROM students');
-        return jsonRes({ ok: true, students: r.rows[0].n, db: 'connected' });
+        // Try inserting a test student
+        await c.query('INSERT INTO students(id,name,type,archived)VALUES($1,$2,$3,$4)ON CONFLICT(id)DO NOTHING',['TEST_DEBUG','Test','boy',false]);
+        await c.query('DELETE FROM students WHERE id=$1',['TEST_DEBUG']);
+        return jsonRes({ ok: true, students: parseInt(r.rows[0].n), db: 'connected', insert: 'works' });
+      } catch(e) {
+        return jsonRes({ ok: false, error: e.message, code: e.code }, 500);
       } finally { c.release(); }
     }
     if (action==='migrate' && method==='POST') {
