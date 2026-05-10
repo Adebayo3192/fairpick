@@ -656,11 +656,6 @@ select option{background:#fff}
 
     <div class="card">
       <div class="card-title">Import / Export Students</div>
-      <div style="margin-bottom:14px;padding:12px 14px;background:#f0f7f3;border:1.5px solid #86efac;border-radius:8px">
-        <div style="font-size:0.8rem;font-weight:700;color:#1a4a2e;margin-bottom:4px">⬆ Migrate local data to database</div>
-        <div style="font-size:0.72rem;color:#64748b;margin-bottom:10px">Transfer student data saved on this device to the shared database.</div>
-        <button class="btn btn-green btn-sm" onclick="forceMigration()">⬆ Run Migration Now</button>
-      </div>
       <div style="font-size:0.72rem;color:var(--muted);margin-bottom:12px;line-height:1.6">
         Export your students as a CSV file to back them up or move them to another device.<br>
         Next time, just import that same file — no need to retype everyone.
@@ -2795,12 +2790,7 @@ async function forceMigration() {
   await runMigration();
 }
 
-async function forceMigration() {
-  const found = findLocalData();
-  if (!found) { toast('No local data found on this device', 'r'); return; }
-  document.getElementById('migBanner').style.display = 'block';
-  await runMigration();
-}
+
 
 function dismissMigration() {
   localStorage.setItem(MIGRATED_KEY, 'dismissed');
