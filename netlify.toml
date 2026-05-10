@@ -8,3 +8,6 @@
 
 [functions."api"]
   timeout = 30
+
+[build.environment]
+  NETLIFY_SKIP_PLUGIN_INSTALLS = "true"
