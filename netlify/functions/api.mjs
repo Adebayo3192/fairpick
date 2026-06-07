@@ -12,12 +12,15 @@ async function initDB() {
   try {
     await client.query(`
       CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', type TEXT NOT NULL DEFAULT 'boy', draw_num INTEGER, archived BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW());
-      CREATE TABLE IF NOT EXISTS malams (id TEXT PRIMARY KEY, name TEXT NOT NULL, role TEXT DEFAULT '', days INTEGER[] NOT NULL DEFAULT '{6,0,1,2,3}', sessions TEXT[] NOT NULL DEFAULT '{"morning","evening"}', created_at TIMESTAMP DEFAULT NOW());
+      CREATE TABLE IF NOT EXISTS malams (id TEXT PRIMARY KEY, name TEXT NOT NULL, role TEXT DEFAULT '', days INTEGER[] NOT NULL DEFAULT '{6,0,1,2,3}', sessions TEXT[] NOT NULL DEFAULT '{"morning","evening"}', inactive BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW());
+      ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
       CREATE TABLE IF NOT EXISTS attendance (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, present_ids TEXT[] NOT NULL DEFAULT '{}', note TEXT DEFAULT '', saved_at TIMESTAMP DEFAULT NOW(), UNIQUE(date,session));
       CREATE TABLE IF NOT EXISTS malam_attendance (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, present_ids TEXT[] NOT NULL DEFAULT '{}', note TEXT DEFAULT '', saved_at TIMESTAMP DEFAULT NOW(), UNIQUE(date,session));
       CREATE TABLE IF NOT EXISTS draw_history (id SERIAL PRIMARY KEY, num INTEGER NOT NULL, student_id TEXT, student_name TEXT, task TEXT DEFAULT '', round INTEGER NOT NULL DEFAULT 1, created_at TIMESTAMP DEFAULT NOW());
       CREATE TABLE IF NOT EXISTS clean_history (id SERIAL PRIMARY KEY, student_id TEXT NOT NULL, student_name TEXT, round INTEGER NOT NULL DEFAULT 1, created_at TIMESTAMP DEFAULT NOW());
       CREATE TABLE IF NOT EXISTS app_state (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+      ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
+      ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
       INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]') ON CONFLICT(key) DO NOTHING;
     `);
   } finally { client.release(); }
@@ -66,7 +69,7 @@ export default async function handler(req) {
 
       return jsonRes({
         students:students.map(s=>({id:s.id,name:s.name,type:s.type,drawNum:s.draw_num,archived:s.archived})),
-        malams:malams.map(m=>({id:m.id,name:m.name,role:m.role,days:m.days,sessions:m.sessions})),
+        malams:malams.map(m=>({id:m.id,name:m.name,role:m.role,days:m.days,sessions:m.sessions,inactive:m.inactive||false})),
         attendance:attMap, malamAttendance:malamAttMap,
         drawPool:drawPool||[], drawRound:drawRound||1, drawFrom:drawFrom||1, drawTo:drawTo||20,
         cleanPool:cleanPool||[], cleanRound:cleanRound||1, present:present||[],
@@ -99,11 +102,11 @@ export default async function handler(req) {
       return jsonRes({ok:true,imported:students.length});
     }
     if (action==='malams' && method==='POST') {
-      const {id,name,role,days,sessions}=await req.json();
+      const {id,name,role,days,sessions,inactive}=await req.json();
       const d = Array.isArray(days) ? '{'+days.map(Number).join(',')+'}' : '{6,0,1,2,3}';
       const s = Array.isArray(sessions) ? '{'+sessions.map(x=>'"'+x+'"').join(',')+'}' : '{"morning","evening"}';
       const c=await pool.connect();
-      try{await c.query('INSERT INTO malams(id,name,role,days,sessions)VALUES($1,$2,$3,$4::integer[],$5::text[])ON CONFLICT(id)DO UPDATE SET name=$2,role=$3,days=$4::integer[],sessions=$5::text[]',[id,name,role||'',d,s]);}finally{c.release();}
+      try{await c.query('INSERT INTO malams(id,name,role,days,sessions,inactive)VALUES($1,$2,$3,$4::integer[],$5::text[],$6)ON CONFLICT(id)DO UPDATE SET name=$2,role=$3,days=$4::integer[],sessions=$5::text[],inactive=$6',[id,name,role||'',d,s,inactive===true]);}finally{c.release();}
       return jsonRes({ok:true});
     }
     if (action==='malams/delete' && method==='POST') {

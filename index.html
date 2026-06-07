@@ -537,6 +537,11 @@ select option{background:#fff}
       </div>
     </div>
 
+    <!-- Student search -->
+    <div style="margin-bottom:10px;position:relative">
+      <input type="text" id="attSearch" placeholder="🔍 Search student by name or ID…" oninput="renderAttGrid()" style="padding-left:14px;font-size:0.82rem"/>
+    </div>
+
     <div class="att-grid" id="attGrid"></div>
 
     <div style="margin-bottom:12px">
@@ -1466,8 +1471,13 @@ function loadDraft() {
 
 function renderAttGrid() {
   const grid = document.getElementById('attGrid');
-  const active = S.students.filter(s => !s.archived);
-  if (!active.length) { grid.innerHTML = `<div style="grid-column:1/-1;color:var(--muted);font-size:0.74rem;padding:20px">No active students yet.</div>`; return; }
+  const q = (document.getElementById('attSearch')?.value || '').toLowerCase().trim();
+  let active = S.students.filter(s => !s.archived);
+  if (q) active = active.filter(s => s.id.toLowerCase().includes(q) || (s.name||'').toLowerCase().includes(q));
+  if (!active.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;color:var(--muted);font-size:0.78rem;padding:20px;text-align:center">${q ? `No students matching "${q}"` : 'No active students yet.'}</div>`;
+    return;
+  }
   grid.innerHTML = active.map(s => {
     const p = attDraft[s.id];
     return `<div class="att-card ${p?'att-present':''}" onclick="toggleAttStu('${s.id}')">
@@ -2211,6 +2221,21 @@ function updateMalamSessions(id, sessVal, checked) {
   save(); renderMalamRoster();
 }
 
+function toggleMalamActive(id) {
+  const m = S.malams.find(m => m.id === id);
+  if (!m) return;
+  m.inactive = !m.inactive;
+  // Save to DB
+  fetch('/.netlify/functions/api?action=malams', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ id: m.id, name: m.name, role: m.role||'', days: m.days||[6,0,1,2,3], sessions: m.sessions||['morning','evening'], inactive: m.inactive })
+  }).catch(e => console.error('malam update error', e));
+  renderMalamRoster();
+  renderMalamAttGrid();
+  toast(m.inactive ? `${m.name} deactivated (on leave)` : `${m.name} reactivated`, m.inactive ? 'b' : 'g');
+}
+
 function renderMalamRoster() {
   const wrap = document.getElementById('malamRosterWrap');
   if (!wrap) return;
@@ -2221,29 +2246,35 @@ function renderMalamRoster() {
   const DAY_LABELS = [{v:6,l:'Sat'},{v:0,l:'Sun'},{v:1,l:'Mon'},{v:2,l:'Tue'},{v:3,l:'Wed'}];
   const SESS_LABELS = [{v:'morning',l:'🌅 Morn'},{v:'evening',l:'🌆 Even'}];
   wrap.innerHTML = `<table class="stu-table"><thead><tr>
-    <th>#</th><th>Name</th><th>Role</th><th>Days</th><th>Sessions</th><th></th>
+    <th>#</th><th>Name</th><th>Role</th><th>Days</th><th>Sessions</th><th>Status</th><th></th>
   </tr></thead><tbody>` +
   S.malams.map((m,i) => {
     const days = m.days || [6,0,1,2,3];
     const sessions = m.sessions || ['morning','evening'];
+    const inactive = m.inactive === true;
     const dayPills = DAY_LABELS.map(d => {
       const on = days.includes(d.v);
-      return `<label class="day-check" style="padding:3px 7px;font-size:0.63rem">
-        <input type="checkbox" ${on?'checked':''} onchange="updateMalamDays('${m.id}',${d.v},this.checked)"/> ${d.l}
+      return `<label class="day-check" style="padding:3px 7px;font-size:0.63rem;${inactive?'opacity:0.4':''}">
+        <input type="checkbox" ${on?'checked':''} ${inactive?'disabled':''} onchange="updateMalamDays('${m.id}',${d.v},this.checked)"/> ${d.l}
       </label>`;
     }).join('');
     const sessPills = SESS_LABELS.map(s => {
       const on = sessions.includes(s.v);
-      return `<label class="day-check" style="padding:3px 7px;font-size:0.63rem">
-        <input type="checkbox" ${on?'checked':''} onchange="updateMalamSessions('${m.id}','${s.v}',this.checked)"/> ${s.l}
+      return `<label class="day-check" style="padding:3px 7px;font-size:0.63rem;${inactive?'opacity:0.4':''}">
+        <input type="checkbox" ${on?'checked':''} ${inactive?'disabled':''} onchange="updateMalamSessions('${m.id}','${s.v}',this.checked)"/> ${s.l}
       </label>`;
     }).join('');
-    return `<tr>
+    return `<tr style="${inactive?'opacity:0.6':''}">
       <td style="color:var(--muted)">${i+1}</td>
-      <td style="font-weight:500;color:var(--gold)">${m.name}</td>
+      <td style="font-weight:600;color:${inactive?'var(--muted)':'var(--gold)'}">${m.name}${inactive?' <span style="font-size:0.6rem;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:3px;font-weight:700">ON LEAVE</span>':''}</td>
       <td style="color:var(--muted)">${m.role||'—'}</td>
       <td><div style="display:flex;gap:3px;flex-wrap:wrap">${dayPills}</div></td>
       <td><div style="display:flex;gap:3px;flex-wrap:wrap">${sessPills}</div></td>
+      <td>
+        <button class="btn btn-sm" style="font-size:0.68rem;${inactive?'background:#dcfce7;border-color:#86efac;color:#15803d':'background:#fef3c7;border-color:#f59e0b;color:#92400e'}" onclick="toggleMalamActive('${m.id}')">
+          ${inactive ? '✓ Activate' : '⏸ Leave'}
+        </button>
+      </td>
       <td><button class="btn btn-red btn-sm" onclick="removeMalam('${m.id}')">✕</button></td>
     </tr>`;
   }).join('') + '</tbody></table>';
@@ -2260,10 +2291,11 @@ function loadMalamDraft() {
 }
 
 function getMalamScheduledForDate(d, sess) {
-  // Returns only malams scheduled for this day AND this session
+  // Returns only malams scheduled for this day AND session AND not on leave
   const dow = parseDt(d).getDay();
   const session = sess || attSession;
   return S.malams.filter(m => {
+    if (m.inactive === true) return false; // on leave
     const days = m.days || [6,0,1,2,3];
     const sessions = m.sessions || ['morning','evening'];
     return days.includes(dow) && sessions.includes(session);
