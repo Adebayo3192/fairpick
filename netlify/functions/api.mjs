@@ -21,7 +21,7 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS app_state (key TEXT PRIMARY KEY, value TEXT NOT NULL);
       ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
       ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
-      INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]') ON CONFLICT(key) DO NOTHING;
+      INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]'),('duty_groups','{}'),('student_groups','{}') ON CONFLICT(key) DO NOTHING;
     `);
   } finally { client.release(); }
 }
