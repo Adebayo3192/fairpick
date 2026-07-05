@@ -65,7 +65,7 @@ export default async function handler(req) {
       for(const r of attendance){if(!attMap[r.date])attMap[r.date]={};attMap[r.date][r.session]={present:r.present_ids,note:r.note,savedAt:r.saved_at};}
       const malamAttMap={};
       for(const r of malamAtt){if(!malamAttMap[r.date])malamAttMap[r.date]={};malamAttMap[r.date][r.session]={present:r.present_ids,note:r.note,savedAt:r.saved_at};}
-      const [drawPool,drawRound,drawFrom,drawTo,cleanPool,cleanRound,present]=await Promise.all([getState('draw_pool'),getState('draw_round'),getState('draw_from'),getState('draw_to'),getState('clean_pool'),getState('clean_round'),getState('present')]);
+      const [drawPool,drawRound,drawFrom,drawTo,cleanPool,cleanRound,present,dutyGroups,studentGroups]=await Promise.all([getState('draw_pool'),getState('draw_round'),getState('draw_from'),getState('draw_to'),getState('clean_pool'),getState('clean_round'),getState('present'),getState('duty_groups'),getState('student_groups')]);
 
       return jsonRes({
         students:students.map(s=>({id:s.id,name:s.name,type:s.type,drawNum:s.draw_num,archived:s.archived})),
@@ -73,6 +73,8 @@ export default async function handler(req) {
         attendance:attMap, malamAttendance:malamAttMap,
         drawPool:drawPool||[], drawRound:drawRound||1, drawFrom:drawFrom||1, drawTo:drawTo||20,
         cleanPool:cleanPool||[], cleanRound:cleanRound||1, present:present||[],
+        dutyGroups:dutyGroups||{bowls:{pool:[],round:1},washroom:{pool:[],round:1},masjid:{pool:[],round:1},prayer:{pool:[],round:1}},
+        studentGroups:studentGroups||{},
         history:[...drawHist.map(h=>({type:'draw',num:h.num,id:h.student_id,name:h.student_name,task:h.task,round:h.round,ts:h.created_at})),...cleanHist.map(h=>({type:'clean',id:h.student_id,name:h.student_name,round:h.round,ts:h.created_at}))].sort((a,b)=>new Date(a.ts)-new Date(b.ts)),
       });
     }
