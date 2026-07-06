@@ -436,7 +436,7 @@ select option{background:#fff}
     </div>
   </div>
   <div class="hbadges" style="position:relative;z-index:1;padding-right:12px">
-    <div class="hbadge" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3)">
+    <div class="hbadge" onclick="showStudentModal('active')" style="cursor:pointer;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3)">
       <b id="hTotal" style="font-size:1.05rem;color:#86efac">0</b> total
     </div>
     <div class="hbadge" onclick="showStudentModal('active')" style="cursor:pointer">
@@ -3823,7 +3823,16 @@ async function boot() {
   // Explicitly update after all data and UI is ready
   updateHeader();
   updateHomeDashboard();
-  setTimeout(() => { updateHeader(); updateHomeDashboard(); }, 1000);
+  // Force direct DOM update with actual data
+  setTimeout(() => {
+    const tot = S.students.length;
+    const act = S.students.filter(s=>!s.archived).length;
+    const ina = tot - act;
+    ['hTotal','homeTotal'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=tot; });
+    ['hActive','homeActive'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=act; });
+    ['hArchived','homeInactive'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=ina; });
+    updateHomeDashboard();
+  }, 800);
 }
 
 boot();
