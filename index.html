@@ -663,7 +663,12 @@ select option{background:#fff}
     <div class="row" style="margin-bottom:6px">
       <button class="btn btn-green" onclick="saveAtt()">💾 Save Attendance</button>
       <button class="btn btn-ghost btn-sm" onclick="attApplyToSidebar()">→ Apply to sidebar</button>
+      <button class="btn btn-sm" id="cancelSessionBtn" onclick="showCancelModal()" style="background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626;font-weight:600">🚫 Cancel Session</button>
       <span id="attSavedMsg" style="font-size:0.68rem;color:var(--green);display:none">✓ Saved</span>
+    </div>
+    <div id="cancelledBanner" style="display:none;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:0.8rem;color:#dc2626;font-weight:600;display:flex;align-items:center;justify-content:space-between">
+      <span id="cancelledBannerText">🚫 Session cancelled</span>
+      <button onclick="uncancelSession()" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:0.75rem;text-decoration:underline">Undo</button>
     </div>
 
     <div id="attStats" style="font-size:0.7rem;color:var(--muted);margin-bottom:16px"></div>
@@ -933,7 +938,8 @@ select option{background:#fff}
           <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em">Year</label>
           <input type="number" id="monthlyYear" style="width:90px;font-size:0.76rem" value="2026"/>
         </div>
-        <button class="btn btn-gold" style="margin-top:18px" onclick="generateMonthlyReport()">📊 Generate Monthly Report</button>
+        <button class="btn btn-gold" style="margin-top:18px" onclick="generateMonthlyReport()">📊 Malam Monthly Report</button>
+        <button class="btn btn-green btn-sm" style="margin-top:18px" onclick="generateStudentMonthlyPDF()">📋 Student Monthly PDF</button>
         <button class="btn btn-ghost btn-sm" onclick="shareMonthlyWA()" id="shareMonthlyBtn" style="display:none;margin-top:18px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           Share to WhatsApp
@@ -1023,6 +1029,8 @@ function defaultState() {
     // Malams
     malams: [],        // [{id, name, role}]
     malamAttendance: {}, // {"YYYY-MM-DD": {morning:{present:[ids]}, evening:{present:[ids]}}}
+    cancelledSessions: {}, // {"YYYY-MM-DD": {morning:"reason", evening:"reason"}}
+    cancelledSessions: {}, // {"YYYY-MM-DD": {morning:'reason', evening:'reason'}}
   };
 }
 let S = defaultState(); // will be populated on boot
@@ -1579,6 +1587,7 @@ function pickDuty(dutyKey) {
   if (nameEl) nameEl.textContent = stu?.name || chosen;
   if (idEl)   idEl.textContent   = `ID: ${chosen}`;
 
+  recordDutyHistory(dutyKey, chosen, stu?.name||chosen);
   renderDutyTab(dutyKey);
   toast(`${DUTY_CONFIG[dutyKey].icon} ${stu?.name||chosen} — ${DUTY_CONFIG[dutyKey].label}`, 'g');
 }
@@ -1664,6 +1673,7 @@ function setSession(s) {
   renderAttGrid();
   renderMalamAttGrid();
   updateAttHeader();
+  updateCancelledBanner();
 }
 
 function goToday() {
@@ -1839,7 +1849,7 @@ function loadRecToSidebar(ds, sess) {
 }
 
 document.getElementById('attDate').addEventListener('change', function() {
-  attDate = this.value; loadDraft(); loadMalamDraft(); renderAttGrid(); renderMalamAttGrid(); updateAttHeader(); updateReportDateLabel(); initHijriFields();
+  attDate = this.value; loadDraft(); loadMalamDraft(); renderAttGrid(); renderMalamAttGrid(); updateAttHeader(); updateReportDateLabel(); initHijriFields(); updateCancelledBanner();
 });
 
 // ══════════════════════════════════════════════
@@ -2490,7 +2500,8 @@ function updateMalamDays(id, dayVal, checked) {
   if (!m.days) m.days = [6,0,1,2,3];
   if (checked) { if (!m.days.includes(dayVal)) m.days.push(dayVal); }
   else { m.days = m.days.filter(d => d !== dayVal); }
-  save(); renderMalamRoster();
+  saveMalam(m);
+  renderMalamRoster();
 }
 
 function updateMalamSessions(id, sessVal, checked) {
@@ -2499,19 +2510,29 @@ function updateMalamSessions(id, sessVal, checked) {
   if (!m.sessions) m.sessions = ['morning','evening'];
   if (checked) { if (!m.sessions.includes(sessVal)) m.sessions.push(sessVal); }
   else { m.sessions = m.sessions.filter(s => s !== sessVal); }
-  save(); renderMalamRoster();
+  saveMalam(m);
+  renderMalamRoster();
+}
+
+function saveMalam(m) {
+  // Save a single malam's full record to DB
+  fetch('/.netlify/functions/api?action=malams', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      id: m.id, name: m.name, role: m.role||'',
+      days: m.days||[6,0,1,2,3],
+      sessions: m.sessions||['morning','evening'],
+      inactive: m.inactive||false
+    })
+  }).catch(e => console.error('saveMalam error', e));
 }
 
 function toggleMalamActive(id) {
   const m = S.malams.find(m => m.id === id);
   if (!m) return;
   m.inactive = !m.inactive;
-  // Save to DB
-  fetch('/.netlify/functions/api?action=malams', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ id: m.id, name: m.name, role: m.role||'', days: m.days||[6,0,1,2,3], sessions: m.sessions||['morning','evening'], inactive: m.inactive })
-  }).catch(e => console.error('malam update error', e));
+  saveMalam(m);
   renderMalamRoster();
   renderMalamAttGrid();
   toast(m.inactive ? `${m.name} deactivated (on leave)` : `${m.name} reactivated`, m.inactive ? 'b' : 'g');
@@ -2585,13 +2606,21 @@ function getMalamScheduledForDate(d, sess) {
 
 function buildMalamGrid(scheduledMalams) {
   if (!scheduledMalams.length) return '<div style="color:var(--muted);font-size:0.74rem;padding:12px">No malams scheduled for this day.</div>';
+  const d = attDate || todayStr();
+  const reasons = S.malamAttendance?.[d]?.[attSession]?.absenceReasons || {};
   return scheduledMalams.map(m => {
     const p = malamDraft[m.id];
+    const absReason = reasons[m.id] || '';
+    const reasonSelect = !p ? `<select onchange="setMalamAbsenceReason('${m.id}','${d}','${attSession}',this.value)" style="font-size:0.65rem;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:#fff;margin-top:4px;width:100%" onclick="event.stopPropagation()">
+      <option value="">Reason...</option>
+      ${['📱 Communicated','🤒 Sick','🚨 Emergency','❓ No Reason','📝 Other'].map(r=>`<option value="${r}" ${absReason===r?'selected':''}>${r}</option>`).join('')}
+    </select>` : '';
     return `<div class="att-card ${p?'att-present':''}" onclick="toggleMalamAtt('${m.id}')">
       <div class="att-cb">${p?'✓':''}</div>
-      <div class="att-info">
+      <div class="att-info" style="flex:1">
         <div class="att-id ${p?'green':''}">${m.name}</div>
         ${m.role?`<div class="att-nm">${m.role}</div>`:''}
+        ${reasonSelect}
       </div>
     </div>`;
   }).join('');
@@ -2632,11 +2661,12 @@ async function saveMalamAtt() {
   const d = attDate || todayStr();
   const presentIds = S.malams.filter(m=>malamDraft[m.id]).map(m=>m.id);
   const note = (document.getElementById('malamSessionNote')?.value || '').trim();
+  const absenceReasons = S.malamAttendance?.[d]?.[attSession]?.absenceReasons || {};
   if (!S.malamAttendance) S.malamAttendance = {};
   if (!S.malamAttendance[d]) S.malamAttendance[d] = {};
-  S.malamAttendance[d][attSession] = { present: presentIds, note, savedAt: new Date().toISOString() };
+  S.malamAttendance[d][attSession] = { present: presentIds, note, absenceReasons, savedAt: new Date().toISOString() };
   try {
-    await api('malam-attendance', { date: d, session: attSession, present: presentIds, note });
+    await api('malam-attendance', { date: d, session: attSession, present: presentIds, note, absenceReasons });
   } catch(e) { console.error('saveMalamAtt error', e); }
   const msg = document.getElementById('malamSavedMsg');
   if (msg) { msg.style.display='inline'; setTimeout(()=>{msg.style.display='none';},2500); }
@@ -3109,6 +3139,272 @@ function dismissMigration() {
 }
 
 // ── ASYNC BOOT ──
+
+// ══════════════════════════════════════════════
+//  SESSION CANCELLATION
+// ══════════════════════════════════════════════
+function showCancelModal() {
+  document.getElementById('cancelModal').classList.add('open');
+}
+function closeCancelModal() {
+  document.getElementById('cancelModal').classList.remove('open');
+}
+function closeModalBg2(e) {
+  if (e.target === document.getElementById('cancelModal')) closeCancelModal();
+}
+
+async function cancelSession(reason) {
+  const d = attDate || todayStr();
+  if (!S.cancelledSessions) S.cancelledSessions = {};
+  if (!S.cancelledSessions[d]) S.cancelledSessions[d] = {};
+  S.cancelledSessions[d][attSession] = reason;
+  try {
+    await fetch('/.netlify/functions/api?action=cancel-session', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ date: d, session: attSession, reason })
+    });
+  } catch(e) { console.error('cancel error', e); }
+  closeCancelModal();
+  updateCancelledBanner();
+  toast(`Session marked as cancelled — ${reason}`, 'r');
+}
+
+async function cancelSessionCustom() {
+  const reason = document.getElementById('cancelOtherReason').value.trim() || '📝 Other';
+  await cancelSession(reason);
+}
+
+async function uncancelSession() {
+  const d = attDate || todayStr();
+  if (S.cancelledSessions?.[d]) delete S.cancelledSessions[d][attSession];
+  try {
+    await fetch('/.netlify/functions/api?action=uncancel-session', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ date: d, session: attSession })
+    });
+  } catch(e) { console.error('uncancel error', e); }
+  updateCancelledBanner();
+  toast('Session restored', 'g');
+}
+
+function updateCancelledBanner() {
+  const d = attDate || todayStr();
+  const reason = S.cancelledSessions?.[d]?.[attSession];
+  const banner = document.getElementById('cancelledBanner');
+  const bannerText = document.getElementById('cancelledBannerText');
+  if (!banner) return;
+  if (reason) {
+    banner.style.display = 'flex';
+    bannerText.textContent = `🚫 Session cancelled — ${reason}`;
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════
+//  MALAM ABSENCE REASONS
+// ══════════════════════════════════════════════
+const ABSENCE_REASONS = ['📱 Communicated', '🤒 Sick', '🚨 Emergency', '❓ No Reason', '📝 Other'];
+
+function getMalamAbsenceReason(malamId, date, session) {
+  return S.malamAttendance?.[date]?.[session]?.absenceReasons?.[malamId] || '';
+}
+
+async function setMalamAbsenceReason(malamId, date, session, reason) {
+  if (!S.malamAttendance) S.malamAttendance = {};
+  if (!S.malamAttendance[date]) S.malamAttendance[date] = {};
+  if (!S.malamAttendance[date][session]) S.malamAttendance[date][session] = { present: [], note: '' };
+  if (!S.malamAttendance[date][session].absenceReasons) S.malamAttendance[date][session].absenceReasons = {};
+  S.malamAttendance[date][session].absenceReasons[malamId] = reason;
+  // Save to DB
+  const rec = S.malamAttendance[date][session];
+  await fetch('/.netlify/functions/api?action=malam-attendance', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ date, session, present: rec.present, note: rec.note||'', absenceReasons: rec.absenceReasons||{} })
+  }).catch(e => console.error('malam reason save error', e));
+}
+
+// ══════════════════════════════════════════════
+//  DUTY HISTORY
+// ══════════════════════════════════════════════
+function recordDutyHistory(dutyKey, studentId, studentName) {
+  const rec = {
+    type: 'duty',
+    duty: dutyKey,
+    dutyLabel: DUTY_CONFIG[dutyKey]?.label || dutyKey,
+    id: studentId,
+    name: studentName,
+    ts: new Date().toISOString()
+  };
+  if (!S.history) S.history = [];
+  S.history.push(rec);
+  // Save to clean_history table (reusing for duties)
+  fetch('/.netlify/functions/api?action=clean-history', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ studentId, studentName, round: 1, dutyKey })
+  }).catch(e => console.error('duty history save error', e));
+  renderHistory();
+}
+
+// ══════════════════════════════════════════════
+//  MONTHLY STUDENT ATTENDANCE PDF
+// ══════════════════════════════════════════════
+async function generateStudentMonthlyPDF() {
+  const month = parseInt(document.getElementById('monthlyMonth')?.value ?? new Date().getMonth());
+  const year  = parseInt(document.getElementById('monthlyYear')?.value ?? new Date().getFullYear());
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // Get all school days in this month (Sat=6,Sun=0,Mon=1,Tue=2,Wed=3)
+  const schoolDays = [];
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    const dow = date.getDay();
+    if ([6,0,1,2,3].includes(dow)) {
+      const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      schoolDays.push(ds);
+    }
+  }
+
+  // Remove cancelled sessions
+  const activeDaysMorn = schoolDays.filter(d => !S.cancelledSessions?.[d]?.morning);
+  const activeDaysEven = schoolDays.filter(d => !S.cancelledSessions?.[d]?.evening);
+
+  // Calculate per-student stats
+  const students = S.students.filter(s => !s.archived);
+  const stats = students.map(s => {
+    let mPres = 0, ePres = 0;
+    activeDaysMorn.forEach(d => {
+      if (S.attendance?.[d]?.morning?.present?.includes(s.id)) mPres++;
+    });
+    activeDaysEven.forEach(d => {
+      if (S.attendance?.[d]?.evening?.present?.includes(s.id)) ePres++;
+    });
+    const mTotal = activeDaysMorn.length;
+    const eTotal = activeDaysEven.length;
+    const total = mPres + ePres;
+    const totalSessions = mTotal + eTotal;
+    const pct = totalSessions > 0 ? Math.round(total/totalSessions*100) : 0;
+    return { ...s, mPres, ePres, mTotal, eTotal, total, totalSessions, pct };
+  }).sort((a,b) => b.pct - a.pct);
+
+  // Generate PDF using browser print
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>Student Attendance Report — ${monthNames[month]} ${year}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Lato:wght@400;700;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Lato',sans-serif; color:#1a2332; background:#fff; }
+  .cover { page-break-after: always; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; background:linear-gradient(135deg,#1a4a2e,#0d2e12); padding:40px; text-align:center; }
+  .cover-arabic { font-family:'Amiri',serif; font-size:2.2rem; color:#c8960c; margin-bottom:12px; }
+  .cover-name { font-family:'Amiri',serif; font-size:1.8rem; color:#fff; margin-bottom:4px; }
+  .cover-english { font-size:1rem; color:rgba(255,255,255,0.7); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:40px; }
+  .cover-title { font-size:2rem; font-weight:900; color:#fff; margin-bottom:8px; }
+  .cover-subtitle { font-size:1.1rem; color:#86efac; margin-bottom:6px; }
+  .cover-meta { font-size:0.85rem; color:rgba(255,255,255,0.5); margin-top:40px; }
+  .cover-stats { display:flex; gap:30px; margin-top:30px; }
+  .cover-stat { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:16px 24px; text-align:center; }
+  .cover-stat-num { font-size:2rem; font-weight:900; color:#86efac; }
+  .cover-stat-label { font-size:0.72rem; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.1em; margin-top:4px; }
+  .page { padding:32px 36px; }
+  .page-header { display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1a4a2e; padding-bottom:10px; margin-bottom:20px; }
+  .page-header-title { font-size:0.85rem; font-weight:700; color:#1a4a2e; letter-spacing:0.05em; }
+  .page-header-page { font-size:0.75rem; color:#888; }
+  table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+  thead tr { background:#1a4a2e; color:#fff; }
+  thead th { padding:10px 8px; text-align:left; font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; }
+  tbody tr:nth-child(even) { background:#f8fffe; }
+  tbody tr:hover { background:#f0f7f3; }
+  td { padding:9px 8px; border-bottom:1px solid #e8f0ec; }
+  .pct-green { color:#15803d; font-weight:700; }
+  .pct-yellow { color:#92400e; font-weight:700; }
+  .pct-red { color:#dc2626; font-weight:700; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:0.68rem; font-weight:700; }
+  .badge-green { background:#dcfce7; color:#15803d; }
+  .badge-yellow { background:#fef9c3; color:#92400e; }
+  .badge-red { background:#fee2e2; color:#dc2626; }
+  .rank { color:#888; font-size:0.75rem; }
+  @media print {
+    .cover { min-height:100vh; }
+    .page { page-break-inside: avoid; }
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-arabic">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+  <div class="cover-name">مركز باب التوبة الإسلامي</div>
+  <div class="cover-english">Bab At-Tawbah Islamic Center</div>
+  <div class="cover-title">Monthly Attendance Report</div>
+  <div class="cover-subtitle">${monthNames[month]} ${year}</div>
+  <div class="cover-stats">
+    <div class="cover-stat"><div class="cover-stat-num">${students.length}</div><div class="cover-stat-label">Total Students</div></div>
+    <div class="cover-stat"><div class="cover-stat-num">${activeDaysMorn.length}</div><div class="cover-stat-label">Morning Days</div></div>
+    <div class="cover-stat"><div class="cover-stat-num">${activeDaysEven.length}</div><div class="cover-stat-label">Evening Days</div></div>
+    <div class="cover-stat"><div class="cover-stat-num">${stats.filter(s=>s.pct>=80).length}</div><div class="cover-stat-label">🟢 ≥80%</div></div>
+  </div>
+  <div class="cover-meta">Generated on ${new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+</div>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-title">Bab At-Tawbah Islamic Center — Student Attendance — ${monthNames[month]} ${year}</div>
+    <div class="page-header-page">Sorted by attendance percentage</div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Morning</th>
+        <th>Evening</th>
+        <th>Total</th>
+        <th>%</th>
+        <th>Grade</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${stats.map((s,i) => {
+        const pctClass = s.pct >= 80 ? 'pct-green' : s.pct >= 60 ? 'pct-yellow' : 'pct-red';
+        const badge = s.pct >= 80 ? 'badge-green' : s.pct >= 60 ? 'badge-yellow' : 'badge-red';
+        const grade = s.pct >= 80 ? '🟢 Good' : s.pct >= 60 ? '🟡 Fair' : '🔴 Poor';
+        return `<tr>
+          <td class="rank">${i+1}</td>
+          <td style="font-weight:700;color:#b45309">${s.id}</td>
+          <td style="font-weight:600">${s.name||'—'}</td>
+          <td><span class="badge ${s.type==='boy'?'badge-green':s.type==='girl'?'':'badge-yellow'}" style="${s.type==='girl'?'background:#fce7f3;color:#be185d':''}">${s.type}</span></td>
+          <td>${s.mPres}/${s.mTotal}</td>
+          <td>${s.ePres}/${s.eTotal}</td>
+          <td>${s.total}/${s.totalSessions}</td>
+          <td class="${pctClass}">${s.pct}%</td>
+          <td><span class="badge ${badge}">${grade}</span></td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 800);
+}
+
 async function boot() {
   // Show loading indicator
   document.body.style.opacity = '0.6';
@@ -3155,6 +3451,27 @@ async function boot() {
 
 boot();
 </script>
+<!-- CANCEL SESSION MODAL -->
+<div class="modal-overlay" id="cancelModal" onclick="closeModalBg2(event)">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-header">
+      <h2>🚫 Cancel Session</h2>
+      <button class="modal-close" onclick="closeCancelModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:16px">Select the reason this session did not take place. It will be excluded from all monthly attendance calculations.</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('🎉 Holiday')">🎉 Holiday</button>
+        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('🌧 Rain')">🌧 Rain</button>
+        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('⚡ No Electricity')">⚡ No Electricity</button>
+        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('📝 Other')">📝 Other</button>
+        <input type="text" id="cancelOtherReason" placeholder="Type reason if other..." style="margin-top:4px;font-size:0.82rem"/>
+        <button class="btn btn-red" style="margin-top:4px" onclick="cancelSessionCustom()">Confirm Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- STUDENT MODAL -->
 <div class="modal-overlay" id="studentModal" onclick="closeModalBg(event)">
   <div class="modal-box">

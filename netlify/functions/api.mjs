@@ -15,10 +15,19 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS malams (id TEXT PRIMARY KEY, name TEXT NOT NULL, role TEXT DEFAULT '', days INTEGER[] NOT NULL DEFAULT '{6,0,1,2,3}', sessions TEXT[] NOT NULL DEFAULT '{"morning","evening"}', inactive BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW());
       ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
       CREATE TABLE IF NOT EXISTS attendance (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, present_ids TEXT[] NOT NULL DEFAULT '{}', note TEXT DEFAULT '', saved_at TIMESTAMP DEFAULT NOW(), UNIQUE(date,session));
-      CREATE TABLE IF NOT EXISTS malam_attendance (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, present_ids TEXT[] NOT NULL DEFAULT '{}', note TEXT DEFAULT '', saved_at TIMESTAMP DEFAULT NOW(), UNIQUE(date,session));
+      CREATE TABLE IF NOT EXISTS malam_attendance (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, present_ids TEXT[] NOT NULL DEFAULT '{}', note TEXT DEFAULT '', absence_reasons TEXT DEFAULT '{}', saved_at TIMESTAMP DEFAULT NOW(), UNIQUE(date,session));
+      ALTER TABLE malam_attendance ADD COLUMN IF NOT EXISTS absence_reasons TEXT DEFAULT '{}';
       CREATE TABLE IF NOT EXISTS draw_history (id SERIAL PRIMARY KEY, num INTEGER NOT NULL, student_id TEXT, student_name TEXT, task TEXT DEFAULT '', round INTEGER NOT NULL DEFAULT 1, created_at TIMESTAMP DEFAULT NOW());
       CREATE TABLE IF NOT EXISTS clean_history (id SERIAL PRIMARY KEY, student_id TEXT NOT NULL, student_name TEXT, round INTEGER NOT NULL DEFAULT 1, created_at TIMESTAMP DEFAULT NOW());
       CREATE TABLE IF NOT EXISTS app_state (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS cancelled_sessions (
+        id SERIAL PRIMARY KEY,
+        date TEXT NOT NULL,
+        session TEXT NOT NULL,
+        reason TEXT NOT NULL DEFAULT '',
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(date, session)
+      );
       ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
       ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
       INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]'),('duty_groups','{}'),('student_groups','{}') ON CONFLICT(key) DO NOTHING;
@@ -49,22 +58,28 @@ export default async function handler(req) {
   try {
     if (action==='load' && method==='GET') {
       const c = await pool.connect();
-      let students,malams,attendance,malamAtt,drawHist,cleanHist;
+      let students,malams,attendance,malamAtt,drawHist,cleanHist,cancelledSessions;
       try {
-        [students,malams,attendance,malamAtt,drawHist,cleanHist] = await Promise.all([
+        [students,malams,attendance,malamAtt,drawHist,cleanHist,cancelledSessions] = await Promise.all([
           c.query(`SELECT * FROM students ORDER BY LPAD(regexp_replace(id, '[^0-9]', '', 'g'), 10, '0')`).then(r=>r.rows),
           c.query('SELECT * FROM malams ORDER BY created_at').then(r=>r.rows),
           c.query('SELECT * FROM attendance ORDER BY date').then(r=>r.rows),
           c.query('SELECT * FROM malam_attendance ORDER BY date').then(r=>r.rows),
           c.query('SELECT * FROM draw_history ORDER BY created_at').then(r=>r.rows),
           c.query('SELECT * FROM clean_history ORDER BY created_at').then(r=>r.rows),
+          c.query('SELECT * FROM cancelled_sessions ORDER BY date').then(r=>r.rows),
         ]);
       } finally { c.release(); }
 
       const attMap={};
       for(const r of attendance){if(!attMap[r.date])attMap[r.date]={};attMap[r.date][r.session]={present:r.present_ids,note:r.note,savedAt:r.saved_at};}
       const malamAttMap={};
-      for(const r of malamAtt){if(!malamAttMap[r.date])malamAttMap[r.date]={};malamAttMap[r.date][r.session]={present:r.present_ids,note:r.note,savedAt:r.saved_at};}
+      for(const r of malamAtt){
+        if(!malamAttMap[r.date])malamAttMap[r.date]={};
+        let absenceReasons={};
+        try{ if(r.absence_reasons) absenceReasons=JSON.parse(r.absence_reasons); }catch(e){}
+        malamAttMap[r.date][r.session]={present:r.present_ids,note:r.note,absenceReasons,savedAt:r.saved_at};
+      }
       const [drawPool,drawRound,drawFrom,drawTo,cleanPool,cleanRound,present,dutyGroups,studentGroups]=await Promise.all([getState('draw_pool'),getState('draw_round'),getState('draw_from'),getState('draw_to'),getState('clean_pool'),getState('clean_round'),getState('present'),getState('duty_groups'),getState('student_groups')]);
 
       return jsonRes({
@@ -75,6 +90,13 @@ export default async function handler(req) {
         cleanPool:cleanPool||[], cleanRound:cleanRound||1, present:present||[],
         dutyGroups:dutyGroups||{bowls:{pool:[],round:1},washroom:{pool:[],round:1},masjid:{pool:[],round:1},prayer:{pool:[],round:1}},
         studentGroups:studentGroups||{},
+        cancelledSessions: cancelledSessions.reduce((acc,r)=>{
+          if(!acc[r.date]) acc[r.date]={};
+          acc[r.date][r.session]=r.reason;
+          return acc;
+        },{}),
+        cancelledSessions: cancelledSessions.reduce((acc,r)=>{if(!acc[r.date])acc[r.date]={};acc[r.date][r.session]=r.reason;return acc;},{}),
+        cancelledSessions: cancelledSessions.reduce((acc,r)=>{if(!acc[r.date])acc[r.date]={};acc[r.date][r.session]=r.reason;return acc;},{}),
         history:[...drawHist.map(h=>({type:'draw',num:h.num,id:h.student_id,name:h.student_name,task:h.task,round:h.round,ts:h.created_at})),...cleanHist.map(h=>({type:'clean',id:h.student_id,name:h.student_name,round:h.round,ts:h.created_at}))].sort((a,b)=>new Date(a.ts)-new Date(b.ts)),
       });
     }
@@ -219,6 +241,71 @@ export default async function handler(req) {
         }
       } finally { c.release(); }
       return jsonRes({ ok: true, students: students.length, malams: malams.length, attendance: attendance.length });
+    }
+
+    // ── CANCEL SESSION ──
+    if (action==='cancel-session' && method==='POST') {
+      const {date, session, reason} = await req.json();
+      const c = await pool.connect();
+      try {
+        await c.query(
+          'INSERT INTO cancelled_sessions(date,session,reason) VALUES($1,$2,$3) ON CONFLICT(date,session) DO UPDATE SET reason=$3',
+          [date, session, reason||'']
+        );
+      } finally { c.release(); }
+      return jsonRes({ok:true});
+    }
+
+    // ── UNCANCEL SESSION ──
+    if (action==='uncancel-session' && method==='POST') {
+      const {date, session} = await req.json();
+      const c = await pool.connect();
+      try {
+        await c.query('DELETE FROM cancelled_sessions WHERE date=$1 AND session=$2', [date, session]);
+      } finally { c.release(); }
+      return jsonRes({ok:true});
+    }
+
+    // ── CANCEL SESSION ──
+    if (action==='cancel-session' && method==='POST') {
+      const {date, session, reason} = await req.json();
+      const c = await pool.connect();
+      try {
+        await c.query(
+          'INSERT INTO cancelled_sessions(date,session,reason) VALUES($1,$2,$3) ON CONFLICT(date,session) DO UPDATE SET reason=$3',
+          [date, session, reason||'']
+        );
+      } finally { c.release(); }
+      return jsonRes({ok:true});
+    }
+    if (action==='uncancel-session' && method==='POST') {
+      const {date, session} = await req.json();
+      const c = await pool.connect();
+      try {
+        await c.query('DELETE FROM cancelled_sessions WHERE date=$1 AND session=$2', [date, session]);
+      } finally { c.release(); }
+      return jsonRes({ok:true});
+    }
+
+    // ── CANCEL SESSION ──
+    if (action==='cancel-session' && method==='POST') {
+      const {date, session, reason} = await req.json();
+      const c = await pool.connect();
+      try {
+        await c.query(
+          'INSERT INTO cancelled_sessions(date,session,reason) VALUES($1,$2,$3) ON CONFLICT(date,session) DO UPDATE SET reason=$3',
+          [date, session, reason||'']
+        );
+      } finally { c.release(); }
+      return jsonRes({ok:true});
+    }
+    if (action==='uncancel-session' && method==='POST') {
+      const {date, session} = await req.json();
+      const c = await pool.connect();
+      try {
+        await c.query('DELETE FROM cancelled_sessions WHERE date=$1 AND session=$2', [date, session]);
+      } finally { c.release(); }
+      return jsonRes({ok:true});
     }
 
     return jsonRes({error:'Unknown action: '+action},404);
