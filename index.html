@@ -3820,6 +3820,11 @@ async function boot() {
   // Check if local data needs migrating to DB
   checkMigration();
   switchTab('home');
+  // Explicitly update after all data and UI is ready
+  updateHeader();
+  updateHomeDashboard();
+  // Also update again after a short delay in case API is still resolving
+  setTimeout(() => { updateHeader(); updateHomeDashboard(); }, 500);
 }
 
 boot();
