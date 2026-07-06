@@ -3783,6 +3783,7 @@ async function boot() {
 
   try {
     S = await loadState();
+    console.log('DB LOADED: students='+S.students.length+' type='+typeof S.students);
     // Ensure all arrays exist
     S.present       = Array.isArray(S.present)   ? S.present   : [];
     S.queue         = Array.isArray(S.queue)     ? S.queue     : [];
@@ -3825,6 +3826,7 @@ async function boot() {
   updateHomeDashboard();
   // Force direct DOM update with actual data
   setTimeout(() => {
+    console.log('TIMEOUT: students='+S.students.length);
     const tot = S.students.length;
     const act = S.students.filter(s=>!s.archived).length;
     const ina = tot - act;
