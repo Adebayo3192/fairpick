@@ -3743,7 +3743,8 @@ function updateHomeDashboard() {
   const dateObj = parseDt(d);
   const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dateObj.getDay()];
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const setEl = (id,v) => { const el=document.getElementById(id); if(el){ if(typeof v==='string'&&v.includes('<')) el.innerHTML=v; else el.textContent=v; }};
+  console.log('updateHomeDashboard: students=', S.students.length, 'homeTotal el=', document.getElementById('homeTotal'));
+  const setEl = (id,v) => { const el=document.getElementById(id); if(el){ if(typeof v==='string'&&v.includes('<')) el.innerHTML=v; else el.textContent=v; } else { console.warn('Element not found:', id); }};
 
   setEl('homeGregorian', dayName+', '+dateObj.getDate()+' '+months[dateObj.getMonth()]+' '+dateObj.getFullYear());
   setEl('homeHijri', fmtHijriFromFields()||'—');
