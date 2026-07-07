@@ -146,6 +146,23 @@ export default async function handler(req) {
       try{await c.query('INSERT INTO attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3::text[],$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3::text[],note=$4,saved_at=NOW()',[date,session,arr,note||'']);}finally{c.release();}
       return jsonRes({ok:true});
     }
+    // ── QR CHECK-IN: adds ONE student to the present list without overwriting existing manual attendance ──
+    if (action==='checkin' && method==='POST') {
+      const {date,session,studentId}=await req.json();
+      if (!date || !session || !studentId) return jsonRes({error:'Missing date, session, or studentId'},400);
+      const c=await pool.connect();
+      try{
+        const existing = await c.query('SELECT present_ids FROM attendance WHERE date=$1 AND session=$2',[date,session]);
+        let ids = existing.rows.length ? existing.rows[0].present_ids : [];
+        if (!ids.includes(studentId)) ids.push(studentId);
+        const arr = '{'+ids.map(p=>'"'+String(p).replace(/"/g,'')+'"').join(',')+'}';
+        await c.query(
+          'INSERT INTO attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3::text[],$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3::text[],saved_at=NOW()',
+          [date,session,arr,existing.rows[0]?.note||'']
+        );
+      } finally { c.release(); }
+      return jsonRes({ok:true});
+    }
     if (action==='malam-attendance' && method==='POST') {
       const {date,session,present,note}=await req.json();
       const arr = Array.isArray(present) ? '{'+present.map(p=>'"'+p+'"').join(',')+'}' : '{}';

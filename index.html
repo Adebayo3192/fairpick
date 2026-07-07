@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Babu At-Tawbah</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root {
   --bg: #f0f4f8;
@@ -140,6 +142,26 @@ select option{background:#fff}
 }
 .bnav-item.active{color:#1a4a2e;}
 .bnav-item svg{transition:transform 0.15s;stroke:#94a3b8}
+
+/* ── PIN LOCK ── */
+.pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(200,150,12,0.5);background:transparent;transition:all 0.15s}
+.pin-dot.filled{background:#c8960c;border-color:#c8960c;box-shadow:0 0 8px rgba(200,150,12,0.6)}
+.pin-key{
+  width:68px;height:68px;border-radius:50%;
+  background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);
+  color:#fff;font-size:1.3rem;font-weight:600;font-family:'IBM Plex Mono',monospace;
+  cursor:pointer;transition:all 0.12s;-webkit-tap-highlight-color:transparent;
+  display:flex;align-items:center;justify-content:center;margin:0 auto;
+}
+.pin-key:active{background:rgba(200,150,12,0.25);border-color:#c8960c;transform:scale(0.94)}
+@keyframes pinShake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-10px)}
+  40%{transform:translateX(10px)}
+  60%{transform:translateX(-6px)}
+  80%{transform:translateX(6px)}
+}
+#pinDots.shake{animation:pinShake 0.4s ease}
 .bnav-item.active svg{stroke:#1a4a2e;transform:scale(1.1)}
 .bnav-item:active svg{transform:scale(0.9)}
 
@@ -410,6 +432,42 @@ select option{background:#fff}
 </style>
 </head>
 <body>
+<!-- PIN LOCK SCREEN -->
+<div id="pinLockScreen" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(160deg,#0d2e12,#071508);display:flex;align-items:center;justify-content:center;padding:24px;font-family:'IBM Plex Mono',monospace">
+  <div style="width:100%;max-width:340px;text-align:center">
+    <img src="data:image/jpeg;base64,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" alt="Logo" style="width:76px;height:76px;object-fit:cover;border-radius:50%;border:2px solid rgba(200,150,12,0.6);margin-bottom:16px"/>
+    <div style="font-family:'Amiri',serif;font-size:1.2rem;color:#c8960c;margin-bottom:2px">مركز باب التوبة الإسلامي</div>
+    <div style="font-size:0.68rem;color:rgba(255,255,255,0.55);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:28px">Bab At-Tawbah Islamic Center</div>
+
+    <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-bottom:14px">Enter PIN to continue</div>
+
+    <div id="pinDots" style="display:flex;justify-content:center;gap:14px;margin-bottom:22px">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+      <div class="pin-dot" id="pd4"></div>
+      <div class="pin-dot" id="pd5"></div>
+    </div>
+
+    <div id="pinError" style="color:#f87171;font-size:0.72rem;margin-bottom:14px;min-height:16px"></div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:260px;margin:0 auto">
+      <button class="pin-key" onclick="pinPress('1')">1</button>
+      <button class="pin-key" onclick="pinPress('2')">2</button>
+      <button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button>
+      <button class="pin-key" onclick="pinPress('5')">5</button>
+      <button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button>
+      <button class="pin-key" onclick="pinPress('8')">8</button>
+      <button class="pin-key" onclick="pinPress('9')">9</button>
+      <button class="pin-key" style="visibility:hidden">.</button>
+      <button class="pin-key" onclick="pinPress('0')">0</button>
+      <button class="pin-key" onclick="pinBackspace()">⌫</button>
+    </div>
+  </div>
+</div>
 <!-- MIGRATION BANNER -->
 <div id="migrationBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:2000;background:#1a4a2e;color:#fff;padding:16px 20px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);font-family:'IBM Plex Mono',monospace">
   <div style="max-width:700px;margin:0 auto">
@@ -532,6 +590,47 @@ select option{background:#fff}
       <button class="btn btn-ghost btn-sm" id="mtabBtn-draw" onclick="switchManageTab('draw')" style="flex:1">🎱 Draw</button>
       <button class="btn btn-ghost btn-sm" id="mtabBtn-history" onclick="switchManageTab('history')" style="flex:1">📋 History</button>
     </div>
+  </div>
+
+  <!-- ═══ SCAN (QR CHECK-IN) ═══ -->
+  <div class="panel" id="panel-scan" style="display:none">
+
+    <div class="card" style="text-align:center">
+      <div class="card-title" style="justify-content:center">📷 QR Check-In</div>
+      <div id="scanSessionLabel" style="font-size:0.8rem;color:#1a4a2e;font-weight:700;margin-bottom:14px">—</div>
+
+      <div id="scanVideoWrap" style="position:relative;width:100%;max-width:340px;margin:0 auto 14px;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:1/1">
+        <video id="scanVideo" playsinline muted style="width:100%;height:100%;object-fit:cover;display:none"></video>
+        <canvas id="scanCanvas" style="display:none"></canvas>
+        <div id="scanPlaceholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;gap:10px;padding:20px">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+          <div style="font-size:0.78rem;text-align:center">Tap "Start Scanning" to open the camera</div>
+        </div>
+        <div id="scanFrame" style="position:absolute;inset:14%;border:3px solid rgba(134,239,172,0.8);border-radius:12px;display:none;pointer-events:none"></div>
+      </div>
+
+      <button class="btn btn-gold" id="scanToggleBtn" onclick="toggleScanner()" style="margin-bottom:10px">▶ Start Scanning</button>
+
+      <div id="scanResult" style="display:none;background:#f0f7f3;border:2px solid #86efac;border-radius:12px;padding:16px;margin-top:6px;text-align:center">
+        <div style="font-size:1.8rem;margin-bottom:4px">✅</div>
+        <div id="scanResultName" style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;color:#1a4a2e"></div>
+        <div id="scanResultDetail" style="font-size:0.75rem;color:#15803d;margin-top:2px"></div>
+      </div>
+
+      <div id="scanErrorBox" style="display:none;background:#fee2e2;border:2px solid #fca5a5;border-radius:12px;padding:14px;margin-top:6px;text-align:center;color:#dc2626;font-size:0.82rem;font-weight:600"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Recently Checked In</div>
+      <div id="scanRecentList" style="font-size:0.8rem;color:var(--muted)">No scans yet this session.</div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:0.78rem;color:var(--muted);line-height:1.6">
+        📌 If a student forgot their card, mark them present manually in the <b style="color:#1a4a2e">Attendance</b> tab instead.
+      </div>
+    </div>
+
   </div>
 
   <div class="panel" id="panel-draw" style="display:none">
@@ -849,6 +948,12 @@ select option{background:#fff}
         <div class="fi"><label>Draw #</label><input type="number" id="newNum" placeholder="auto" min="1" style="width:70px"/></div>
         <div style="margin-top:18px"><button class="btn btn-gold" onclick="addStudent()">+ Add</button></div>
       </div>
+    </div>
+
+    <div class="card" style="background:linear-gradient(135deg,#f0f7f3,#f8fffe);border-color:#86efac">
+      <div class="card-title">🪪 Student ID Cards</div>
+      <div style="font-size:0.76rem;color:var(--muted);margin-bottom:12px">Print QR ID cards for all active students. Standard ID card size — fits a lanyard holder. Students scan their card at the entrance to check in automatically.</div>
+      <button class="btn btn-green" onclick="printQRCards()">🖨️ Print QR Cards for All Students</button>
     </div>
 
     <div class="card">
@@ -3077,6 +3182,8 @@ function switchTab(name) {
   if (name === 'draw') { renderPool(); updateDrawProgress(); }
   if (name === 'home') updateHomeDashboard();
   if (name === 'reports' || name === 'malams') { const m=document.getElementById('monthlyMonth'); const y=document.getElementById('monthlyYear'); if(m) m.value=new Date().getMonth(); if(y) y.value=new Date().getFullYear(); }
+  if (name === 'scan') { updateScanSessionLabel(); }
+  else { stopScanner(); } // stop camera whenever navigating away from Scan tab
 }
 
 // ══════════════════════════════════════════════
@@ -3698,7 +3805,325 @@ async function boot() {
   }, 800);
 }
 
-boot();
+// ══════════════════════════════════════════════
+//  QR CHECK-IN SCANNER
+// ══════════════════════════════════════════════
+let scanStream = null;
+let scanLoopId = null;
+let scanCooldown = {}; // { studentId: timestamp } to prevent rapid re-scans
+let scanRecent = []; // [{id, name, time, session}]
+
+function getAutoSession() {
+  return new Date().getHours() < 14 ? 'morning' : 'evening';
+}
+
+function updateScanSessionLabel() {
+  const sess = getAutoSession();
+  const el = document.getElementById('scanSessionLabel');
+  if (el) el.textContent = sess === 'morning' ? '🌅 Marking Morning Attendance' : '🌆 Marking Evening Attendance';
+}
+
+async function toggleScanner() {
+  if (scanStream) {
+    stopScanner();
+  } else {
+    await startScanner();
+  }
+}
+
+async function startScanner() {
+  const video = document.getElementById('scanVideo');
+  const placeholder = document.getElementById('scanPlaceholder');
+  const frame = document.getElementById('scanFrame');
+  const btn = document.getElementById('scanToggleBtn');
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = scanStream;
+    video.style.display = 'block';
+    placeholder.style.display = 'none';
+    frame.style.display = 'block';
+    await video.play();
+    btn.textContent = '⏸ Stop Scanning';
+    btn.classList.remove('btn-gold');
+    btn.classList.add('btn-red');
+    document.getElementById('scanResult').style.display = 'none';
+    document.getElementById('scanErrorBox').style.display = 'none';
+    scanLoop();
+  } catch (e) {
+    console.error('Camera access error', e);
+    showScanError('Could not access camera. Please allow camera permission and try again.');
+  }
+}
+
+function stopScanner() {
+  if (scanLoopId) { cancelAnimationFrame(scanLoopId); scanLoopId = null; }
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+  const video = document.getElementById('scanVideo');
+  const placeholder = document.getElementById('scanPlaceholder');
+  const frame = document.getElementById('scanFrame');
+  const btn = document.getElementById('scanToggleBtn');
+  if (video) video.style.display = 'none';
+  if (placeholder) placeholder.style.display = 'flex';
+  if (frame) frame.style.display = 'none';
+  if (btn) {
+    btn.textContent = '▶ Start Scanning';
+    btn.classList.remove('btn-red');
+    btn.classList.add('btn-gold');
+  }
+}
+
+function scanLoop() {
+  const video = document.getElementById('scanVideo');
+  const canvas = document.getElementById('scanCanvas');
+  if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
+    scanLoopId = requestAnimationFrame(scanLoop);
+    return;
+  }
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = typeof jsQR === 'function' ? jsQR(imageData.data, imageData.width, imageData.height) : null;
+  if (code && code.data) {
+    handleScannedCode(code.data.trim());
+  }
+  scanLoopId = requestAnimationFrame(scanLoop);
+}
+
+async function handleScannedCode(rawId) {
+  const now = Date.now();
+  if (scanCooldown[rawId] && now - scanCooldown[rawId] < 3500) return; // debounce
+  scanCooldown[rawId] = now;
+
+  const student = S.students.find(s => s.id === rawId && !s.archived);
+  if (!student) {
+    showScanError(`Unknown or inactive student ID: ${rawId}`);
+    if (navigator.vibrate) navigator.vibrate([30,40,30]);
+    return;
+  }
+
+  const session = getAutoSession();
+  const d = todayStr();
+
+  // Update local state immediately for instant feedback
+  if (!S.attendance[d]) S.attendance[d] = {};
+  if (!S.attendance[d][session]) S.attendance[d][session] = { present: [], note: '' };
+  const already = S.attendance[d][session].present.includes(student.id);
+  if (!already) S.attendance[d][session].present.push(student.id);
+
+  showScanSuccess(student, session, already);
+  if (navigator.vibrate) navigator.vibrate(already ? 15 : [15,30,15]);
+
+  if (!already) {
+    try {
+      await fetch('/.netlify/functions/api?action=checkin', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ date: d, session, studentId: student.id })
+      });
+    } catch(e) { console.error('checkin save failed', e); }
+    updateHomeDashboard();
+    if (attDate === d) { renderAttGrid(); updateAttStats(); }
+  }
+}
+
+function showScanSuccess(student, session, already) {
+  const box = document.getElementById('scanResult');
+  const err = document.getElementById('scanErrorBox');
+  err.style.display = 'none';
+  box.style.display = 'block';
+  document.getElementById('scanResultName').textContent = student.name || student.id;
+  document.getElementById('scanResultDetail').textContent = already
+    ? `Already checked in — ${session === 'morning' ? 'Morning' : 'Evening'}`
+    : `Checked in — ${session === 'morning' ? '🌅 Morning' : '🌆 Evening'}`;
+
+  if (!already) {
+    scanRecent.unshift({ id: student.id, name: student.name || student.id, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), session });
+    scanRecent = scanRecent.slice(0, 10);
+    renderScanRecent();
+  }
+
+  setTimeout(() => { box.style.display = 'none'; }, 2500);
+}
+
+function showScanError(msg) {
+  const box = document.getElementById('scanResult');
+  const err = document.getElementById('scanErrorBox');
+  box.style.display = 'none';
+  err.style.display = 'block';
+  err.textContent = '⚠️ ' + msg;
+  setTimeout(() => { err.style.display = 'none'; }, 3000);
+}
+
+function renderScanRecent() {
+  const wrap = document.getElementById('scanRecentList');
+  if (!wrap) return;
+  if (!scanRecent.length) { wrap.textContent = 'No scans yet this session.'; return; }
+  wrap.innerHTML = scanRecent.map(r => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-weight:600;color:var(--text);font-size:0.82rem">${r.name}</div>
+        <div style="font-size:0.68rem;color:var(--muted)">${r.id} · ${r.session === 'morning' ? '🌅' : '🌆'}</div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted)">${r.time}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+//  PRINTABLE QR CARDS (PDF via print dialog)
+// ══════════════════════════════════════════════
+function printQRCards() {
+  const active = S.students.filter(s => !s.archived);
+  if (!active.length) { toast('No active students to print', 'r'); return; }
+
+  const win = window.open('', '_blank');
+  const cardsHTML = active.map(s => `
+    <div class="qr-card">
+      <div class="qr-card-header">
+        <div class="qr-card-logo">🕌</div>
+        <div class="qr-card-school">
+          <div class="qr-card-school-ar">باب التوبة</div>
+          <div class="qr-card-school-en">BAB AT-TAWBAH</div>
+        </div>
+      </div>
+      <div class="qr-card-body">
+        <div class="qr-code-box" id="qr-${s.id.replace(/[^a-zA-Z0-9]/g,'_')}"></div>
+        <div class="qr-card-info">
+          <div class="qr-card-name">${(s.name||'Student').toUpperCase()}</div>
+          <div class="qr-card-id">ID: ${s.id}</div>
+        </div>
+      </div>
+      <div class="qr-card-hole"></div>
+    </div>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>Student QR Cards</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Lato:wght@400;700;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Lato',sans-serif; background:#f0f0f0; padding:20px; }
+  .cards-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10mm; max-width:190mm; margin:0 auto; }
+  .qr-card {
+    width:85.6mm; height:54mm;
+    background:linear-gradient(135deg,#ffffff,#f8fffe);
+    border:1.5px solid #1a4a2e; border-radius:3mm;
+    padding:4mm; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:space-between;
+    page-break-inside:avoid;
+  }
+  .qr-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2mm; background:linear-gradient(90deg,#1a4a2e,#c8960c); }
+  .qr-card-header { display:flex; align-items:center; gap:2mm; margin-top:1mm; }
+  .qr-card-logo { font-size:5mm; }
+  .qr-card-school-ar { font-family:'Amiri',serif; font-size:3.2mm; color:#1a4a2e; font-weight:700; line-height:1; }
+  .qr-card-school-en { font-size:1.8mm; color:#666; letter-spacing:0.1em; font-weight:700; }
+  .qr-card-body { display:flex; align-items:center; gap:3mm; flex:1; }
+  .qr-code-box { width:22mm; height:22mm; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .qr-code-box img, .qr-code-box canvas { width:100% !important; height:100% !important; }
+  .qr-card-info { flex:1; min-width:0; }
+  .qr-card-name { font-size:3.2mm; font-weight:900; color:#1a2332; line-height:1.2; word-wrap:break-word; margin-bottom:1.5mm; }
+  .qr-card-id { font-size:2.6mm; color:#b45309; font-weight:700; }
+  .qr-card-hole { position:absolute; top:2.5mm; right:2.5mm; width:3mm; height:3mm; border-radius:50%; border:0.5mm dashed #ccc; }
+  @media print {
+    body { background:#fff; padding:0; }
+    .cards-grid { gap:5mm; }
+    @page { margin:10mm; }
+  }
+  .print-btn { display:block; margin:0 auto 16px; padding:10px 24px; background:#1a4a2e; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; }
+  @media print { .print-btn { display:none; } }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+<div class="cards-grid">
+${cardsHTML}
+</div>
+<script>
+  const students = ${JSON.stringify(active.map(s => ({ id: s.id, name: s.name })))};
+  window.addEventListener('load', () => {
+    students.forEach(s => {
+      const el = document.getElementById('qr-' + s.id.replace(/[^a-zA-Z0-9]/g,'_'));
+      if (el && typeof QRCode !== 'undefined') {
+        new QRCode(el, { text: s.id, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+      }
+    });
+  });
+<\/script>
+</body>
+</html>`;
+
+  win.document.write(html);
+  win.document.close();
+}
+
+// ══════════════════════════════════════════════
+//  PIN LOCK
+// ══════════════════════════════════════════════
+const APP_PIN = '260707';
+const PIN_SESSION_KEY = 'mtb_pin_ok';
+let pinBuffer = '';
+
+function pinRenderDots() {
+  for (let i = 0; i < 6; i++) {
+    const dot = document.getElementById('pd' + i);
+    if (dot) dot.classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function pinPress(digit) {
+  if (pinBuffer.length >= 6) return;
+  pinBuffer += digit;
+  pinRenderDots();
+  if (navigator.vibrate) navigator.vibrate(10);
+  if (pinBuffer.length === 6) {
+    checkPin();
+  }
+}
+
+function pinBackspace() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  pinRenderDots();
+}
+
+function checkPin() {
+  const errEl = document.getElementById('pinError');
+  if (pinBuffer === APP_PIN) {
+    localStorage.setItem(PIN_SESSION_KEY, '1');
+    unlockApp();
+  } else {
+    errEl.textContent = 'Incorrect PIN — try again';
+    const dots = document.getElementById('pinDots');
+    dots.classList.add('shake');
+    if (navigator.vibrate) navigator.vibrate([30,40,30]);
+    setTimeout(() => {
+      dots.classList.remove('shake');
+      pinBuffer = '';
+      pinRenderDots();
+    }, 400);
+  }
+}
+
+function unlockApp() {
+  const lock = document.getElementById('pinLockScreen');
+  if (lock) {
+    lock.style.transition = 'opacity 0.3s ease';
+    lock.style.opacity = '0';
+    setTimeout(() => { lock.style.display = 'none'; }, 300);
+  }
+  boot();
+}
+
+// Only show boot() after PIN check — skip lock if already unlocked this session
+if (localStorage.getItem(PIN_SESSION_KEY) === '1') {
+  const lock = document.getElementById('pinLockScreen');
+  if (lock) lock.style.display = 'none';
+  boot();
+}
+// else: wait for user to enter correct PIN via pinPress()
 </script>
 <!-- CANCEL SESSION MODAL -->
 <div class="modal-overlay" id="cancelModal" onclick="closeModalBg2(event)">
@@ -3752,6 +4177,10 @@ boot();
   <button class="bnav-item" id="bnav-manage" onclick="switchTab('manage')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
     <span>Manage</span>
+  </button>
+  <button class="bnav-item" id="bnav-scan" onclick="switchTab('scan')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+    <span>Scan</span>
   </button>
 </nav>
 
