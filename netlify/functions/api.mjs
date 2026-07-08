@@ -11,7 +11,7 @@ async function initDB() {
   const client = await pool.connect();
   try {
     await client.query(`
-      CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', type TEXT NOT NULL DEFAULT 'boy', draw_num INTEGER, archived BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW());
+      CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', type TEXT NOT NULL DEFAULT 'male', draw_num INTEGER, archived BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW());
       CREATE TABLE IF NOT EXISTS malams (id TEXT PRIMARY KEY, name TEXT NOT NULL, role TEXT DEFAULT '', days INTEGER[] NOT NULL DEFAULT '{6,0,1,2,3}', sessions TEXT[] NOT NULL DEFAULT '{"morning","evening"}', inactive BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW());
       ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
       CREATE TABLE IF NOT EXISTS attendance (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, present_ids TEXT[] NOT NULL DEFAULT '{}', note TEXT DEFAULT '', saved_at TIMESTAMP DEFAULT NOW(), UNIQUE(date,session));
@@ -28,9 +28,10 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(date, session)
       );
-      ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
-      ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
       INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]'),('duty_groups','{}'),('student_groups','{}') ON CONFLICT(key) DO NOTHING;
+      UPDATE students SET type='male' WHERE type='boy';
+      UPDATE students SET type='female' WHERE type='girl';
+      UPDATE students SET type='male' WHERE type='kid';
     `);
   } finally { client.release(); }
 }
@@ -104,7 +105,7 @@ export default async function handler(req) {
     if (action==='students' && method==='POST') {
       const {id,name,type,drawNum}=await req.json();
       const c=await pool.connect();
-      try{await c.query('INSERT INTO students(id,name,type,draw_num,archived)VALUES($1,$2,$3,$4,false)ON CONFLICT(id)DO UPDATE SET name=$2,type=$3,draw_num=$4',[id,name||'',type||'boy',drawNum||null]);}finally{c.release();}
+      try{await c.query('INSERT INTO students(id,name,type,draw_num,archived)VALUES($1,$2,$3,$4,false)ON CONFLICT(id)DO UPDATE SET name=$2,type=$3,draw_num=$4',[id,name||'',type||'male',drawNum||null]);}finally{c.release();}
       return jsonRes({ok:true});
     }
     if (action==='students/archive' && method==='POST') {
@@ -122,7 +123,7 @@ export default async function handler(req) {
     if (action==='students/bulk' && method==='POST') {
       const {students}=await req.json();
       const c=await pool.connect();
-      try{for(const s of students){await c.query('INSERT INTO students(id,name,type,draw_num,archived)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO NOTHING',[String(s.id),s.name||'',s.type||'boy',s.drawNum||null,s.archived===true]);}}finally{c.release();}
+      try{for(const s of students){await c.query('INSERT INTO students(id,name,type,draw_num,archived)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO NOTHING',[String(s.id),s.name||'',s.type||'male',s.drawNum||null,s.archived===true]);}}finally{c.release();}
       return jsonRes({ok:true,imported:students.length});
     }
     if (action==='malams' && method==='POST') {
@@ -198,10 +199,10 @@ export default async function handler(req) {
       const c = await pool.connect();
       try {
         // Try creating tables if they don't exist
-        await c.query(`CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', type TEXT NOT NULL DEFAULT 'boy', draw_num INTEGER, archived BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW())`);
+        await c.query(`CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', type TEXT NOT NULL DEFAULT 'male', draw_num INTEGER, archived BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW())`);
         const r = await c.query('SELECT COUNT(*) as n FROM students');
         // Try inserting a test student
-        await c.query('INSERT INTO students(id,name,type,archived)VALUES($1,$2,$3,$4)ON CONFLICT(id)DO NOTHING',['TEST_DEBUG','Test','boy',false]);
+        await c.query('INSERT INTO students(id,name,type,archived)VALUES($1,$2,$3,$4)ON CONFLICT(id)DO NOTHING',['TEST_DEBUG','Test','male',false]);
         await c.query('DELETE FROM students WHERE id=$1',['TEST_DEBUG']);
         return jsonRes({ ok: true, students: parseInt(r.rows[0].n), db: 'connected', insert: 'works' });
       } catch(e) {
@@ -219,7 +220,7 @@ export default async function handler(req) {
         for (const s of students) {
           await c.query(
             'INSERT INTO students(id,name,type,draw_num,archived)VALUES($1,$2,$3,$4,$5)ON CONFLICT(id)DO UPDATE SET name=$2,type=$3,draw_num=$4,archived=$5',
-            [String(s.id), s.name||'', s.type||'boy', s.drawNum||null, s.archived===true]
+            [String(s.id), s.name||'', s.type||'male', s.drawNum||null, s.archived===true]
           );
         }
         // Malams
