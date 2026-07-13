@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Babu At-Tawbah</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root {
@@ -3177,7 +3177,7 @@ function switchTab(name) {
   if (name === 'draw') { renderPool(); updateDrawProgress(); }
   if (name === 'home') updateHomeDashboard();
   if (name === 'reports' || name === 'malams') { const m=document.getElementById('monthlyMonth'); const y=document.getElementById('monthlyYear'); if(m) m.value=new Date().getMonth(); if(y) y.value=new Date().getFullYear(); }
-  if (name === 'scan') { updateScanSessionLabel(); }
+  if (name === 'scan') { updateScanSessionLabel(); if (!scanStream) startScanner(); }
   else { stopScanner(); } // stop camera whenever navigating away from Scan tab
 }
 
@@ -3880,14 +3880,24 @@ async function toggleScanner() {
   }
 }
 
+async function waitForJsQR(timeoutMs = 4000) {
+  const start = Date.now();
+  while (typeof jsQR !== 'function') {
+    if (Date.now() - start > timeoutMs) return false;
+    await new Promise(r => setTimeout(r, 150));
+  }
+  return true;
+}
+
 async function startScanner() {
   const video = document.getElementById('scanVideo');
   const placeholder = document.getElementById('scanPlaceholder');
   const frame = document.getElementById('scanFrame');
   const btn = document.getElementById('scanToggleBtn');
 
-  // Check jsQR library is actually loaded before we bother opening the camera
-  if (typeof jsQR !== 'function') {
+  // Give the QR library a few seconds to finish loading before giving up
+  const ready = await waitForJsQR();
+  if (!ready) {
     showScanError('QR scanner failed to load. Check your internet connection and reload the page.');
     return;
   }
