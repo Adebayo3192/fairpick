@@ -1355,7 +1355,12 @@ function archiveStudent(id) {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({ id, archived: true })
-  }).catch(e => console.error('archive save failed', e));
+  }).then(r => {
+    if (!r.ok) throw new Error('Save failed');
+  }).catch(e => {
+    console.error('archive save failed', e);
+    toast(`⚠️ ${name} may not have saved — check your connection and try again`, 'r');
+  });
 }
 
 function unarchiveStudent(id) {
@@ -1375,7 +1380,12 @@ function unarchiveStudent(id) {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({ id, archived: false })
-  }).catch(e => console.error('unarchive save failed', e));
+  }).then(r => {
+    if (!r.ok) throw new Error('Save failed');
+  }).catch(e => {
+    console.error('unarchive save failed', e);
+    toast(`⚠️ ${s.name || id} may not have saved — check your connection and try again`, 'r');
+  });
 }
 
 function removeStudent(id) {
@@ -3976,9 +3986,15 @@ async function handleScannedCode(rawId) {
   if (scanCooldown[rawId] && now - scanCooldown[rawId] < 3500) return; // debounce
   scanCooldown[rawId] = now;
 
-  const student = S.students.find(s => s.id === rawId && !s.archived);
+  const anyMatch = S.students.find(s => s.id === rawId);
+  const student = anyMatch && !anyMatch.archived ? anyMatch : null;
+
   if (!student) {
-    showScanError(`Unknown or inactive student ID: ${rawId}`);
+    if (anyMatch && anyMatch.archived) {
+      showScanError(`${anyMatch.name || rawId} is marked Inactive. Restore them in Manage → Students first.`);
+    } else {
+      showScanError(`No student found with ID: ${rawId}`);
+    }
     if (navigator.vibrate) navigator.vibrate([30,40,30]);
     stopScanner(); // stop even on unknown code — teacher can retry manually
     return;
