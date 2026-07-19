@@ -9,38 +9,28 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejec
 
 async function initDB() {
   const client = await pool.connect();
+  // Run each statement independently so one hiccup can't cascade/abort the rest,
+  // and so cold-start migration stays fast (important on Neon's free tier where
+  // the DB may need to wake up first).
+  const statements = [
+    `CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', type TEXT NOT NULL DEFAULT 'male', draw_num INTEGER, archived BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW())`,
+    `CREATE TABLE IF NOT EXISTS malams (id TEXT PRIMARY KEY, name TEXT NOT NULL, role TEXT DEFAULT '', days INTEGER[] NOT NULL DEFAULT '{6,0,1,2,3}', sessions TEXT[] NOT NULL DEFAULT '{"morning","evening"}', inactive BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW())`,
+    `ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false`,
+    `CREATE TABLE IF NOT EXISTS attendance (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, present_ids TEXT[] NOT NULL DEFAULT '{}', note TEXT DEFAULT '', saved_at TIMESTAMP DEFAULT NOW(), UNIQUE(date,session))`,
+    `CREATE TABLE IF NOT EXISTS malam_attendance (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, present_ids TEXT[] NOT NULL DEFAULT '{}', note TEXT DEFAULT '', absence_reasons TEXT DEFAULT '{}', saved_at TIMESTAMP DEFAULT NOW(), UNIQUE(date,session))`,
+    `ALTER TABLE malam_attendance ADD COLUMN IF NOT EXISTS absence_reasons TEXT DEFAULT '{}'`,
+    `CREATE TABLE IF NOT EXISTS draw_history (id SERIAL PRIMARY KEY, num INTEGER NOT NULL, student_id TEXT, student_name TEXT, task TEXT DEFAULT '', round INTEGER NOT NULL DEFAULT 1, created_at TIMESTAMP DEFAULT NOW())`,
+    `CREATE TABLE IF NOT EXISTS clean_history (id SERIAL PRIMARY KEY, student_id TEXT NOT NULL, student_name TEXT, round INTEGER NOT NULL DEFAULT 1, created_at TIMESTAMP DEFAULT NOW())`,
+    `CREATE TABLE IF NOT EXISTS app_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS cancelled_sessions (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, reason TEXT NOT NULL DEFAULT '', created_at TIMESTAMP DEFAULT NOW(), UNIQUE(date, session))`,
+    `CREATE TABLE IF NOT EXISTS checkin_times (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, student_id TEXT NOT NULL, arrival_time TIMESTAMP NOT NULL DEFAULT NOW(), UNIQUE(date, session, student_id))`,
+    `INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]'),('duty_groups','{}'),('student_groups','{}'),('evening_arrival_time','17:45') ON CONFLICT(key) DO NOTHING`,
+  ];
   try {
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', type TEXT NOT NULL DEFAULT 'male', draw_num INTEGER, archived BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW());
-      CREATE TABLE IF NOT EXISTS malams (id TEXT PRIMARY KEY, name TEXT NOT NULL, role TEXT DEFAULT '', days INTEGER[] NOT NULL DEFAULT '{6,0,1,2,3}', sessions TEXT[] NOT NULL DEFAULT '{"morning","evening"}', inactive BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT NOW());
-      ALTER TABLE malams ADD COLUMN IF NOT EXISTS inactive BOOLEAN NOT NULL DEFAULT false;
-      CREATE TABLE IF NOT EXISTS attendance (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, present_ids TEXT[] NOT NULL DEFAULT '{}', note TEXT DEFAULT '', saved_at TIMESTAMP DEFAULT NOW(), UNIQUE(date,session));
-      CREATE TABLE IF NOT EXISTS malam_attendance (id SERIAL PRIMARY KEY, date TEXT NOT NULL, session TEXT NOT NULL, present_ids TEXT[] NOT NULL DEFAULT '{}', note TEXT DEFAULT '', absence_reasons TEXT DEFAULT '{}', saved_at TIMESTAMP DEFAULT NOW(), UNIQUE(date,session));
-      ALTER TABLE malam_attendance ADD COLUMN IF NOT EXISTS absence_reasons TEXT DEFAULT '{}';
-      CREATE TABLE IF NOT EXISTS draw_history (id SERIAL PRIMARY KEY, num INTEGER NOT NULL, student_id TEXT, student_name TEXT, task TEXT DEFAULT '', round INTEGER NOT NULL DEFAULT 1, created_at TIMESTAMP DEFAULT NOW());
-      CREATE TABLE IF NOT EXISTS clean_history (id SERIAL PRIMARY KEY, student_id TEXT NOT NULL, student_name TEXT, round INTEGER NOT NULL DEFAULT 1, created_at TIMESTAMP DEFAULT NOW());
-      CREATE TABLE IF NOT EXISTS app_state (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-      CREATE TABLE IF NOT EXISTS cancelled_sessions (
-        id SERIAL PRIMARY KEY,
-        date TEXT NOT NULL,
-        session TEXT NOT NULL,
-        reason TEXT NOT NULL DEFAULT '',
-        created_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(date, session)
-      );
-      CREATE TABLE IF NOT EXISTS checkin_times (
-        id SERIAL PRIMARY KEY,
-        date TEXT NOT NULL,
-        session TEXT NOT NULL,
-        student_id TEXT NOT NULL,
-        arrival_time TIMESTAMP NOT NULL DEFAULT NOW(),
-        UNIQUE(date, session, student_id)
-      );
-      INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]'),('duty_groups','{}'),('student_groups','{}'),('evening_arrival_time','17:45') ON CONFLICT(key) DO NOTHING;
-      UPDATE students SET type='male' WHERE type='boy';
-      UPDATE students SET type='female' WHERE type='girl';
-      UPDATE students SET type='male' WHERE type='kid';
-    `);
+    for (const sql of statements) {
+      try { await client.query(sql); }
+      catch(e) { console.error('initDB statement failed:', sql.slice(0,60), e.message); }
+    }
   } finally { client.release(); }
 }
 initDB().catch(e => console.error('DB init error:', e));
