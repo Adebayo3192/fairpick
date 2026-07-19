@@ -1176,23 +1176,6 @@ select option{background:#fff}
       </div>
     </div>
 
-    <div class="card" style="border-color:rgba(200,150,12,0.4);background:rgba(200,150,12,0.03)">
-      <div class="card-title">🏆 Monthly Reward Score</div>
-      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:14px;line-height:1.5">
-        Combines <b>Punctuality (60%)</b> and <b>Attendance (40%)</b> into one fair score for choosing who gets rewarded each month.
-        Counts every evening (Sat–Wed) plus Saturday & Sunday mornings only — Mon/Tue/Wed mornings are never counted, since most students are in regular school then.
-      </div>
-      <div style="margin-bottom:14px">
-        <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em">Official Evening Arrival Time</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="time" id="eveningArrivalTimeInput" style="font-size:0.82rem;max-width:140px"/>
-          <button class="btn btn-ghost btn-sm" onclick="saveEveningArrivalTime()">💾 Save Time</button>
-        </div>
-        <div style="font-size:0.68rem;color:var(--muted);margin-top:5px">Students who scan in after this time are marked late. Lower it gradually as punctuality improves.</div>
-      </div>
-      <button class="btn btn-gold" style="width:100%" onclick="generateRewardReportPDF()">🏆 Generate Monthly Reward Report</button>
-    </div>
-
   </div>
 
   <!-- ═══ HISTORY ═══ -->
@@ -1221,11 +1204,7 @@ async function api(action, body) {
     ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
     : { method: 'GET' };
   const res = await fetch(`${API}?action=${action}`, opts);
-  if (!res.ok) {
-    let detail = '';
-    try { const errBody = await res.json(); detail = errBody?.error || ''; } catch(e) {}
-    throw new Error(`API ${action} failed: ${res.status}${detail ? ' — ' + detail : ''}`);
-  }
+  if (!res.ok) throw new Error(`API ${action} failed: ${res.status}`);
   return res.json();
 }
 
@@ -1275,10 +1254,8 @@ function defaultState() {
     // Malams
     malams: [],        // [{id, name, role}]
     malamAttendance: {}, // {"YYYY-MM-DD": {morning:{present:[ids]}, evening:{present:[ids]}}}
+    cancelledSessions: {}, // {"YYYY-MM-DD": {morning:"reason", evening:"reason"}}
     cancelledSessions: {}, // {"YYYY-MM-DD": {morning:'reason', evening:'reason'}}
-
-    // Reward policy settings
-    eveningArrivalTime: '17:45', // HH:MM 24hr — official evening session start time for punctuality scoring
   };
 }
 let S = defaultState(); // will be populated on boot
@@ -3210,7 +3187,6 @@ function switchTab(name) {
   if (name === 'draw') { renderPool(); updateDrawProgress(); }
   if (name === 'home') updateHomeDashboard();
   if (name === 'reports' || name === 'malams') { const m=document.getElementById('monthlyMonth'); const y=document.getElementById('monthlyYear'); if(m) m.value=new Date().getMonth(); if(y) y.value=new Date().getFullYear(); }
-  if (name === 'reports') populateArrivalTimeInput();
   if (name === 'scan') { updateScanSessionLabel(); if (!scanStream) startScanner(); }
   else { stopScanner(); } // stop camera whenever navigating away from Scan tab
 }
@@ -3747,227 +3723,6 @@ async function generateStudentMonthlyPDF() {
           <td>${s.ePres}/${s.eTotal}</td>
           <td>${s.total}/${s.totalSessions}</td>
           <td class="${pctClass}">${s.pct}%</td>
-          <td><span class="badge ${badge}">${grade}</span></td>
-        </tr>`;
-      }).join('')}
-    </tbody>
-  </table>
-</div>
-
-</body>
-</html>`;
-
-  const win = window.open('', '_blank');
-  win.document.write(html);
-  win.document.close();
-  setTimeout(() => win.print(), 800);
-}
-
-// ══════════════════════════════════════════════
-//  REWARD POLICY — Punctuality (60%) + Attendance (40%)
-// ══════════════════════════════════════════════
-function populateArrivalTimeInput() {
-  const el = document.getElementById('eveningArrivalTimeInput');
-  if (el) el.value = S.eveningArrivalTime || '17:45';
-}
-
-async function saveEveningArrivalTime() {
-  const val = document.getElementById('eveningArrivalTimeInput').value;
-  if (!val) { toast('Please pick a time', 'r'); return; }
-  S.eveningArrivalTime = val;
-  try {
-    await fetch('/.netlify/functions/api?action=state', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ evening_arrival_time: val })
-    });
-    toast(`✓ Evening arrival time set to ${val}`, 'g');
-  } catch(e) {
-    console.error('save arrival time failed', e);
-    toast('⚠️ Could not save — check your connection', 'r');
-  }
-}
-
-async function generateRewardReportPDF() {
-  const month = parseInt(document.getElementById('monthlyMonth')?.value ?? new Date().getMonth());
-  const year  = parseInt(document.getElementById('monthlyYear')?.value ?? new Date().getFullYear());
-  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-  const daysInMonth = new Date(year, month+1, 0).getDate();
-  const eveningDaysAll = [];   // Sat-Wed, every week
-  const morningWeekendAll = []; // Sat & Sun only
-  for (let d = 1; d <= daysInMonth; d++) {
-    const date = new Date(year, month, d);
-    const dow = date.getDay();
-    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    if ([6,0,1,2,3].includes(dow)) eveningDaysAll.push(ds);       // evening happens Sat-Wed
-    if ([6,0].includes(dow)) morningWeekendAll.push(ds);          // morning only counts Sat & Sun
-  }
-
-  const eveningDays = eveningDaysAll.filter(d => !S.cancelledSessions?.[d]?.evening);
-  const morningDays = morningWeekendAll.filter(d => !S.cancelledSessions?.[d]?.morning);
-  const totalAchievable = eveningDays.length + morningDays.length;
-
-  // Fetch arrival timestamps for this month's evening sessions
-  const fromDate = `${year}-${String(month+1).padStart(2,'0')}-01`;
-  const toDate = `${year}-${String(month+1).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`;
-  let checkins = [];
-  try {
-    const res = await fetch(`/.netlify/functions/api?action=checkin-times&from=${fromDate}&to=${toDate}`);
-    const data = await res.json();
-    checkins = data.checkins || [];
-  } catch(e) {
-    console.error('fetch checkin-times failed', e);
-    toast('⚠️ Could not load arrival times — punctuality may be incomplete', 'r');
-  }
-  // Index checkins for fast lookup: "date|session|studentId" -> arrival_time
-  const checkinMap = {};
-  checkins.forEach(c => { checkinMap[`${c.date}|${c.session}|${c.student_id}`] = c.arrival_time; });
-
-  const [arrH, arrM] = (S.eveningArrivalTime || '17:45').split(':').map(Number);
-
-  const students = S.students.filter(s => !s.archived);
-  const stats = students.map(s => {
-    // Attendance side (40%) — evening every day + morning Sat/Sun only
-    let evePres = 0, mornPres = 0;
-    eveningDays.forEach(d => { if (S.attendance?.[d]?.evening?.present?.includes(s.id)) evePres++; });
-    morningDays.forEach(d => { if (S.attendance?.[d]?.morning?.present?.includes(s.id)) mornPres++; });
-    const totalPresent = evePres + mornPres;
-    const attendanceScore = totalAchievable > 0 ? (totalPresent / totalAchievable * 100) : 0;
-
-    // Punctuality side (60%) — evening attended days only
-    let punctualitySum = 0, punctualityDays = 0, lateDays = 0, manualDays = 0, onTimeDays = 0;
-    eveningDays.forEach(d => {
-      const present = S.attendance?.[d]?.evening?.present?.includes(s.id);
-      if (!present) return; // absent days don't factor into the punctuality average
-      punctualityDays++;
-      const arrivalISO = checkinMap[`${d}|evening|${s.id}`];
-      if (!arrivalISO) {
-        // Manual entry — no scan record — 0% punctuality that day
-        manualDays++;
-        punctualitySum += 0;
-        return;
-      }
-      const arrival = new Date(arrivalISO);
-      const [yy, mm, dd] = d.split('-').map(Number);
-      const official = new Date(Date.UTC(yy, mm-1, dd, arrH, arrM, 0));
-      const lateMinutes = Math.max(0, Math.round((arrival - official) / 60000));
-      const dayScore = Math.max(0, 100 - lateMinutes);
-      if (lateMinutes > 0) lateDays++; else onTimeDays++;
-      punctualitySum += dayScore;
-    });
-    const punctualityScore = punctualityDays > 0 ? (punctualitySum / punctualityDays) : 0;
-
-    const combinedScore = (0.6 * punctualityScore) + (0.4 * attendanceScore);
-
-    return { ...s, evePres, mornPres, totalPresent, attendanceScore, punctualityScore, combinedScore, onTimeDays, lateDays, manualDays, punctualityDays };
-  }).sort((a,b) => b.combinedScore - a.combinedScore);
-
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8"/>
-<title>Monthly Reward Score — ${monthNames[month]} ${year}</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Lato:wght@400;700;900&display=swap');
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Lato',sans-serif; color:#1a2332; background:#fff; }
-  .cover { page-break-after: always; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; background:linear-gradient(135deg,#1a4a2e,#0d2e12); padding:40px; text-align:center; }
-  .cover-arabic { font-family:'Amiri',serif; font-size:2.2rem; color:#c8960c; margin-bottom:12px; }
-  .cover-name { font-family:'Amiri',serif; font-size:1.8rem; color:#fff; margin-bottom:4px; }
-  .cover-english { font-size:1rem; color:rgba(255,255,255,0.7); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:40px; }
-  .cover-title { font-size:2rem; font-weight:900; color:#fff; margin-bottom:8px; }
-  .cover-subtitle { font-size:1.1rem; color:#c8960c; margin-bottom:6px; }
-  .cover-formula { font-size:0.82rem; color:rgba(255,255,255,0.75); margin-top:14px; background:rgba(255,255,255,0.08); padding:10px 18px; border-radius:8px; }
-  .cover-meta { font-size:0.85rem; color:rgba(255,255,255,0.5); margin-top:40px; }
-  .cover-stats { display:flex; gap:30px; margin-top:30px; }
-  .cover-stat { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:16px 24px; text-align:center; }
-  .cover-stat-num { font-size:2rem; font-weight:900; color:#c8960c; }
-  .cover-stat-label { font-size:0.72rem; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.1em; margin-top:4px; }
-  .page { padding:32px 36px; }
-  .page-header { display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1a4a2e; padding-bottom:10px; margin-bottom:20px; }
-  .page-header-title { font-size:0.85rem; font-weight:700; color:#1a4a2e; letter-spacing:0.05em; }
-  .page-header-page { font-size:0.75rem; color:#888; }
-  table { width:100%; border-collapse:collapse; font-size:0.78rem; }
-  thead tr { background:#1a4a2e; color:#fff; }
-  thead th { padding:9px 6px; text-align:left; font-size:0.66rem; letter-spacing:0.06em; text-transform:uppercase; font-weight:700; }
-  tbody tr:nth-child(even) { background:#fffbf0; }
-  td { padding:8px 6px; border-bottom:1px solid #f0ead8; }
-  .pct-green { color:#15803d; font-weight:700; }
-  .pct-yellow { color:#92400e; font-weight:700; }
-  .pct-red { color:#dc2626; font-weight:700; }
-  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:0.66rem; font-weight:700; }
-  .badge-green { background:#dcfce7; color:#15803d; }
-  .badge-yellow { background:#fef9c3; color:#92400e; }
-  .badge-red { background:#fee2e2; color:#dc2626; }
-  .rank { color:#888; font-size:0.72rem; }
-  .rank-1 { color:#c8960c; font-weight:900; font-size:0.9rem; }
-  .combined-score { font-weight:900; font-size:0.9rem; }
-  @media print {
-    .cover { min-height:100vh; }
-    .page { page-break-inside: avoid; }
-    table { page-break-inside: auto; }
-    tr { page-break-inside: avoid; }
-  }
-</style>
-</head>
-<body>
-
-<div class="cover">
-  <div class="cover-arabic">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
-  <div class="cover-name">مركز باب التوبة الإسلامي</div>
-  <div class="cover-english">Bab At-Tawbah Islamic Center</div>
-  <div class="cover-title">🏆 Monthly Reward Score</div>
-  <div class="cover-subtitle">${monthNames[month]} ${year}</div>
-  <div class="cover-formula">Score = 60% Punctuality + 40% Attendance · Evening arrival cutoff: ${S.eveningArrivalTime}</div>
-  <div class="cover-stats">
-    <div class="cover-stat"><div class="cover-stat-num">${students.length}</div><div class="cover-stat-label">Students</div></div>
-    <div class="cover-stat"><div class="cover-stat-num">${eveningDays.length}</div><div class="cover-stat-label">Evening Days</div></div>
-    <div class="cover-stat"><div class="cover-stat-num">${morningDays.length}</div><div class="cover-stat-label">Sat/Sun Mornings</div></div>
-    <div class="cover-stat"><div class="cover-stat-num">${stats[0]?.name || '—'}</div><div class="cover-stat-label">Top Student</div></div>
-  </div>
-  <div class="cover-meta">Generated on ${new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
-</div>
-
-<div class="page">
-  <div class="page-header">
-    <div class="page-header-title">Bab At-Tawbah Islamic Center — Reward Score — ${monthNames[month]} ${year}</div>
-    <div class="page-header-page">Sorted by combined score (60% punctuality + 40% attendance)</div>
-  </div>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Evening</th>
-        <th>Sat/Sun Morn</th>
-        <th>Attendance</th>
-        <th>On-time</th>
-        <th>Late</th>
-        <th>Manual</th>
-        <th>Punctuality</th>
-        <th>Score</th>
-        <th>Grade</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${stats.map((s,i) => {
-        const scoreClass = s.combinedScore >= 80 ? 'pct-green' : s.combinedScore >= 60 ? 'pct-yellow' : 'pct-red';
-        const badge = s.combinedScore >= 80 ? 'badge-green' : s.combinedScore >= 60 ? 'badge-yellow' : 'badge-red';
-        const grade = s.combinedScore >= 80 ? '🟢 Excellent' : s.combinedScore >= 60 ? '🟡 Fair' : '🔴 Needs Work';
-        return `<tr>
-          <td class="${i===0?'rank-1':'rank'}">${i===0?'🥇':i+1}</td>
-          <td style="font-weight:700;color:#b45309">${s.id}</td>
-          <td style="font-weight:600">${s.name||'—'}</td>
-          <td>${s.evePres}/${eveningDays.length}</td>
-          <td>${s.mornPres}/${morningDays.length}</td>
-          <td>${Math.round(s.attendanceScore)}%</td>
-          <td style="color:#15803d">${s.onTimeDays}</td>
-          <td style="color:#dc2626">${s.lateDays}</td>
-          <td style="color:#92400e">${s.manualDays}</td>
-          <td>${Math.round(s.punctualityScore)}%</td>
-          <td class="${scoreClass} combined-score">${Math.round(s.combinedScore)}%</td>
           <td><span class="badge ${badge}">${grade}</span></td>
         </tr>`;
       }).join('')}
