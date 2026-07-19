@@ -28,7 +28,15 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(date, session)
       );
-      INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]'),('duty_groups','{}'),('student_groups','{}') ON CONFLICT(key) DO NOTHING;
+      CREATE TABLE IF NOT EXISTS checkin_times (
+        id SERIAL PRIMARY KEY,
+        date TEXT NOT NULL,
+        session TEXT NOT NULL,
+        student_id TEXT NOT NULL,
+        arrival_time TIMESTAMP NOT NULL DEFAULT NOW(),
+        UNIQUE(date, session, student_id)
+      );
+      INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]'),('duty_groups','{}'),('student_groups','{}'),('evening_arrival_time','17:45') ON CONFLICT(key) DO NOTHING;
       UPDATE students SET type='male' WHERE type='boy';
       UPDATE students SET type='female' WHERE type='girl';
       UPDATE students SET type='male' WHERE type='kid';
@@ -81,7 +89,7 @@ export default async function handler(req) {
         try{ if(r.absence_reasons) absenceReasons=JSON.parse(r.absence_reasons); }catch(e){}
         malamAttMap[r.date][r.session]={present:r.present_ids,note:r.note,absenceReasons,savedAt:r.saved_at};
       }
-      const [drawPool,drawRound,drawFrom,drawTo,cleanPool,cleanRound,present,dutyGroups,studentGroups]=await Promise.all([getState('draw_pool'),getState('draw_round'),getState('draw_from'),getState('draw_to'),getState('clean_pool'),getState('clean_round'),getState('present'),getState('duty_groups'),getState('student_groups')]);
+      const [drawPool,drawRound,drawFrom,drawTo,cleanPool,cleanRound,present,dutyGroups,studentGroups,eveningArrivalTime]=await Promise.all([getState('draw_pool'),getState('draw_round'),getState('draw_from'),getState('draw_to'),getState('clean_pool'),getState('clean_round'),getState('present'),getState('duty_groups'),getState('student_groups'),getState('evening_arrival_time')]);
 
       return jsonRes({
         students:students.map(s=>({id:s.id,name:s.name,type:s.type,drawNum:s.draw_num,archived:s.archived})),
@@ -91,6 +99,7 @@ export default async function handler(req) {
         cleanPool:cleanPool||[], cleanRound:cleanRound||1, present:present||[],
         dutyGroups:dutyGroups||{bowls:{pool:[],round:1},washroom:{pool:[],round:1},masjid:{pool:[],round:1},prayer:{pool:[],round:1}},
         studentGroups:studentGroups||{},
+        eveningArrivalTime: eveningArrivalTime || '17:45',
         cancelledSessions: cancelledSessions.reduce((acc,r)=>{
           if(!acc[r.date]) acc[r.date]={};
           acc[r.date][r.session]=r.reason;
@@ -160,6 +169,12 @@ export default async function handler(req) {
         await c.query(
           'INSERT INTO attendance(date,session,present_ids,note,saved_at)VALUES($1,$2,$3::text[],$4,NOW())ON CONFLICT(date,session)DO UPDATE SET present_ids=$3::text[],saved_at=NOW()',
           [date,session,arr,existing.rows[0]?.note||'']
+        );
+        // Record the exact arrival timestamp (server clock) — used later for punctuality scoring.
+        // ON CONFLICT DO NOTHING so a re-scan of the same card doesn't overwrite their original arrival time.
+        await c.query(
+          'INSERT INTO checkin_times(date,session,student_id,arrival_time)VALUES($1,$2,$3,NOW())ON CONFLICT(date,session,student_id)DO NOTHING',
+          [date,session,studentId]
         );
       } finally { c.release(); }
       return jsonRes({ok:true});
@@ -284,46 +299,20 @@ export default async function handler(req) {
       return jsonRes({ok:true});
     }
 
-    // ── CANCEL SESSION ──
-    if (action==='cancel-session' && method==='POST') {
-      const {date, session, reason} = await req.json();
+    // ── CHECK-IN TIMES for a date range (used for punctuality/reward report) ──
+    if (action==='checkin-times' && method==='GET') {
+      const from = url.searchParams.get('from');
+      const to   = url.searchParams.get('to');
+      if (!from || !to) return jsonRes({error:'Missing from/to date'},400);
       const c = await pool.connect();
+      let rows;
       try {
-        await c.query(
-          'INSERT INTO cancelled_sessions(date,session,reason) VALUES($1,$2,$3) ON CONFLICT(date,session) DO UPDATE SET reason=$3',
-          [date, session, reason||'']
+        rows = await c.query(
+          'SELECT date, session, student_id, arrival_time FROM checkin_times WHERE date >= $1 AND date <= $2',
+          [from, to]
         );
       } finally { c.release(); }
-      return jsonRes({ok:true});
-    }
-    if (action==='uncancel-session' && method==='POST') {
-      const {date, session} = await req.json();
-      const c = await pool.connect();
-      try {
-        await c.query('DELETE FROM cancelled_sessions WHERE date=$1 AND session=$2', [date, session]);
-      } finally { c.release(); }
-      return jsonRes({ok:true});
-    }
-
-    // ── CANCEL SESSION ──
-    if (action==='cancel-session' && method==='POST') {
-      const {date, session, reason} = await req.json();
-      const c = await pool.connect();
-      try {
-        await c.query(
-          'INSERT INTO cancelled_sessions(date,session,reason) VALUES($1,$2,$3) ON CONFLICT(date,session) DO UPDATE SET reason=$3',
-          [date, session, reason||'']
-        );
-      } finally { c.release(); }
-      return jsonRes({ok:true});
-    }
-    if (action==='uncancel-session' && method==='POST') {
-      const {date, session} = await req.json();
-      const c = await pool.connect();
-      try {
-        await c.query('DELETE FROM cancelled_sessions WHERE date=$1 AND session=$2', [date, session]);
-      } finally { c.release(); }
-      return jsonRes({ok:true});
+      return jsonRes({ ok:true, checkins: rows.rows });
     }
 
     return jsonRes({error:'Unknown action: '+action},404);
