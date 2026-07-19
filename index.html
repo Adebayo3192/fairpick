@@ -1221,7 +1221,11 @@ async function api(action, body) {
     ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
     : { method: 'GET' };
   const res = await fetch(`${API}?action=${action}`, opts);
-  if (!res.ok) throw new Error(`API ${action} failed: ${res.status}`);
+  if (!res.ok) {
+    let detail = '';
+    try { const errBody = await res.json(); detail = errBody?.error || ''; } catch(e) {}
+    throw new Error(`API ${action} failed: ${res.status}${detail ? ' — ' + detail : ''}`);
+  }
   return res.json();
 }
 

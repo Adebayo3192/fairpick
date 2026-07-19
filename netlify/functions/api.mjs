@@ -100,12 +100,6 @@ export default async function handler(req) {
         dutyGroups:dutyGroups||{bowls:{pool:[],round:1},washroom:{pool:[],round:1},masjid:{pool:[],round:1},prayer:{pool:[],round:1}},
         studentGroups:studentGroups||{},
         eveningArrivalTime: eveningArrivalTime || '17:45',
-        cancelledSessions: cancelledSessions.reduce((acc,r)=>{
-          if(!acc[r.date]) acc[r.date]={};
-          acc[r.date][r.session]=r.reason;
-          return acc;
-        },{}),
-        cancelledSessions: cancelledSessions.reduce((acc,r)=>{if(!acc[r.date])acc[r.date]={};acc[r.date][r.session]=r.reason;return acc;},{}),
         cancelledSessions: cancelledSessions.reduce((acc,r)=>{if(!acc[r.date])acc[r.date]={};acc[r.date][r.session]=r.reason;return acc;},{}),
         history:[...drawHist.map(h=>({type:'draw',num:h.num,id:h.student_id,name:h.student_name,task:h.task,round:h.round,ts:h.created_at})),...cleanHist.map(h=>({type:'clean',id:h.student_id,name:h.student_name,round:h.round,ts:h.created_at}))].sort((a,b)=>new Date(a.ts)-new Date(b.ts)),
       });
