@@ -90,9 +90,9 @@ header::after{
 .stu-num{font-size:0.65rem;color:var(--gold);border:1px solid rgba(212,168,83,0.3);padding:0 5px;border-radius:3px;flex-shrink:0}
 
 /* ── INPUTS ── */
-input[type=text],input[type=number],select,textarea{
+input[type=text],input[type=number],input[type=time],input[type=date],select,textarea{
   background:#fff;border:1.5px solid var(--border);border-radius:var(--r);
-  padding:9px 12px;font-family:'IBM Plex Mono',monospace;font-size:0.84rem;
+  padding:9px 12px;font-family:'IBM Plex Mono',monospace;font-size:16px;
   color:var(--text);outline:none;transition:all 0.15s;width:100%;
   box-shadow:inset 0 1px 3px rgba(0,0,0,0.05);
 }
@@ -812,7 +812,7 @@ select option{background:#fff}
     <div class="att-toolbar">
       <div class="fi">
         <label>Date</label>
-        <input type="date" id="attDate" style="font-size:0.76rem"/>
+        <input type="date" id="attDate" style="font-size:16px"/>
       </div>
       <div class="fi">
         <label>Session</label>
@@ -835,7 +835,7 @@ select option{background:#fff}
 
     <!-- Student search -->
     <div style="margin-bottom:10px;position:relative">
-      <input type="text" id="attSearch" placeholder="🔍 Search student by name or ID…" oninput="renderAttGrid()" style="padding-left:14px;font-size:0.82rem"/>
+      <input type="text" id="attSearch" placeholder="🔍 Search student by name or ID…" oninput="renderAttGrid()" style="padding-left:14px;font-size:16px"/>
     </div>
 
     <div class="att-grid" id="attGrid"></div>
@@ -871,11 +871,11 @@ select option{background:#fff}
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
           <div>
             <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px">Day</label>
-            <input type="number" id="hijriDay" min="1" max="30" style="width:64px;font-size:0.82rem" oninput="updateHijriPreview()"/>
+            <input type="number" id="hijriDay" min="1" max="30" style="width:64px;font-size:16px" oninput="updateHijriPreview()"/>
           </div>
           <div>
             <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px">Month</label>
-            <select id="hijriMonth" style="font-size:0.76rem" onchange="updateHijriPreview()">
+            <select id="hijriMonth" style="font-size:16px" onchange="updateHijriPreview()">
               <option value="1">1 — Muharram</option>
               <option value="2">2 — Safar</option>
               <option value="3">3 — Rabi' al-Awwal</option>
@@ -892,7 +892,7 @@ select option{background:#fff}
           </div>
           <div>
             <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px">Year (AH)</label>
-            <input type="number" id="hijriYear" min="1400" max="1600" style="width:80px;font-size:0.82rem" oninput="updateHijriPreview()"/>
+            <input type="number" id="hijriYear" min="1400" max="1600" style="width:80px;font-size:16px" oninput="updateHijriPreview()"/>
           </div>
           <button class="btn btn-ghost btn-sm" onclick="autoDetectHijri()" style="margin-bottom:1px">↺ Auto-detect</button>
         </div>
@@ -1021,7 +1021,7 @@ select option{background:#fff}
         <div class="fchip" data-f="female" onclick="setFilter('female')">Female</div>
         <div class="fchip" data-f="eligible" onclick="setFilter('eligible')">Cleaning eligible</div>
       </div>
-      <input type="text" id="stuSearch" placeholder="Search ID or name…" style="margin-bottom:12px;font-size:0.74rem" oninput="renderStudentTable()"/>
+      <input type="text" id="stuSearch" placeholder="Search ID or name…" style="margin-bottom:12px;font-size:16px" oninput="renderStudentTable()"/>
       <div id="stuTableWrap"></div>
     </div>
   </div>
@@ -1085,7 +1085,7 @@ select option{background:#fff}
       <!-- Single note for the session -->
       <div style="margin-top:14px">
         <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.08em">📝 Session Notes</label>
-        <textarea id="malamSessionNote" placeholder="e.g. Malam Abdullahi absent — communicated via WhatsApp. Malam Umar arrived late due to family reason." style="min-height:72px;font-size:0.78rem;line-height:1.6"></textarea>
+        <textarea id="malamSessionNote" placeholder="e.g. Malam Abdullahi absent — communicated via WhatsApp. Malam Umar arrived late due to family reason." style="min-height:72px;font-size:16px;line-height:1.6"></textarea>
       </div>
 
       <div class="row" style="margin-top:10px">
@@ -1109,11 +1109,11 @@ select option{background:#fff}
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <div class="fi" style="flex:1;min-width:60px">
             <label style="font-size:0.6rem;color:var(--muted)">Day</label>
-            <input type="number" id="hijriDay2" min="1" max="30" style="font-size:0.8rem"/>
+            <input type="number" id="hijriDay2" min="1" max="30" style="font-size:16px"/>
           </div>
           <div class="fi" style="flex:2;min-width:100px">
             <label style="font-size:0.6rem;color:var(--muted)">Month</label>
-            <select id="hijriMonth2" style="font-size:0.78rem">
+            <select id="hijriMonth2" style="font-size:16px">
               <option value="Muharram">Muharram</option><option value="Safar">Safar</option>
               <option value="Rabi al-Awwal">Rabi al-Awwal</option><option value="Rabi al-Thani">Rabi al-Thani</option>
               <option value="Jumada al-Ula">Jumada al-Ula</option><option value="Jumada al-Akhirah">Jumada al-Akhirah</option>
@@ -1124,12 +1124,12 @@ select option{background:#fff}
           </div>
           <div class="fi" style="flex:1;min-width:60px">
             <label style="font-size:0.6rem;color:var(--muted)">Year AH</label>
-            <input type="number" id="hijriYear2" min="1400" max="1500" style="font-size:0.8rem"/>
+            <input type="number" id="hijriYear2" min="1400" max="1500" style="font-size:16px"/>
           </div>
         </div>
         <div style="margin-bottom:8px;margin-top:10px">
           <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em">Session Note (optional)</label>
-          <textarea id="attNote2" placeholder="e.g. Short session today..." style="min-height:48px;font-size:0.78rem"></textarea>
+          <textarea id="attNote2" placeholder="e.g. Short session today..." style="min-height:48px;font-size:16px"></textarea>
         </div>
       </div>
       <div id="reportDateLabel3" style="font-size:0.72rem;color:var(--muted);margin-bottom:10px"></div>
@@ -1149,7 +1149,7 @@ select option{background:#fff}
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
         <div class="fi" style="flex:2">
           <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em">Month</label>
-          <select id="monthlyMonth" style="font-size:0.76rem">
+          <select id="monthlyMonth" style="font-size:16px">
             <option value="0">January</option><option value="1">February</option>
             <option value="2">March</option><option value="3">April</option>
             <option value="4">May</option><option value="5">June</option>
@@ -1160,7 +1160,7 @@ select option{background:#fff}
         </div>
         <div class="fi" style="flex:1">
           <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em">Year</label>
-          <input type="number" id="monthlyYear" style="width:90px;font-size:0.76rem" value="2026"/>
+          <input type="number" id="monthlyYear" style="width:90px;font-size:16px" value="2026"/>
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -1183,7 +1183,7 @@ select option{background:#fff}
     <div class="row" style="margin-bottom:14px">
       <button class="btn btn-ghost btn-sm" onclick="exportHistory()">⬇ Export CSV</button>
       <button class="btn btn-red btn-sm" onclick="clearHistory()">🗑 Clear History</button>
-      <input type="text" id="histSearch" placeholder="Filter…" style="max-width:180px;font-size:0.73rem" oninput="renderHistory()"/>
+      <input type="text" id="histSearch" placeholder="Filter…" style="max-width:180px;font-size:16px" oninput="renderHistory()"/>
     </div>
     <div id="histWrap"></div>
   </div>
@@ -2833,7 +2833,7 @@ function buildMalamGrid(scheduledMalams) {
   return scheduledMalams.map(m => {
     const p = malamDraft[m.id];
     const absReason = reasons[m.id] || '';
-    const reasonSelect = !p ? `<select onchange="setMalamAbsenceReason('${m.id}','${d}','${attSession}',this.value)" style="font-size:0.65rem;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:#fff;margin-top:4px;width:100%" onclick="event.stopPropagation()">
+    const reasonSelect = !p ? `<select onchange="setMalamAbsenceReason('${m.id}','${d}','${attSession}',this.value)" style="font-size:16px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:#fff;margin-top:4px;width:100%" onclick="event.stopPropagation()">
       <option value="">Reason...</option>
       ${['📱 Communicated','🤒 Sick','🚨 Emergency','❓ No Reason','📝 Other'].map(r=>`<option value="${r}" ${absReason===r?'selected':''}>${r}</option>`).join('')}
     </select>` : '';
@@ -4290,7 +4290,7 @@ if (localStorage.getItem(PIN_SESSION_KEY) === '1') {
         <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('🌧 Rain')">🌧 Rain</button>
         <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('⚡ No Electricity')">⚡ No Electricity</button>
         <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('📝 Other')">📝 Other</button>
-        <input type="text" id="cancelOtherReason" placeholder="Type reason if other..." style="margin-top:4px;font-size:0.82rem"/>
+        <input type="text" id="cancelOtherReason" placeholder="Type reason if other..." style="margin-top:4px;font-size:16px"/>
         <button class="btn btn-red" style="margin-top:4px" onclick="cancelSessionCustom()">Confirm Cancel</button>
       </div>
     </div>
