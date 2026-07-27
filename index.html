@@ -519,56 +519,56 @@ select option{background:#fff}
   <!-- ═══ HOME DASHBOARD ═══ -->
   <div class="panel" id="panel-home" style="display:block">
 
-    <div style="background:linear-gradient(135deg,#1a4a2e,#0d2e12);border-radius:12px;padding:10px 14px;margin-bottom:8px;position:relative;overflow:hidden">
+    <div style="background:linear-gradient(135deg,#1a4a2e,#0d2e12);border-radius:12px;padding:14px 16px;margin-bottom:12px;position:relative;overflow:hidden">
       <div style="position:absolute;inset:0;border-radius:12px;background:url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3') center/cover;opacity:0.15"></div>
       <div style="position:relative;z-index:1;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 10px">
         <div>
-          <div style="font-family:'Amiri',serif;font-size:0.68rem;color:#c8960c" id="homeHijri">—</div>
-          <div style="font-family:'Playfair Display',serif;font-size:0.98rem;font-weight:900;color:#fff" id="homeGregorian">—</div>
+          <div style="font-family:'Amiri',serif;font-size:0.74rem;color:#c8960c" id="homeHijri">—</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;color:#fff" id="homeGregorian">—</div>
         </div>
-        <div style="font-size:0.64rem;color:rgba(255,255,255,0.7);font-weight:600" id="homeSession">Loading...</div>
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);font-weight:600" id="homeSession">Loading...</div>
       </div>
     </div>
 
-    <div class="card" style="margin-bottom:8px;padding:10px 12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+    <div class="card" style="margin-bottom:12px;padding:16px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div class="card-title" style="margin-bottom:0">Today's Attendance</div>
-        <button class="btn btn-green btn-sm" onclick="switchTab('attend')" style="font-size:0.66rem;padding:4px 9px">Take →</button>
+        <button class="btn btn-green btn-sm" onclick="switchTab('attend')" style="font-size:0.7rem;padding:5px 11px">Take →</button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-        <div style="background:linear-gradient(135deg,#fff7e6,#fef3c7);border:1.5px solid #f59e0b;border-radius:9px;padding:6px">
-          <div style="font-size:0.54rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#92400e">🌅 Morning</div>
-          <div style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;color:#92400e;line-height:1.1" id="homeMornPres">—</div>
-          <div style="font-size:0.58rem;color:#b45309" id="homeMornTotal">not marked</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div style="background:linear-gradient(135deg,#fff7e6,#fef3c7);border:1.5px solid #f59e0b;border-radius:10px;padding:10px">
+          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#92400e">🌅 Morning</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:900;color:#92400e;line-height:1.15" id="homeMornPres">—</div>
+          <div style="font-size:0.64rem;color:#b45309" id="homeMornTotal">not marked</div>
         </div>
-        <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #3b82f6;border-radius:9px;padding:6px">
-          <div style="font-size:0.54rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#1d4ed8">🌆 Evening</div>
-          <div style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;color:#1d4ed8;line-height:1.1" id="homeEvenPres">—</div>
-          <div style="font-size:0.58rem;color:#1d4ed8" id="homeEvenTotal">not marked</div>
+        <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #3b82f6;border-radius:10px;padding:10px">
+          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#1d4ed8">🌆 Evening</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:900;color:#1d4ed8;line-height:1.15" id="homeEvenPres">—</div>
+          <div style="font-size:0.64rem;color:#1d4ed8" id="homeEvenTotal">not marked</div>
         </div>
       </div>
-      <div style="background:#e8f5ec;border-radius:100px;height:5px;overflow:hidden">
+      <div style="background:#e8f5ec;border-radius:100px;height:7px;overflow:hidden">
         <div id="homeAttBar" style="background:linear-gradient(90deg,#1a4a2e,#4caf82);height:100%;border-radius:100px;width:0%;transition:width 0.6s ease"></div>
       </div>
-      <div style="font-size:0.6rem;color:var(--muted);margin-top:3px;text-align:center" id="homeAttPct">No attendance recorded yet</div>
+      <div style="font-size:0.68rem;color:var(--muted);margin-top:6px;text-align:center" id="homeAttPct">No attendance recorded yet</div>
     </div>
 
-    <div class="card" style="margin-bottom:8px;padding:10px 12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <div class="card" style="margin-bottom:12px;padding:16px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div class="card-title" style="margin-bottom:0">Today's Duties</div>
-        <button class="btn btn-ghost btn-sm" onclick="switchTab('clean')" style="font-size:0.66rem;padding:4px 9px">View →</button>
+        <button class="btn btn-ghost btn-sm" onclick="switchTab('clean')" style="font-size:0.7rem;padding:5px 11px">View →</button>
       </div>
-      <div id="homeDutySummary" style="font-size:0.72rem;color:var(--muted)">No duties picked yet today.</div>
+      <div id="homeDutySummary" style="font-size:0.8rem;color:var(--muted)">No duties picked yet today.</div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button class="btn btn-ghost" style="flex-direction:column;padding:8px;gap:2px;border-radius:11px;height:auto" onclick="switchTab('reports')">
-        <span style="font-size:1.05rem">📊</span>
-        <span style="font-size:0.64rem;font-weight:700">Reports</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn btn-ghost" style="flex-direction:column;padding:14px 10px;gap:5px;border-radius:12px;height:auto" onclick="switchTab('reports')">
+        <span style="font-size:1.3rem">📊</span>
+        <span style="font-size:0.7rem;font-weight:700">Reports</span>
       </button>
-      <button class="btn btn-ghost" style="flex-direction:column;padding:8px;gap:2px;border-radius:11px;height:auto" onclick="switchTab('draw')">
-        <span style="font-size:1.05rem">🎱</span>
-        <span style="font-size:0.64rem;font-weight:700">Number Draw</span>
+      <button class="btn btn-ghost" style="flex-direction:column;padding:14px 10px;gap:5px;border-radius:12px;height:auto" onclick="switchTab('draw')">
+        <span style="font-size:1.3rem">🎱</span>
+        <span style="font-size:0.7rem;font-weight:700">Number Draw</span>
       </button>
     </div>
 
@@ -592,12 +592,12 @@ select option{background:#fff}
       <div class="card-title" style="justify-content:center">📷 QR Check-In</div>
       <div id="scanSessionLabel" style="font-size:0.8rem;color:#1a4a2e;font-weight:700;margin-bottom:14px">—</div>
 
-      <div id="scanVideoWrap" style="position:relative;width:100%;max-width:340px;margin:0 auto 14px;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:1/1">
+      <div id="scanVideoWrap" style="position:relative;width:100%;max-width:240px;margin:0 auto 12px;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:1/1">
         <video id="scanVideo" playsinline muted style="width:100%;height:100%;object-fit:cover;display:none"></video>
         <canvas id="scanCanvas" style="display:none"></canvas>
-        <div id="scanPlaceholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;gap:10px;padding:20px">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
-          <div style="font-size:0.78rem;text-align:center">Tap "Start Scanning" to open the camera</div>
+        <div id="scanPlaceholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;gap:8px;padding:14px">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+          <div style="font-size:0.72rem;text-align:center">Tap "Start Scanning" to open the camera</div>
         </div>
         <div id="scanFrame" style="position:absolute;inset:14%;border:3px solid rgba(134,239,172,0.8);border-radius:12px;display:none;pointer-events:none"></div>
       </div>
@@ -3177,9 +3177,12 @@ function switchTab(name) {
   const navBtn = document.getElementById('bnav-' + navId);
   if (navBtn) navBtn.classList.add('active');
 
-  // Handle manage sub-tabs
+  // Handle manage sub-tabs — also applies when landing on 'manage' directly (bottom nav),
+  // since the "hide all panels" step above also hides panel-students/malams/draw/history
   if (['students','malams','draw','history'].includes(name)) {
     switchManageTab(name);
+  } else if (name === 'manage') {
+    switchManageTab(activeManageTab || 'students');
   }
 
   // Side effects
