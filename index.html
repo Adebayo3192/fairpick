@@ -174,6 +174,11 @@ select option{background:#fff}
 .card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:18px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
 .card-title{font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:#1a4a2e;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-weight:700}
 .card-title::after{content:'';flex:1;height:1.5px;background:var(--border)}
+.card-title.collapsible{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.card-title.collapsible .chevron{transition:transform 0.2s ease;font-size:0.9rem;color:var(--muted);flex-shrink:0}
+.card-title.collapsible.open .chevron{transform:rotate(180deg)}
+.collapse-body{overflow:hidden;max-height:0;transition:max-height 0.25s ease}
+.collapse-body.open{max-height:5000px}
 
 /* ── NUMBER DRAW ── */
 .draw-stage{
@@ -955,16 +960,25 @@ select option{background:#fff}
     </div>
 
     <div class="card">
-      <div class="card-title">Duty Group Assignment</div>
+      <div class="card-title collapsible" onclick="toggleCollapse(this)">
+        <span>Duty Group Assignment</span>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="collapse-body">
       <div style="font-size:0.76rem;color:var(--muted);margin-bottom:12px">Assign students to duty groups. Only assigned & present students appear in each duty rotation.</div>
       <div style="margin-bottom:10px">
         <input type="text" id="groupSearch" placeholder="🔍 Search student..." oninput="renderGroupAssign()"/>
       </div>
       <div id="groupAssignList"></div>
+      </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Import / Export Students</div>
+      <div class="card-title collapsible" onclick="toggleCollapse(this)">
+        <span>Import / Export Students</span>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="collapse-body">
       <div style="font-size:0.72rem;color:var(--muted);margin-bottom:12px;line-height:1.6">
         Export your students as a CSV file to back them up or move them to another device.<br>
         Next time, just import that same file — no need to retype everyone.
@@ -1007,6 +1021,7 @@ select option{background:#fff}
             <span id="importPreviewCount" style="font-size:0.68rem;color:var(--muted)"></span>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -3250,6 +3265,17 @@ function closeModal() { document.getElementById('studentModal').classList.remove
 function closeModalBg(e) { if (e.target === document.getElementById('studentModal')) closeModal(); }
 
 let toastT;
+// ══════════════════════════════════════════════
+//  COLLAPSIBLE SECTIONS
+// ══════════════════════════════════════════════
+function toggleCollapse(headerEl) {
+  const body = headerEl.nextElementSibling;
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  headerEl.classList.toggle('open', !isOpen);
+}
+
 function toast(msg, type='') {
   const el=document.getElementById('toast');
   el.textContent=msg; el.className='show '+type;
