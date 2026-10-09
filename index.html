@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Babu At-Tawbah</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
+<title>Bab At-Tawbah</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&family=IBM+Plex+Mono:wght@400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
@@ -435,6 +435,136 @@ select option{background:#fff}
   .add-form{grid-template-columns:1fr 1fr}
   .week-strip{grid-template-columns:repeat(5,1fr)}
 }
+
+/* ═══ FIGMA SKIN (editorial green/gold) ═══ */
+:root{
+  --fg-green:#1a4a2e;--fg-green-dark:#0b2f1d;--fg-green-mid:#2d6543;--fg-green-light:#e6efe9;
+  --fg-gold:#c8960c;--fg-gold-dark:#8f6904;--fg-gold-light:#fbf1d4;
+  --fg-ink:#17231c;--fg-muted:#65736a;--fg-line:#d8e0da;
+  --border:#d8e0da;--text:#17231c;--muted:#65736a;--surface2:#f4f7f5;--surface3:#e9efeb;
+  --fg-sh-sm:0 3px 14px rgba(11,47,29,.07);--fg-sh-md:0 14px 40px rgba(11,47,29,.12);
+}
+body{font-family:'Manrope',system-ui,sans-serif;font-size:15px;color:var(--fg-ink);
+  background:#f0f4f2 !important}
+.shell{max-width:520px;margin:0 auto;background:#f6f9f7;min-height:100vh;box-shadow:0 0 60px rgba(11,47,29,.08);position:relative}
+button,.btn,.sess-tog button,.fchip,.day-check,.bnav-item{font-family:'Manrope',system-ui,sans-serif}
+.card-title,.stu-table th,.hist-table th,.sb-label,.att-toolbar .fi label,.fi label,.add-form .fi label,.hbadge,.ball-label,.dr-label,.day-name{font-family:'DM Mono','IBM Plex Mono',monospace}
+
+/* header */
+header{border-bottom:0 !important;border-radius:0 0 26px 26px;box-shadow:0 10px 30px rgba(11,47,29,.22) !important;background:linear-gradient(160deg,#1a4a2e,#0b2f1d) !important}
+header::before{opacity:.28 !important}
+header::after{background:linear-gradient(180deg,rgba(11,47,29,.55),rgba(11,47,29,.9)) !important}
+.header-brand{padding:14px 18px 8px !important}
+.header-logo-wrap{width:50px !important;height:50px !important;border:2px solid var(--fg-gold) !important;background:#fff !important;box-shadow:0 0 0 3px rgba(200,150,12,.25)}
+.header-logo{width:46px !important;height:46px !important}
+.header-arabic{font-size:1.2rem !important;color:#f0d27a !important}
+.header-english{font-family:'DM Mono',monospace;font-size:.68rem !important;letter-spacing:.14em !important;color:rgba(255,255,255,.8) !important}
+.hbadges{padding:0 18px 14px !important;gap:8px !important}
+.hbadge{font-size:.72rem !important;padding:7px 8px !important;border-radius:14px !important;background:rgba(255,255,255,.1) !important;border:1px solid rgba(240,210,122,.35) !important;color:rgba(255,255,255,.85) !important;letter-spacing:.02em}
+.hbadge b{font-family:'Playfair Display',serif;font-size:1.1rem !important;color:#f0d27a !important}
+
+/* panels, cards */
+.panel{padding:16px 16px 96px !important;background:transparent !important}
+.card{border:1px solid var(--fg-line) !important;border-radius:20px !important;box-shadow:var(--fg-sh-sm) !important;background:#fff}
+.card-title{font-size:.72rem !important;letter-spacing:.14em !important;color:var(--fg-gold-dark) !important}
+.card-title::after{background:var(--fg-line) !important;height:1px !important}
+
+/* buttons */
+.btn{border-radius:14px !important;font-size:.84rem !important;font-weight:700 !important;letter-spacing:0 !important;padding:10px 16px}
+.btn-green,.btn-blue{background:linear-gradient(160deg,var(--fg-green-mid),var(--fg-green)) !important;border-color:var(--fg-green) !important;box-shadow:0 6px 16px rgba(26,74,46,.25) !important}
+.btn-gold{background:linear-gradient(160deg,#dba91a,var(--fg-gold)) !important;border-color:var(--fg-gold) !important;box-shadow:0 6px 16px rgba(200,150,12,.3) !important;color:#2a1d00 !important}
+.btn-ghost{background:#fff !important;border-color:var(--fg-line) !important;color:var(--fg-green) !important;box-shadow:var(--fg-sh-sm) !important}
+.btn-ghost:hover{background:var(--fg-green-light) !important;border-color:var(--fg-green) !important}
+.btn-red{border-color:#f0b4b4 !important;border-radius:12px !important}
+.btn-sm{font-size:.78rem !important;padding:7px 12px !important}
+
+/* inputs (keep 16px) */
+input[type=text],input[type=number],input[type=time],input[type=date],select,textarea{
+  font-family:'Manrope',system-ui,sans-serif !important;font-size:16px !important;border-radius:14px !important;border:1.5px solid var(--fg-line) !important;background:#fbfdfc !important;box-shadow:none !important}
+input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;box-shadow:0 0 0 4px rgba(26,74,46,.1) !important}
+
+/* attendance */
+.att-toolbar{background:#fff !important;border:1px solid var(--fg-line) !important;border-radius:20px !important;box-shadow:var(--fg-sh-sm)}
+.sess-tog{border:1.5px solid var(--fg-line) !important;border-radius:14px !important;background:#f1f5f3;padding:3px;gap:3px}
+.sess-tog button{border-radius:11px !important;border:0 !important;background:transparent !important;font-size:.84rem !important;font-weight:700 !important;padding:9px 14px !important}
+.sess-tog button.active{background:var(--fg-green) !important;color:#fff !important;box-shadow:0 4px 12px rgba(26,74,46,.3)}
+.att-grid{grid-template-columns:repeat(2,1fr) !important;gap:9px !important}
+.att-card{border:1.5px solid var(--fg-line) !important;border-radius:18px !important;padding:12px !important;box-shadow:var(--fg-sh-sm) !important;gap:10px}
+.att-card.att-present{background:linear-gradient(160deg,#eaf4ee,#dcebe2) !important;border-color:var(--fg-green-mid) !important}
+.att-cb{border-radius:8px !important;width:24px !important;height:24px !important;border:2px solid #b9c7be !important}
+.att-card.att-present .att-cb{background:var(--fg-green) !important;border-color:var(--fg-green) !important}
+.att-info .att-id{font-size:.92rem !important;font-weight:800 !important;color:var(--fg-ink)}
+.att-info .att-nm{font-size:.76rem !important}
+.day-cell{border-radius:14px !important;border:1.5px solid var(--fg-line) !important}
+.day-cell.sel{background:var(--fg-green) !important;border-color:var(--fg-green) !important}
+.day-cell.sel .day-name,.day-cell.sel .day-sess{color:rgba(255,255,255,.8) !important}
+.day-cell.sel .day-num{color:#fff !important}
+.day-cell.today{border-color:var(--fg-gold) !important;background:var(--fg-gold-light) !important}
+
+/* duties */
+.draw-stage,.clean-stage{background:linear-gradient(165deg,#134027,#0b2f1d) !important;border:0 !important;border-radius:22px !important;box-shadow:var(--fg-sh-md)}
+.clean-stage::before,.draw-stage::before{background:radial-gradient(ellipse 70% 60% at 50% 100%,rgba(200,150,12,.28),transparent) !important}
+.clean-btn{background:radial-gradient(circle at 35% 30%,#f0d27a,var(--fg-gold)) !important;border:3px solid #f6e3a1 !important;color:#2a1d00 !important;font-family:'Manrope',sans-serif !important;font-weight:800;box-shadow:0 0 0 7px rgba(200,150,12,.18),0 10px 26px rgba(0,0,0,.35) !important}
+.clean-result,.draw-result{border:1px solid var(--fg-gold) !important;border-radius:16px !important}
+.cr-name{color:var(--fg-green) !important}
+.echip{border-radius:100px !important;font-size:.76rem !important;padding:5px 11px !important;border-color:var(--fg-line) !important}
+.echip.up-next{border-color:var(--fg-green) !important;color:var(--fg-green) !important;background:var(--fg-green-light) !important;font-weight:700}
+.big-ball.drawn{background:var(--fg-green-light) !important;border-color:var(--fg-green) !important}
+
+/* tables / modals / chips */
+.stu-table th,.hist-table th{background:#f1f5f3 !important;color:var(--fg-green) !important;font-size:.68rem !important}
+.stu-table td{font-size:.86rem}
+.fchip.active{border-color:var(--fg-gold) !important;color:var(--fg-gold-dark) !important;background:var(--fg-gold-light) !important}
+.modal-box{border-radius:24px !important}
+.modal-header h2{font-family:'Playfair Display',serif}
+.modal-row .msid,.modal-student-row .msid{color:var(--fg-gold-dark) !important}
+#toast{border-radius:14px !important;font-family:'Manrope',sans-serif}
+#toast.g{background:var(--fg-green) !important}
+
+/* bottom nav */
+.bottom-nav{max-width:520px;margin:0 auto;border-top:1px solid var(--fg-line) !important;border-radius:24px 24px 0 0;background:rgba(255,255,255,.96) !important;box-shadow:0 -10px 34px rgba(11,47,29,.12) !important;padding:6px 6px calc(env(safe-area-inset-bottom,4px) + 4px) !important;gap:2px;backdrop-filter:blur(10px)}
+.bnav-item{font-size:.66rem !important;font-weight:700 !important;color:var(--fg-muted) !important;padding:6px 2px !important;border-radius:16px;gap:3px !important}
+.bnav-item svg{stroke:var(--fg-muted) !important;width:22px;height:22px}
+.bnav-item.active{color:#fff !important;background:var(--fg-green) !important;box-shadow:0 6px 16px rgba(26,74,46,.3)}
+.bnav-item.active svg{stroke:#fff !important;transform:none !important}
+
+/* PIN */
+#pinLockScreen{background:radial-gradient(circle at 50% 0%,#1d5535,#0b2f1d 60%,#06180f) !important;font-family:'Manrope',sans-serif !important}
+.pin-key{font-family:'Playfair Display',serif !important;background:rgba(255,255,255,.07) !important;border:1px solid rgba(240,210,122,.22) !important}
+.pin-dot{border-color:#f0d27a !important}.pin-dot.filled{background:#f0d27a !important}
+
+/* home */
+.fg-hero{position:relative;border-radius:22px;overflow:hidden;padding:16px 18px;margin-bottom:14px;color:#fff;background:linear-gradient(160deg,#1a4a2e,#0b2f1d);box-shadow:var(--fg-sh-md)}
+.fg-hero .fg-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.32}
+.fg-hero .fg-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,47,29,.35),rgba(11,47,29,.88))}
+.fg-hero>*:not(.fg-bg):not(.fg-shade){position:relative;z-index:1}
+.fg-hijri{font-family:'Amiri',serif;font-size:1rem;color:#f0d27a}
+.fg-greg{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;line-height:1.2;margin-top:2px}
+.fg-pill{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:6px 12px;border-radius:100px;background:rgba(255,255,255,.14);border:1px solid rgba(240,210,122,.4);font-size:.78rem;font-weight:700}
+.fg-pill::before{content:'';width:8px;height:8px;border-radius:50%;background:#7be0a4;box-shadow:0 0 0 4px rgba(123,224,164,.25)}
+.fg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.fg-eyebrow{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-gold-dark);font-weight:500}
+.fg-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.fg-stat{border-radius:16px;padding:12px;border:1px solid var(--fg-line);background:#f7faf8}
+.fg-stat.m{background:var(--fg-gold-light);border-color:#ecd68c}
+.fg-stat.e{background:var(--fg-green-light);border-color:#bcd3c4}
+.fg-stat .l{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:500;color:var(--fg-muted)}
+.fg-stat .n{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;line-height:1.1;color:var(--fg-green);margin-top:3px}
+.fg-stat .s{font-size:.76rem;color:var(--fg-muted);margin-top:1px}
+.fg-bar{height:8px;border-radius:100px;background:#e3ece6;overflow:hidden}
+.fg-bar>div{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--fg-green),var(--fg-gold));width:0;transition:width .6s ease}
+.fg-pct{font-size:.8rem;color:var(--fg-muted);margin-top:8px;text-align:center;font-weight:600}
+.fg-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg-tile{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:14px;border-radius:20px;border:1px solid var(--fg-line);background:#fff;box-shadow:var(--fg-sh-sm);cursor:pointer;text-align:left;font-weight:800;font-size:.9rem;color:var(--fg-ink)}
+.fg-tile .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--fg-green-light)}
+.fg-tile .ic svg{width:20px;height:20px;stroke:var(--fg-green)}
+.fg-tile:active{transform:scale(.97)}
+
+/* tab rows: keep on one line */
+[id^="mtabBtn-"],[id^="dutyTabBtn-"]{padding:9px 4px !important;font-size:.78rem !important;min-width:0;gap:4px !important}
+#panel-manage>div:first-child,#panel-clean>div:first-child{flex-wrap:nowrap !important;gap:5px !important}
+#panel-manage{padding-bottom:0 !important}
+#panel-students,#panel-malams,#panel-draw,#panel-history{padding-top:0 !important}
 </style>
 </head>
 <body>
@@ -519,56 +649,51 @@ select option{background:#fff}
   <!-- ═══ HOME DASHBOARD ═══ -->
   <div class="panel" id="panel-home" style="display:block">
 
-    <div style="background:linear-gradient(135deg,#1a4a2e,#0d2e12);border-radius:12px;padding:14px 16px;margin-bottom:12px;position:relative;overflow:hidden">
-      <div style="position:absolute;inset:0;border-radius:12px;background:url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3') center/cover;opacity:0.15"></div>
-      <div style="position:relative;z-index:1;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 10px">
-        <div>
-          <div style="font-family:'Amiri',serif;font-size:0.74rem;color:#c8960c" id="homeHijri">—</div>
-          <div style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;color:#fff" id="homeGregorian">—</div>
-        </div>
-        <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);font-weight:600" id="homeSession">Loading...</div>
-      </div>
+    <div class="fg-hero">
+      <div class="fg-bg" style="background-image:url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3')"></div>
+      <div class="fg-shade"></div>
+      <div class="fg-hijri" id="homeHijri">—</div>
+      <div class="fg-greg" id="homeGregorian">—</div>
+      <div class="fg-pill" id="homeSession">Loading...</div>
     </div>
 
-    <div class="card" style="margin-bottom:12px;padding:16px 18px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div class="card-title" style="margin-bottom:0">Today's Attendance</div>
-        <button class="btn btn-green btn-sm" onclick="switchTab('attend')" style="font-size:0.7rem;padding:5px 11px">Take →</button>
+    <div class="card" style="padding:16px 18px">
+      <div class="fg-head">
+        <div class="fg-eyebrow">Today's attendance</div>
+        <button class="btn btn-green btn-sm" onclick="switchTab('attend')">Take attendance</button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div style="background:linear-gradient(135deg,#fff7e6,#fef3c7);border:1.5px solid #f59e0b;border-radius:10px;padding:10px">
-          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#92400e">🌅 Morning</div>
-          <div style="font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:900;color:#92400e;line-height:1.15" id="homeMornPres">—</div>
-          <div style="font-size:0.64rem;color:#b45309" id="homeMornTotal">not marked</div>
+      <div class="fg-stats">
+        <div class="fg-stat m">
+          <div class="l">Morning</div>
+          <div class="n" id="homeMornPres">—</div>
+          <div class="s" id="homeMornTotal">not marked</div>
         </div>
-        <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #3b82f6;border-radius:10px;padding:10px">
-          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#1d4ed8">🌆 Evening</div>
-          <div style="font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:900;color:#1d4ed8;line-height:1.15" id="homeEvenPres">—</div>
-          <div style="font-size:0.64rem;color:#1d4ed8" id="homeEvenTotal">not marked</div>
+        <div class="fg-stat e">
+          <div class="l">Evening</div>
+          <div class="n" id="homeEvenPres">—</div>
+          <div class="s" id="homeEvenTotal">not marked</div>
         </div>
       </div>
-      <div style="background:#e8f5ec;border-radius:100px;height:7px;overflow:hidden">
-        <div id="homeAttBar" style="background:linear-gradient(90deg,#1a4a2e,#4caf82);height:100%;border-radius:100px;width:0%;transition:width 0.6s ease"></div>
-      </div>
-      <div style="font-size:0.68rem;color:var(--muted);margin-top:6px;text-align:center" id="homeAttPct">No attendance recorded yet</div>
+      <div class="fg-bar"><div id="homeAttBar"></div></div>
+      <div class="fg-pct" id="homeAttPct">No attendance recorded yet</div>
     </div>
 
-    <div class="card" style="margin-bottom:12px;padding:16px 18px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div class="card-title" style="margin-bottom:0">Today's Duties</div>
-        <button class="btn btn-ghost btn-sm" onclick="switchTab('clean')" style="font-size:0.7rem;padding:5px 11px">View →</button>
+    <div class="card" style="padding:16px 18px">
+      <div class="fg-head" style="margin-bottom:8px">
+        <div class="fg-eyebrow">Today's duties</div>
+        <button class="btn btn-ghost btn-sm" onclick="switchTab('clean')">View</button>
       </div>
-      <div id="homeDutySummary" style="font-size:0.8rem;color:var(--muted)">No duties picked yet today.</div>
+      <div id="homeDutySummary" style="font-size:.9rem;color:var(--muted);line-height:1.6">No duties picked yet today.</div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <button class="btn btn-ghost" style="flex-direction:column;padding:14px 10px;gap:5px;border-radius:12px;height:auto" onclick="switchTab('reports')">
-        <span style="font-size:1.3rem">📊</span>
-        <span style="font-size:0.7rem;font-weight:700">Reports</span>
+    <div class="fg-tiles">
+      <button class="fg-tile" onclick="switchTab('reports')">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+        Reports
       </button>
-      <button class="btn btn-ghost" style="flex-direction:column;padding:14px 10px;gap:5px;border-radius:12px;height:auto" onclick="switchTab('draw')">
-        <span style="font-size:1.3rem">🎱</span>
-        <span style="font-size:0.7rem;font-weight:700">Number Draw</span>
+      <button class="fg-tile" onclick="switchTab('draw')">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        Number draw
       </button>
     </div>
 
@@ -3794,7 +3919,7 @@ function updateHomeDashboard() {
 
   setEl('homeGregorian', dayName+', '+dateObj.getDate()+' '+months[dateObj.getMonth()]+' '+dateObj.getFullYear());
   setEl('homeHijri', fmtHijriFromFields()||'—');
-  setEl('homeSession', attSession==='morning' ? '🌅 Morning Session' : '🌆 Evening Session');
+  setEl('homeSession', attSession==='morning' ? 'Morning session' : 'Evening session');
 
   const active = S.students.filter(s=>!s.archived).length;
   const morning = S.attendance?.[d]?.morning;
