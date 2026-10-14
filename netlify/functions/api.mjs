@@ -1,4 +1,4 @@
-// FairPick API v2.1 - numeric sort fix
+// FairPick API v2.2 - numeric sort fix + book progress tracking
 import pg from 'pg';
 const { Pool } = pg;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 5 });
@@ -27,6 +27,29 @@ async function initDB() {
         reason TEXT NOT NULL DEFAULT '',
         created_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(date, session)
+      );
+      CREATE TABLE IF NOT EXISTS progress_log (
+        id SERIAL PRIMARY KEY,
+        student_id TEXT NOT NULL,
+        malam_id TEXT DEFAULT '',
+        date TEXT NOT NULL,
+        session TEXT DEFAULT '',
+        lesson INTEGER NOT NULL,
+        stop_item TEXT DEFAULT '',
+        stop_n INTEGER DEFAULT 0,
+        mistakes TEXT[] NOT NULL DEFAULT '{}',
+        result TEXT NOT NULL DEFAULT 'good',
+        note TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS progress_log_student_idx ON progress_log(student_id, created_at DESC);
+      CREATE TABLE IF NOT EXISTS lesson_done (
+        student_id TEXT NOT NULL,
+        lesson INTEGER NOT NULL,
+        malam_id TEXT DEFAULT '',
+        done_on TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT NOW(),
+        PRIMARY KEY(student_id, lesson)
       );
       INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]'),('duty_groups','{}'),('student_groups','{}') ON CONFLICT(key) DO NOTHING;
       UPDATE students SET type='male' WHERE type='boy';
@@ -322,6 +345,67 @@ export default async function handler(req) {
       const c = await pool.connect();
       try {
         await c.query('DELETE FROM cancelled_sessions WHERE date=$1 AND session=$2', [date, session]);
+      } finally { c.release(); }
+      return jsonRes({ok:true});
+    }
+
+    // ── BOOK PROGRESS TRACKING ──
+    // Everything the Tracking tab needs in one call: latest entry per student,
+    // completed lessons, and the most recent entries for the activity feed.
+    if (action==='progress/load' && method==='GET') {
+      const c = await pool.connect();
+      try {
+        const [latest, done, recent] = await Promise.all([
+          c.query(`SELECT DISTINCT ON (student_id) id,student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,result,note,created_at
+                   FROM progress_log ORDER BY student_id, created_at DESC, id DESC`).then(r=>r.rows),
+          c.query('SELECT student_id,lesson,malam_id,done_on FROM lesson_done').then(r=>r.rows),
+          c.query(`SELECT id,student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,result,note,created_at
+                   FROM progress_log ORDER BY created_at DESC, id DESC LIMIT 60`).then(r=>r.rows),
+        ]);
+        return jsonRes({ latest, done, recent });
+      } finally { c.release(); }
+    }
+    if (action==='progress/student' && method==='GET') {
+      const id = url.searchParams.get('id');
+      if (!id) return jsonRes({error:'Missing id'},400);
+      const c = await pool.connect();
+      try {
+        const r = await c.query(`SELECT id,student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,result,note,created_at
+                                 FROM progress_log WHERE student_id=$1 ORDER BY created_at DESC, id DESC LIMIT 100`,[id]);
+        return jsonRes({ log: r.rows });
+      } finally { c.release(); }
+    }
+    if (action==='progress/log' && method==='POST') {
+      const {studentId,malamId,date,session,lesson,stopItem,stopN,mistakes,result,note}=await req.json();
+      if (!studentId || !date || !lesson) return jsonRes({error:'Missing studentId, date or lesson'},400);
+      const res = ['good','repeat','help'].includes(result) ? result : 'good';
+      const mist = Array.isArray(mistakes) ? mistakes.map(String).slice(0,60) : [];
+      const c = await pool.connect();
+      try {
+        const r = await c.query(
+          `INSERT INTO progress_log(student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,result,note)
+           VALUES($1,$2,$3,$4,$5,$6,$7,$8::text[],$9,$10) RETURNING id,created_at`,
+          [String(studentId),malamId||'',date,session||'',parseInt(lesson),stopItem||'',parseInt(stopN)||0,mist,res,(note||'').slice(0,500)]
+        );
+        return jsonRes({ok:true,id:r.rows[0].id,createdAt:r.rows[0].created_at});
+      } finally { c.release(); }
+    }
+    if (action==='progress/log/delete' && method==='POST') {
+      const {id}=await req.json();
+      const c = await pool.connect();
+      try { await c.query('DELETE FROM progress_log WHERE id=$1',[id]); } finally { c.release(); }
+      return jsonRes({ok:true});
+    }
+    if (action==='progress/lesson' && method==='POST') {
+      const {studentId,lesson,done,malamId,date}=await req.json();
+      if (!studentId || !lesson) return jsonRes({error:'Missing studentId or lesson'},400);
+      const c = await pool.connect();
+      try {
+        if (done === false) await c.query('DELETE FROM lesson_done WHERE student_id=$1 AND lesson=$2',[String(studentId),parseInt(lesson)]);
+        else await c.query(
+          'INSERT INTO lesson_done(student_id,lesson,malam_id,done_on)VALUES($1,$2,$3,$4)ON CONFLICT(student_id,lesson)DO UPDATE SET malam_id=$3,done_on=$4',
+          [String(studentId),parseInt(lesson),malamId||'',date||'']
+        );
       } finally { c.release(); }
       return jsonRes({ok:true});
     }
