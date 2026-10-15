@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>Bab At-Tawbah</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&family=IBM+Plex+Mono:wght@400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -585,8 +585,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
 .tk-feed .row{display:flex;gap:8px;align-items:baseline;font-size:.78rem;color:var(--fg-ink);padding:8px 10px;border-radius:12px;background:#fff;border:1px solid var(--fg-line)}
 .tk-feed .row .when{margin-left:auto;color:var(--fg-muted);font-size:.68rem;flex-shrink:0}
 .tk-ar{font-family:'Amiri',serif;direction:rtl;font-weight:700}
-.tk-strip{display:grid;grid-template-columns:repeat(17,1fr);gap:3px;margin:4px 0 12px}
-.tk-strip button{aspect-ratio:1;border-radius:6px;border:1px solid var(--fg-line);background:#fff;font:700 .62rem 'Manrope',sans-serif;color:var(--fg-muted);cursor:pointer;padding:0}
+.tk-strip{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:5px;margin:6px 0 12px}
+.tk-strip button{aspect-ratio:1.25;border-radius:8px;border:1px solid var(--fg-line);background:#fff;font:700 .8rem 'Manrope',sans-serif;color:var(--fg-muted);cursor:pointer;padding:0}
 .tk-strip button.done{background:var(--fg-green);border-color:var(--fg-green);color:#fff}
 .tk-strip button.cur{border:2px solid var(--fg-gold);color:var(--fg-gold-dark)}
 .tk-strip button.sel{box-shadow:0 0 0 2px var(--fg-green)}
@@ -595,9 +595,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
 .tk-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
 .tk-row label{font:700 .72rem 'Manrope',sans-serif;color:var(--fg-muted)}
 .tk-row select{flex:1;min-width:140px;padding:9px 10px;border:1.5px solid var(--fg-line);border-radius:12px;background:#fff;font:600 .85rem 'Manrope',sans-serif;color:var(--fg-ink)}
-.tk-lessons{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.tk-lessons{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;padding:2px 0 10px}
 .tk-lessons::-webkit-scrollbar{display:none}
-.tk-lessons button{flex:0 0 auto;min-width:38px;padding:8px 10px;border-radius:12px;border:1px solid var(--fg-line);background:#fff;font:800 .8rem 'Manrope',sans-serif;color:var(--fg-ink);cursor:pointer}
+.tk-lessons button{min-width:0;padding:8px 10px;border-radius:12px;border:1px solid var(--fg-line);background:#fff;font:800 .8rem 'Manrope',sans-serif;color:var(--fg-ink);cursor:pointer}
 .tk-lessons button.sel{background:var(--fg-green);border-color:var(--fg-green);color:#fff}
 .tk-lessons button.done::after{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-left:4px;vertical-align:middle}
 .tk-ltitle{text-align:center;font-family:'Amiri',serif;direction:rtl;font-weight:700;font-size:1.35rem;color:var(--fg-green);margin:2px 0 8px;line-height:1.5}
@@ -657,7 +657,15 @@ html,body{touch-action:pan-y pinch-zoom}
 body{max-width:100vw;position:relative}
 button,.btn,.fchip,.day-check,.tk-it,.tk-stu,.tk-lessons button,.dr-item,.fg-tile,a,label,select,summary{touch-action:manipulation}
 input,select,textarea{font-size:16px !important}
-.panel{padding:16px 16px 32px !important}
+.panel{padding:14px 10px 32px !important}
+/* nothing may be wider than the screen */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;width:100%}
+body{width:100%;overflow-x:hidden}
+.panel,.panel>*{max-width:100%;min-width:0}
+input:not([type=checkbox]):not([type=radio]),select,textarea{max-width:100%;min-width:0;box-sizing:border-box}
+.tk-row select{min-width:0 !important;flex:1 1 0}
+.tk-search,.tk-note{width:100%;max-width:100%}
+.header-brand{padding-left:12px !important;padding-right:12px !important}
 
 /* ═══ HEADER MENU BUTTON + DRAWER ═══ */
 .hmb{margin-left:auto;flex-shrink:0;width:44px;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer;position:relative;z-index:3}
