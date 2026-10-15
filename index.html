@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Bab At-Tawbah</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&family=IBM+Plex+Mono:wght@400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -599,7 +599,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
 .tk-lessons::-webkit-scrollbar{display:none}
 .tk-lessons button{flex:0 0 auto;min-width:38px;padding:8px 10px;border-radius:12px;border:1px solid var(--fg-line);background:#fff;font:800 .8rem 'Manrope',sans-serif;color:var(--fg-ink);cursor:pointer}
 .tk-lessons button.sel{background:var(--fg-green);border-color:var(--fg-green);color:#fff}
-.tk-lessons button.done::after{content:' ✓';font-size:.7em}
+.tk-lessons button.done::after{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-left:4px;vertical-align:middle}
 .tk-ltitle{text-align:center;font-family:'Amiri',serif;direction:rtl;font-weight:700;font-size:1.35rem;color:var(--fg-green);margin:2px 0 8px;line-height:1.5}
 .tk-seg{display:flex;gap:6px;margin:8px 0 6px}
 .tk-seg button{flex:1;padding:9px 6px;border-radius:12px;border:1.5px solid var(--fg-line);background:#fff;font:700 .76rem 'Manrope',sans-serif;color:var(--fg-muted);cursor:pointer}
@@ -614,7 +614,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
 .tk-it.rd{background:#eaf4ec;border-color:#a9d1b4}
 .tk-it.stop{background:var(--fg-gold);border-color:#8f6904;color:#fff;box-shadow:0 0 0 3px rgba(200,150,12,.3)}
 .tk-it.bad{background:#fee2e2;border-color:#dc2626;color:#991b1b}
-.tk-it.pin::before{content:'📍';position:absolute;top:-9px;right:-5px;font-size:.8rem;direction:ltr}
+.tk-it.pin::before{content:'';position:absolute;top:-7px;right:-5px;width:12px;height:12px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--fg-gold);border:2px solid #fff;box-shadow:0 0 0 1px var(--fg-gold-dark)}
 .tk-it .lt{position:absolute;bottom:-1px;left:3px;font:800 .5rem 'Manrope',sans-serif;color:var(--fg-muted);direction:ltr}
 .tk-empty{padding:18px;text-align:center;color:var(--fg-muted);font-size:.82rem}
 .tk-note{width:100%;padding:9px 11px;border:1.5px solid var(--fg-line);border-radius:12px;font:500 .82rem 'Manrope',sans-serif;margin-bottom:8px}
@@ -635,18 +635,107 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
 .tk-hist .h small,.tk-last small{opacity:.7}
 .tk-hist .h .tk-pill,.tk-last .tk-pill{margin-right:4px}
 /* collapsible save card + edge tab */
-.tk-tab{position:fixed;right:0;bottom:190px;z-index:40;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 5px;border:0;border-radius:12px 0 0 12px;opacity:.94;background:#6b7a70;color:#fff;box-shadow:-3px 4px 14px rgba(0,0,0,.25);cursor:pointer}
+.tk-tab{position:fixed;right:0;bottom:120px;z-index:40;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 5px;border:0;border-radius:12px 0 0 12px;opacity:.94;background:#6b7a70;color:#fff;box-shadow:-3px 4px 14px rgba(0,0,0,.25);cursor:pointer}
 .tk-tab.dirty{background:var(--fg-gold-dark)}
 .tk-tab .t{writing-mode:vertical-rl;font:800 .64rem 'Manrope',sans-serif;letter-spacing:.14em}
 .tk-tab .n{min-width:18px;height:18px;border-radius:99px;background:#fff;color:var(--fg-gold-dark);font:800 .66rem/18px 'Manrope',sans-serif;text-align:center}
-.tk-save{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:39;width:calc(100% - 52px);max-width:480px;padding:12px;border-radius:20px;background:#fff;border:1px solid var(--fg-line);box-shadow:0 10px 34px rgba(0,0,0,.28)}
+.tk-save{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:39;width:calc(100% - 52px);max-width:480px;padding:12px;border-radius:20px;background:#fff;border:1px solid var(--fg-line);box-shadow:0 10px 34px rgba(0,0,0,.28)}
 .tk-save.open{display:block}
 .tk-save .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font:800 .8rem 'Manrope',sans-serif;color:var(--fg-ink)}
 .tk-save .top button{background:#eef2ef;border:0;border-radius:10px;padding:6px 10px;font:700 .74rem 'Manrope',sans-serif;color:var(--fg-green);cursor:pointer}
 .tk-save .sel{font-size:.8rem;margin-bottom:10px;color:var(--fg-ink);line-height:1.7}
+
+/* ═══ ICONS ═══ */
+svg.ic{width:1.1em;height:1.1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;flex-shrink:0;display:inline-block}
+.btn svg.ic{margin-right:2px}
+.tk-seg button svg.ic,.tk-back svg.ic{margin-right:3px}
+.att-cb svg.ic{width:.9em;height:.9em;stroke-width:3}
+
+/* ═══ PAGE LOCK: no sideways drift, no accidental zoom ═══ */
+html{overflow-x:hidden;max-width:100%;overscroll-behavior-x:none}
+html,body{touch-action:pan-y pinch-zoom}
+body{max-width:100vw;position:relative}
+button,.btn,.fchip,.day-check,.tk-it,.tk-stu,.tk-lessons button,.dr-item,.fg-tile,a,label,select,summary{touch-action:manipulation}
+input,select,textarea{font-size:16px !important}
+.panel{padding:16px 16px 32px !important}
+
+/* ═══ HEADER MENU BUTTON + DRAWER ═══ */
+.hmb{margin-left:auto;flex-shrink:0;width:44px;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer;position:relative;z-index:3}
+.hmb svg.ic{width:24px;height:24px}
+.menu-overlay{position:fixed;inset:0;background:rgba(8,28,18,.55);z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s}
+.menu-overlay.open{opacity:1;pointer-events:auto}
+.menu-drawer{position:fixed;top:0;bottom:0;left:0;width:min(82vw,320px);background:#fff;z-index:1001;transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column;box-shadow:8px 0 40px rgba(0,0,0,.3)}
+.menu-drawer.open{transform:none}
+.menu-drawer .dr-head{padding:22px 18px 16px;background:linear-gradient(135deg,#1a4a2e,#0d2e12);color:#fff;border-bottom:3px solid #c8960c}
+.menu-drawer .dr-head .ar{font-family:'Amiri',serif;font-size:1.35rem;font-weight:700;line-height:1.4}
+.menu-drawer .dr-head .en{font:600 .68rem 'Manrope',sans-serif;letter-spacing:.14em;text-transform:uppercase;opacity:.8;margin-top:2px}
+.menu-drawer .dr-list{padding:10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+.dr-item{display:flex;align-items:center;gap:14px;width:100%;padding:14px 14px;border:0;border-radius:14px;background:transparent;font:700 .95rem 'Manrope',sans-serif;color:var(--fg-ink);cursor:pointer;text-align:left}
+.dr-item svg.ic{width:22px;height:22px;color:var(--fg-muted)}
+.dr-item.active{background:var(--fg-green);color:#fff}
+.dr-item.active svg.ic{color:#fff}
+.dr-close{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:12px;border:0;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;cursor:pointer}
+
+/* ═══ TOAST: top of the screen, above everything ═══ */
+#toast{top:12px !important;bottom:auto !important;left:50% !important;right:auto !important;width:max-content;max-width:min(92vw,440px);transform:translate(-50%,-120px) !important;z-index:10000 !important;display:flex;align-items:flex-start;gap:8px;line-height:1.4;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+#toast.show{transform:translate(-50%,0) !important}
+#toast svg.ic{margin-top:2px;width:1.15em;height:1.15em}
+.gdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
 </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+<symbol id="i-attend" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+<symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+<symbol id="i-check-circle" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-alert-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+<symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/><polyline points="8 6 12 2 16 6"/></symbol>
+<symbol id="i-sunset" viewBox="0 0 24 24"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="9" x2="12" y2="2"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/><polyline points="16 5 12 9 8 5"/></symbol>
+<symbol id="i-note" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
+<symbol id="i-mosque" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21v-6c0-3 3-5.5 7-5.5s7 2.5 7 5.5v6"/><path d="M12 9.5V6"/><path d="M10.5 4.5a1.8 1.8 0 1 0 3 1.2"/><path d="M10 21v-3a2 2 0 0 1 4 0v3"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="i-bowl" viewBox="0 0 24 24"><path d="M3 12h18a9 9 0 0 1-18 0z"/><path d="M8 21h8"/><path d="M8 8c0-1.5 1-1.5 1-3"/><path d="M12 8c0-1.5 1-1.5 1-3"/><path d="M16 8c0-1.5 1-1.5 1-3"/></symbol>
+<symbol id="i-droplet" viewBox="0 0 24 24"><path d="M12 2.7l5.7 5.6a8 8 0 1 1-11.4 0z"/></symbol>
+<symbol id="i-archive" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+<symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></symbol>
+<symbol id="i-pencil" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="i-arrow-up" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></symbol>
+<symbol id="i-arrow-left" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol>
+<symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+<symbol id="i-repeat" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+<symbol id="i-printer" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+<symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+<symbol id="i-brush" viewBox="0 0 24 24"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
+<symbol id="i-thermo" viewBox="0 0 24 24"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+<symbol id="i-rain" viewBox="0 0 24 24"><line x1="16" y1="13" x2="16" y2="21"/><line x1="8" y1="13" x2="8" y2="21"/><line x1="12" y1="15" x2="12" y2="23"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+<symbol id="i-hash" viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+<symbol id="i-id" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M5 16c.5-1.5 1.7-2 3-2s2.5.5 3 2"/><path d="M14 10h4M14 14h4"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-cap" viewBox="0 0 24 24"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+</defs></svg>
 <!-- PIN LOCK SCREEN -->
 <div id="pinLockScreen" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(160deg,#0d2e12,#071508);display:flex;align-items:center;justify-content:center;padding:24px;font-family:'IBM Plex Mono',monospace">
   <div style="width:100%;max-width:340px;text-align:center">
@@ -686,11 +775,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
 <!-- MIGRATION BANNER -->
 <div id="migrationBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:2000;background:#1a4a2e;color:#fff;padding:16px 20px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);font-family:'IBM Plex Mono',monospace">
   <div style="max-width:700px;margin:0 auto">
-    <div style="font-size:0.9rem;font-weight:600;margin-bottom:6px">📦 Local data found on this device</div>
+    <div style="font-size:0.9rem;font-weight:600;margin-bottom:6px"><svg class="ic" aria-hidden="true"><use href="#i-archive"/></svg> Local data found on this device</div>
     <div style="font-size:0.78rem;color:#86efac;margin-bottom:12px" id="migrationInfo"></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button onclick="runMigration()" style="background:#86efac;color:#1a4a2e;border:none;padding:9px 18px;border-radius:8px;font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer">⬆ Migrate to database</button>
-      <button onclick="dismissMigration()" style="background:transparent;color:#86efac;border:1px solid #86efac;padding:9px 18px;border-radius:8px;font-family:inherit;font-size:0.82rem;cursor:pointer">✕ Dismiss</button>
+      <button onclick="runMigration()" style="background:#86efac;color:#1a4a2e;border:none;padding:9px 18px;border-radius:8px;font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer"><svg class="ic" aria-hidden="true"><use href="#i-arrow-up"/></svg> Migrate to database</button>
+      <button onclick="dismissMigration()" style="background:transparent;color:#86efac;border:1px solid #86efac;padding:9px 18px;border-radius:8px;font-family:inherit;font-size:0.82rem;cursor:pointer"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg> Dismiss</button>
     </div>
   </div>
 </div>
@@ -707,6 +796,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
       <div class="header-arabic">مركز باب التوبة الإسلامي</div>
       <div class="header-english">Bab At-Tawbah Islamic Center</div>
     </div>
+    <button class="hmb" onclick="openMenu()" aria-label="Open menu"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
   </div>
   <div class="hbadges">
     <div class="hbadge" onclick="showStudentModal('active')" style="cursor:pointer;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3)">
@@ -766,6 +856,22 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
     </div>
 
     <div class="fg-tiles">
+      <button class="fg-tile" onclick="switchTab('attend')">
+        <span class="ic"><svg class="ic" aria-hidden="true"><use href="#i-attend"/></svg></span>
+        Take attendance
+      </button>
+      <button class="fg-tile" onclick="switchTab('scan')">
+        <span class="ic"><svg class="ic" aria-hidden="true"><use href="#i-scan"/></svg></span>
+        Scan check-in
+      </button>
+      <button class="fg-tile" onclick="switchTab('track')">
+        <span class="ic"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span>
+        Book tracking
+      </button>
+      <button class="fg-tile" onclick="switchTab('clean')">
+        <span class="ic"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg></span>
+        Duties
+      </button>
       <button class="fg-tile" onclick="switchTab('reports')">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
         Reports
@@ -773,10 +879,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
       <button class="fg-tile" onclick="switchTab('draw')">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
         Number draw
-      </button>
-      <button class="fg-tile" style="grid-column:1/-1" onclick="switchTab('track')">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
-        Book tracking · where is each student in At-Tadreeb?
       </button>
     </div>
 
@@ -792,10 +894,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
   <!-- ═══ MANAGE PANEL ═══ -->
   <div class="panel" id="panel-manage">
     <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-      <button class="btn btn-green btn-sm" id="mtabBtn-students" onclick="switchManageTab('students')" style="flex:1">👥 Students</button>
-      <button class="btn btn-ghost btn-sm" id="mtabBtn-malams" onclick="switchManageTab('malams')" style="flex:1">👨‍🏫 Malams</button>
-      <button class="btn btn-ghost btn-sm" id="mtabBtn-draw" onclick="switchManageTab('draw')" style="flex:1">🎱 Draw</button>
-      <button class="btn btn-ghost btn-sm" id="mtabBtn-history" onclick="switchManageTab('history')" style="flex:1">📋 History</button>
+      <button class="btn btn-green btn-sm" id="mtabBtn-students" onclick="switchManageTab('students')" style="flex:1"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg> Students</button>
+      <button class="btn btn-ghost btn-sm" id="mtabBtn-malams" onclick="switchManageTab('malams')" style="flex:1"><svg class="ic" aria-hidden="true"><use href="#i-cap"/></svg> Malams</button>
+      <button class="btn btn-ghost btn-sm" id="mtabBtn-draw" onclick="switchManageTab('draw')" style="flex:1"><svg class="ic" aria-hidden="true"><use href="#i-hash"/></svg> Draw</button>
+      <button class="btn btn-ghost btn-sm" id="mtabBtn-history" onclick="switchManageTab('history')" style="flex:1"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> History</button>
     </div>
   </div>
 
@@ -803,7 +905,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
   <div class="panel" id="panel-scan" style="display:none">
 
     <div class="card" style="text-align:center">
-      <div class="card-title" style="justify-content:center">📷 QR Check-In</div>
+      <div class="card-title" style="justify-content:center"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg> QR Check-In</div>
       <div id="scanSessionLabel" style="font-size:0.8rem;color:#1a4a2e;font-weight:700;margin-bottom:14px">—</div>
 
       <div id="scanVideoWrap" style="position:relative;width:100%;max-width:240px;margin:0 auto 12px;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:1/1">
@@ -819,7 +921,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
       <button class="btn btn-gold" id="scanToggleBtn" onclick="toggleScanner()" style="margin-bottom:10px">▶ Start Scanning</button>
 
       <div id="scanResult" style="display:none;background:#f0f7f3;border:2px solid #86efac;border-radius:12px;padding:16px;margin-top:6px;text-align:center">
-        <div style="font-size:1.8rem;margin-bottom:4px">✅</div>
+        <div style="margin-bottom:4px;color:var(--green)"><svg class="ic" style="width:40px;height:40px" aria-hidden="true"><use href="#i-check-circle"/></svg></div>
         <div id="scanResultName" style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;color:#1a4a2e"></div>
         <div id="scanResultDetail" style="font-size:0.75rem;color:#15803d;margin-top:2px"></div>
       </div>
@@ -828,13 +930,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
     </div>
 
     <div class="card">
-      <div class="card-title">📋 Recently Checked In</div>
+      <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> Recently Checked In</div>
       <div id="scanRecentList" style="font-size:0.8rem;color:var(--muted)">No scans yet this session.</div>
     </div>
 
     <div class="card">
       <div style="font-size:0.78rem;color:var(--muted);line-height:1.6">
-        📌 If a student forgot their card, mark them present manually in the <b style="color:#1a4a2e">Attendance</b> tab instead.
+        <svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg> If a student forgot their card, mark them present manually in the <b style="color:#1a4a2e">Attendance</b> tab instead.
       </div>
     </div>
 
@@ -899,16 +1001,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
 
     <!-- Duty tabs -->
     <div style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap">
-      <button class="btn btn-green btn-sm" id="dutyTabBtn-masjid" onclick="switchDutyTab('masjid')" style="flex:1">🕌 Masjid</button>
-      <button class="btn btn-ghost btn-sm" id="dutyTabBtn-bowls" onclick="switchDutyTab('bowls')" style="flex:1">🍽 Bowls</button>
-      <button class="btn btn-ghost btn-sm" id="dutyTabBtn-washroom" onclick="switchDutyTab('washroom')" style="flex:1">🚿 Washroom</button>
-      <button class="btn btn-ghost btn-sm" id="dutyTabBtn-prayer" onclick="switchDutyTab('prayer')" style="flex:1">📖 Prayer</button>
+      <button class="btn btn-green btn-sm" id="dutyTabBtn-masjid" onclick="switchDutyTab('masjid')" style="flex:1"><svg class="ic" aria-hidden="true"><use href="#i-mosque"/></svg> Masjid</button>
+      <button class="btn btn-ghost btn-sm" id="dutyTabBtn-bowls" onclick="switchDutyTab('bowls')" style="flex:1"><svg class="ic" aria-hidden="true"><use href="#i-bowl"/></svg> Bowls</button>
+      <button class="btn btn-ghost btn-sm" id="dutyTabBtn-washroom" onclick="switchDutyTab('washroom')" style="flex:1"><svg class="ic" aria-hidden="true"><use href="#i-droplet"/></svg> Washroom</button>
+      <button class="btn btn-ghost btn-sm" id="dutyTabBtn-prayer" onclick="switchDutyTab('prayer')" style="flex:1"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg> Prayer</button>
     </div>
 
     <!-- Masjid duty -->
     <div id="dutyPanel-masjid">
       <div class="card">
-        <div class="card-title">🕌 Masjid Cleaning & Mopping</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-mosque"/></svg> Masjid Cleaning & Mopping</div>
         <div style="font-size:0.76rem;color:var(--muted);margin-bottom:10px">Boys assigned to masjid cleaning who are present today. Fair rotation — cycles through all before repeating.</div>
         <div id="eligList-masjid" class="elig-list"></div>
         <div style="margin-top:12px" class="prog-wrap">
@@ -921,7 +1023,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
         <div class="card-title">Pick Today's Masjid Cleaner</div>
         <div class="clean-stage">
           <button class="clean-btn" id="dutyBtn-masjid" onclick="pickDuty('masjid')">
-            <span class="ci">🕌</span> Pick Cleaner
+            <span class="ci"><svg class="ic" aria-hidden="true"><use href="#i-mosque"/></svg></span> Pick Cleaner
           </button>
           <div class="clean-result" id="dutyResult-masjid">
             <div class="cr-label">Today's Cleaner</div>
@@ -935,7 +1037,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
     <!-- Bowls duty -->
     <div id="dutyPanel-bowls" style="display:none">
       <div class="card">
-        <div class="card-title">🍽 Bowl Washing</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-bowl"/></svg> Bowl Washing</div>
         <div style="font-size:0.76rem;color:var(--muted);margin-bottom:10px">Girls assigned to bowl washing who are present today. Fair rotation — cycles through all before repeating.</div>
         <div id="eligList-bowls" class="elig-list"></div>
         <div style="margin-top:12px" class="prog-wrap">
@@ -948,7 +1050,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
         <div class="card-title">Pick Today's Bowl Washer</div>
         <div class="clean-stage">
           <button class="clean-btn" id="dutyBtn-bowls" onclick="pickDuty('bowls')">
-            <span class="ci">🍽</span> Pick Washer
+            <span class="ci"><svg class="ic" aria-hidden="true"><use href="#i-bowl"/></svg></span> Pick Washer
           </button>
           <div class="clean-result" id="dutyResult-bowls">
             <div class="cr-label">Today's Bowl Washer</div>
@@ -962,7 +1064,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
     <!-- Washroom duty -->
     <div id="dutyPanel-washroom" style="display:none">
       <div class="card">
-        <div class="card-title">🚿 Washroom Cleaning</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-droplet"/></svg> Washroom Cleaning</div>
         <div style="font-size:0.76rem;color:var(--muted);margin-bottom:10px">Girls assigned to washroom cleaning who are present today. Fair rotation — cycles through all before repeating.</div>
         <div id="eligList-washroom" class="elig-list"></div>
         <div style="margin-top:12px" class="prog-wrap">
@@ -975,7 +1077,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
         <div class="card-title">Pick Today's Washroom Cleaner</div>
         <div class="clean-stage">
           <button class="clean-btn" id="dutyBtn-washroom" onclick="pickDuty('washroom')">
-            <span class="ci">🚿</span> Pick Cleaner
+            <span class="ci"><svg class="ic" aria-hidden="true"><use href="#i-droplet"/></svg></span> Pick Cleaner
           </button>
           <div class="clean-result" id="dutyResult-washroom">
             <div class="cr-label">Today's Washroom Cleaner</div>
@@ -989,7 +1091,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
     <!-- Prayer leader -->
     <div id="dutyPanel-prayer" style="display:none">
       <div class="card">
-        <div class="card-title">📖 Prayer Leader — Shafi'i & Witr</div>
+        <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg> Prayer Leader — Shafi'i & Witr</div>
         <div style="font-size:0.76rem;color:var(--muted);margin-bottom:10px">Male Quran students who are present today. Fair rotation for leading Shafi'i and Witr prayers.</div>
         <div id="eligList-prayer" class="elig-list"></div>
         <div style="margin-top:12px" class="prog-wrap">
@@ -1002,7 +1104,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
         <div class="card-title">Pick Today's Prayer Leader</div>
         <div class="clean-stage">
           <button class="clean-btn" id="dutyBtn-prayer" onclick="pickDuty('prayer')">
-            <span class="ci">📖</span> Pick Leader
+            <span class="ci"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg></span> Pick Leader
           </button>
           <div class="clean-result" id="dutyResult-prayer">
             <div class="cr-label">Today's Prayer Leader</div>
@@ -1020,21 +1122,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
     <div class="att-toolbar" style="flex-wrap:nowrap;align-items:center;padding:10px 12px;gap:8px">
       <input type="date" id="attDate" style="font-size:16px;flex:1;min-width:0;padding:7px 8px"/>
       <div class="sess-tog" style="flex-shrink:0">
-        <button id="btnMorn" class="active" onclick="setSession('morning')" title="Morning">🌅</button>
-        <button id="btnEven" onclick="setSession('evening')" title="Evening">🌆</button>
+        <button id="btnMorn" class="active" onclick="setSession('morning')" title="Morning"><svg class="ic" aria-hidden="true"><use href="#i-sunrise"/></svg></button>
+        <button id="btnEven" onclick="setSession('evening')" title="Evening"><svg class="ic" aria-hidden="true"><use href="#i-sunset"/></svg></button>
       </div>
       <button class="btn btn-ghost btn-sm" style="flex-shrink:0;padding:7px 10px" onclick="goToday()">Today</button>
     </div>
 
     <div style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;flex-wrap:wrap;gap:6px">
-      <button class="btn btn-ghost btn-sm" onclick="attAll(true)">✓ All Present</button>
-      <button class="btn btn-ghost btn-sm" onclick="attAll(false)">✗ All Absent</button>
+      <button class="btn btn-ghost btn-sm" onclick="attAll(true)"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> All Present</button>
+      <button class="btn btn-ghost btn-sm" onclick="attAll(false)"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg> All Absent</button>
       <button class="btn btn-ghost btn-sm" onclick="attFromSidebar()">← From sidebar</button>
     </div>
 
     <!-- Student search -->
     <div style="margin-bottom:10px;position:relative">
-      <input type="text" id="attSearch" placeholder="🔍 Search student by name or ID…" oninput="renderAttGrid()" style="padding-left:14px;font-size:16px"/>
+      <input type="text" id="attSearch" placeholder="Search student by name or ID…" oninput="renderAttGrid()" style="padding-left:14px;font-size:16px"/>
     </div>
 
     <div class="att-grid" id="attGrid"></div>
@@ -1045,13 +1147,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
     </div>
 
     <div class="row" style="margin-bottom:6px">
-      <button class="btn btn-green" onclick="saveAtt()">💾 Save Attendance</button>
+      <button class="btn btn-green" onclick="saveAtt()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg> Save Attendance</button>
       <button class="btn btn-ghost btn-sm" onclick="attApplyToSidebar()">→ Apply to sidebar</button>
-      <button class="btn btn-sm" id="cancelSessionBtn" onclick="showCancelModal()" style="background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626;font-weight:600">🚫 Cancel Session</button>
-      <span id="attSavedMsg" style="font-size:0.68rem;color:var(--green);display:none">✓ Saved</span>
+      <button class="btn btn-sm" id="cancelSessionBtn" onclick="showCancelModal()" style="background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626;font-weight:600"><svg class="ic" aria-hidden="true"><use href="#i-ban"/></svg> Cancel Session</button>
+      <span id="attSavedMsg" style="font-size:0.68rem;color:var(--green);display:none"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> Saved</span>
     </div>
     <div id="cancelledBanner" style="display:none;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:0.8rem;color:#dc2626;font-weight:600;display:flex;align-items:center;justify-content:space-between">
-      <span id="cancelledBannerText">🚫 Session cancelled</span>
+      <span id="cancelledBannerText"><svg class="ic" aria-hidden="true"><use href="#i-ban"/></svg> Session cancelled</span>
       <button onclick="uncancelSession()" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:0.75rem;text-decoration:underline">Undo</button>
     </div>
 
@@ -1059,14 +1161,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
 
     <!-- DAILY REPORT CARD -->
     <div class="card" style="border-color:rgba(212,168,83,0.3);background:rgba(212,168,83,0.04)">
-      <div class="card-title">📊 Daily Attendance Report</div>
+      <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg> Daily Attendance Report</div>
       <div style="font-size:0.72rem;color:var(--muted);margin-bottom:14px;line-height:1.6">
         Generates a shareable image for <b style="color:var(--text)" id="reportDateLabel">today</b>. Check and correct the Hijri date below before generating.
       </div>
 
       <!-- Hijri date manual selector -->
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(212,168,83,0.2);border-radius:8px;padding:14px 16px;margin-bottom:14px">
-        <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);margin-bottom:10px">🗓 Hijri Date — verify &amp; correct if needed</div>
+        <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);margin-bottom:10px"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> Hijri Date — verify &amp; correct if needed</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
           <div>
             <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px">Day</label>
@@ -1099,7 +1201,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
       </div>
 
       <div class="row" style="margin-bottom:14px;flex-wrap:wrap">
-        <button class="btn btn-gold" onclick="generateReport()">🖼 Generate Report Card</button>
+        <button class="btn btn-gold" onclick="generateReport()"><svg class="ic" aria-hidden="true"><use href="#i-image"/></svg> Generate Report Card</button>
         <button class="btn btn-ghost btn-sm" onclick="shareReportWhatsApp()" id="shareWABtn" style="display:none">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           Share to WhatsApp
@@ -1148,9 +1250,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
     </div>
 
     <div class="card" style="background:linear-gradient(135deg,#f0f7f3,#f8fffe);border-color:#86efac">
-      <div class="card-title">🪪 Student ID Cards</div>
+      <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-id"/></svg> Student ID Cards</div>
       <div style="font-size:0.76rem;color:var(--muted);margin-bottom:12px">Print QR ID cards for all active students. Standard ID card size — fits a lanyard holder. Students scan their card at the entrance to check in automatically.</div>
-      <button class="btn btn-green" onclick="printQRCards()">🖨️ Print QR Cards for All Students</button>
+      <button class="btn btn-green" onclick="printQRCards()"><svg class="ic" aria-hidden="true"><use href="#i-printer"/></svg> Print QR Cards for All Students</button>
     </div>
 
     <div class="card">
@@ -1161,7 +1263,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
       <div class="collapse-body">
       <div style="font-size:0.76rem;color:var(--muted);margin-bottom:12px">Assign students to duty groups. Only assigned & present students appear in each duty rotation.</div>
       <div style="margin-bottom:10px">
-        <input type="text" id="groupSearch" placeholder="🔍 Search student..." oninput="renderGroupAssign()"/>
+        <input type="text" id="groupSearch" placeholder="Search student..." oninput="renderGroupAssign()"/>
       </div>
       <div id="groupAssignList"></div>
       </div>
@@ -1200,7 +1302,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
         </div>
         <div class="row" style="margin-bottom:8px">
           <label class="btn btn-blue" style="cursor:pointer">
-            📂 Choose CSV file
+            <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg> Choose CSV file
             <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)"/>
           </label>
           <span style="font-size:0.68rem;color:var(--muted)" id="importStatus"></span>
@@ -1210,7 +1312,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
           <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:6px">Preview</div>
           <div id="importPreviewTable"></div>
           <div class="row" style="margin-top:10px">
-            <button class="btn btn-green" onclick="confirmImport()">✓ Add these students</button>
+            <button class="btn btn-green" onclick="confirmImport()"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> Add these students</button>
             <button class="btn btn-ghost btn-sm" onclick="cancelImport()">Cancel</button>
             <span id="importPreviewCount" style="font-size:0.68rem;color:var(--muted)"></span>
           </div>
@@ -1222,7 +1324,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
     <div class="card">
       <div class="card-title">Student Roster</div>
       <div style="font-size:0.7rem;color:var(--muted);margin-bottom:12px">
-        To hide a student from attendance (e.g. they left), click <span style="color:var(--gold)">📦 Archive</span>. They'll be hidden but their history is kept. Scroll down to see archived students and restore them anytime.
+        To hide a student from attendance (e.g. they left), click <span style="color:var(--gold)"><svg class="ic" aria-hidden="true"><use href="#i-archive"/></svg> Archive</span>. They'll be hidden but their history is kept. Scroll down to see archived students and restore them anytime.
       </div>
       <div class="filter-row" id="filterRow">
         <div class="fchip active" data-f="all" onclick="setFilter('all')">All</div>
@@ -1263,8 +1365,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
         <div>
           <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:0.08em">Scheduled Sessions</label>
           <div style="display:flex;gap:5px;flex-wrap:wrap" id="newMalamSessions">
-            <label class="day-check"><input type="checkbox" value="morning" checked/> 🌅 Morning</label>
-            <label class="day-check"><input type="checkbox" value="evening" checked/> 🌆 Evening</label>
+            <label class="day-check"><input type="checkbox" value="morning" checked/> <svg class="ic" aria-hidden="true"><use href="#i-sunrise"/></svg> Morning</label>
+            <label class="day-check"><input type="checkbox" value="evening" checked/> <svg class="ic" aria-hidden="true"><use href="#i-sunset"/></svg> Evening</label>
           </div>
         </div>
       </div>
@@ -1290,22 +1392,22 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
       <div class="card-title">Mark Malam Attendance</div>
       <div style="font-size:0.72rem;color:var(--muted);margin-bottom:12px">
         Marking for: <b style="color:var(--text)" id="malamAttLabel">—</b>
-        <span style="margin-left:10px;font-size:0.68rem;color:var(--muted)">(change date/session in the 🗓 Attendance tab)</span>
+        <span style="margin-left:10px;font-size:0.68rem;color:var(--muted)">(change date/session in the <svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> Attendance tab)</span>
       </div>
 
       <div class="att-grid" id="malamAttGrid"></div>
 
       <!-- Single note for the session -->
       <div style="margin-top:14px">
-        <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.08em">📝 Session Notes</label>
+        <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.08em"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg> Session Notes</label>
         <textarea id="malamSessionNote" placeholder="e.g. Malam Abdullahi absent — communicated via WhatsApp. Malam Umar arrived late due to family reason." style="min-height:72px;font-size:16px;line-height:1.6"></textarea>
       </div>
 
       <div class="row" style="margin-top:10px">
-        <button class="btn btn-green btn-sm" onclick="saveMalamAtt()">💾 Save</button>
-        <button class="btn btn-ghost btn-sm" onclick="malamMarkAll(true)">✓ All Present</button>
-        <button class="btn btn-ghost btn-sm" onclick="malamMarkAll(false)">✗ All Absent</button>
-        <span id="malamSavedMsg" style="font-size:0.68rem;color:var(--green);display:none">✓ Saved</span>
+        <button class="btn btn-green btn-sm" onclick="saveMalamAtt()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg> Save</button>
+        <button class="btn btn-ghost btn-sm" onclick="malamMarkAll(true)"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> All Present</button>
+        <button class="btn btn-ghost btn-sm" onclick="malamMarkAll(false)"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg> All Absent</button>
+        <span id="malamSavedMsg" style="font-size:0.68rem;color:var(--green);display:none"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> Saved</span>
       </div>
     </div>
 
@@ -1315,11 +1417,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
   <div class="panel" id="panel-reports" style="display:none">
 
     <div class="card" style="margin-bottom:10px;padding:12px 14px">
-      <div class="card-title">📊 Daily Attendance Report</div>
+      <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg> Daily Attendance Report</div>
       <div style="font-size:0.72rem;color:var(--muted);margin-bottom:10px">Generate a branded report card with attendance, malam table, and notes. Share to WhatsApp as an image.</div>
 
       <div class="card-title collapsible" style="font-size:0.62rem;margin-bottom:0" onclick="toggleCollapse(this)">
-        <span>📅 Hijri Date (auto or correct manually)</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> Hijri Date (auto or correct manually)</span>
         <span class="chevron">▾</span>
       </div>
       <div class="collapse-body">
@@ -1353,9 +1455,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
       </div>
       <div id="reportDateLabel3" style="font-size:0.7rem;color:var(--muted);margin:8px 0"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-gold" onclick="generateReport()">🖼 Generate Report Card</button>
+        <button class="btn btn-gold" onclick="generateReport()"><svg class="ic" aria-hidden="true"><use href="#i-image"/></svg> Generate Report Card</button>
         <button id="shareReportBtn" class="btn btn-ghost btn-sm" style="display:none" onclick="shareReportWhatsApp()">
-          📤 Share
+          <svg class="ic" aria-hidden="true"><use href="#i-share"/></svg> Share
         </button>
       </div>
       <div style="margin-top:10px;text-align:center">
@@ -1364,7 +1466,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
     </div>
 
     <div class="card" style="padding:12px 14px">
-      <div class="card-title">📅 Monthly Reports</div>
+      <div class="card-title"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> Monthly Reports</div>
       <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
         <div class="fi" style="flex:2">
           <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.08em">Month</label>
@@ -1383,15 +1485,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-gold btn-sm" onclick="generateMonthlyReport()">📊 Malam Report</button>
-        <button class="btn btn-green btn-sm" onclick="generateStudentMonthlyPDF()">📋 Student PDF</button>
+        <button class="btn btn-gold btn-sm" onclick="generateMonthlyReport()"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg> Malam Report</button>
+        <button class="btn btn-green btn-sm" onclick="generateStudentMonthlyPDF()"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg> Student PDF</button>
       </div>
       <div style="margin-top:12px;text-align:center">
         <canvas id="monthlyCanvas" style="max-width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.1)"></canvas>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;display:none" id="monthlyActions">
-        <button class="btn btn-ghost btn-sm" onclick="dlMonthly()">💾 Download</button>
-        <button class="btn btn-ghost btn-sm" id="shareMonthlyBtn" onclick="shareMonthlyWA()">📤 Share</button>
+        <button class="btn btn-ghost btn-sm" onclick="dlMonthly()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg> Download</button>
+        <button class="btn btn-ghost btn-sm" id="shareMonthlyBtn" onclick="shareMonthlyWA()"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg> Share</button>
       </div>
     </div>
 
@@ -1401,7 +1503,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
   <div class="panel" id="panel-history" style="display:none">
     <div class="row" style="margin-bottom:14px">
       <button class="btn btn-ghost btn-sm" onclick="exportHistory()">⬇ Export CSV</button>
-      <button class="btn btn-red btn-sm" onclick="clearHistory()">🗑 Clear History</button>
+      <button class="btn btn-red btn-sm" onclick="clearHistory()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Clear History</button>
       <input type="text" id="histSearch" placeholder="Filter…" style="max-width:180px;font-size:16px" oninput="renderHistory()"/>
     </div>
     <div id="histWrap"></div>
@@ -1572,7 +1674,7 @@ function archiveStudent(id) {
   renderStudentTable();
   renderSidebar();
   updateHeader();
-  toast(`✓ ${name} archived`, 'g');
+  toast(`${name} archived`, 'g');
   fetch('/.netlify/functions/api?action=students/archive', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -1581,7 +1683,7 @@ function archiveStudent(id) {
     if (!r.ok) throw new Error('Save failed');
   }).catch(e => {
     console.error('archive save failed', e);
-    toast(`⚠️ ${name} may not have saved — check your connection and try again`, 'r');
+    toast(`${name} may not have saved — check your connection and try again`, 'r');
   });
 }
 
@@ -1597,7 +1699,7 @@ function unarchiveStudent(id) {
   renderStudentTable();
   renderSidebar();
   updateHeader();
-  toast(`✓ ${s.name || id} restored`, 'g');
+  toast(`${s.name || id} restored`, 'g');
   fetch('/.netlify/functions/api?action=students/archive', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -1606,7 +1708,7 @@ function unarchiveStudent(id) {
     if (!r.ok) throw new Error('Save failed');
   }).catch(e => {
     console.error('unarchive save failed', e);
-    toast(`⚠️ ${s.name || id} may not have saved — check your connection and try again`, 'r');
+    toast(`${s.name || id} may not have saved — check your connection and try again`, 'r');
   });
 }
 
@@ -1643,8 +1745,8 @@ function renderStudentTable() {
       <td><span class="type-badge type-${s.type}">${s.type}</span></td>
       <td>
         <div style="display:flex;gap:4px;flex-wrap:wrap">
-          <button class="btn btn-sm" style="background:#dbeafe;border:1.5px solid #3b82f6;color:#1d4ed8;padding:4px 6px;min-width:0" onclick="openEditStudent('${s.id}')" title="Edit">✏️</button>
-          <button class="btn btn-sm" style="background:#fef3c7;border:1.5px solid #f59e0b;color:#92400e;padding:4px 6px;min-width:0" onclick="archiveStudent('${s.id}')" title="Archive">📦</button>
+          <button class="btn btn-sm" style="background:#dbeafe;border:1.5px solid #3b82f6;color:#1d4ed8;padding:4px 6px;min-width:0" onclick="openEditStudent('${s.id}')" title="Edit">${ic('pencil')}</button>
+          <button class="btn btn-sm" style="background:#fef3c7;border:1.5px solid #f59e0b;color:#92400e;padding:4px 6px;min-width:0" onclick="archiveStudent('${s.id}')" title="Archive">${ic('archive')}</button>
         </div>
       </td>
     </tr>`).join('') + '</tbody></table>';
@@ -1653,7 +1755,7 @@ function renderStudentTable() {
   // Archived notice — tell user to click header badge
   if (archived.length) {
     html += `<div style="margin-top:16px;padding:12px 16px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;font-size:0.82rem;color:#92400e">
-      📦 <b>${archived.length} archived students</b> — tap <b>Archived: ${archived.length}</b> in the header to view, restore or delete them.
+      ${ic('archive')} <b>${archived.length} archived students</b> — tap <b>Archived: ${archived.length}</b> in the header to view, restore or delete them.
     </div>`;
   }
 
@@ -1751,14 +1853,14 @@ function showImportPreview(rows, errors) {
         <td><span style="color:${typeColor[r.type]||'var(--muted)'}">${r.type}</span></td>
         <td>${r.drawNum||'—'}</td>
         <td style="font-size:0.65rem">${r.isDuplicate
-          ? '<span style="color:var(--muted)">⚠ duplicate — skip</span>'
-          : '<span style="color:var(--green)">✓ new</span>'}</td>
+          ? '<span style="color:var(--muted)">' + ic('alert') + ' duplicate — skip</span>'
+          : '<span style="color:var(--green)">' + ic('check') + ' new</span>'}</td>
       </tr>`).join('')}
     </tbody>
   </table>`;
 
   if (errors.length) {
-    table.innerHTML += `<div style="margin-top:8px;font-size:0.68rem;color:var(--gold)">${errors.map(e=>`⚠ ${e}`).join('<br>')}</div>`;
+    table.innerHTML += `<div style="margin-top:8px;font-size:0.68rem;color:var(--gold)">${errors.map(e=>`${ic('alert')} ${e}`).join('<br>')}</div>`;
   }
 
   preview.style.display = 'block';
@@ -1776,7 +1878,7 @@ function confirmImport() {
   save();
   cancelImport();
   renderAll();
-  toast(`✓ Imported ${newStudents.length} students`, 'g');
+  toast(`Imported ${newStudents.length} students`, 'g');
 }
 
 function cancelImport() {
@@ -1916,10 +2018,10 @@ function updateDrawProgress() {
 // ══════════════════════════════════════════════
 
 const DUTY_CONFIG = {
-  masjid:   { label: 'Masjid Cleaning', icon: '🕌', genderFilter: null },
-  bowls:    { label: 'Bowl Washing',    icon: '🍽', genderFilter: null },
-  washroom: { label: 'Washroom',        icon: '🚿', genderFilter: null },
-  prayer:   { label: 'Prayer Leader',  icon: '📖' },
+  masjid:   { label: 'Masjid Cleaning', icon: 'mosque', genderFilter: null },
+  bowls:    { label: 'Bowl Washing',    icon: 'bowl', genderFilter: null },
+  washroom: { label: 'Washroom',        icon: 'droplet', genderFilter: null },
+  prayer:   { label: 'Prayer Leader',  icon: 'book' },
 };
 
 let activeDutyTab = 'masjid';
@@ -1965,9 +2067,9 @@ function renderDutyTab(dutyKey) {
   if (!list) return;
 
   if (!allMembers.length) {
-    list.innerHTML = `<div class="warn">⚠️ No students assigned to this duty group yet. Go to 👥 Students → Duty Group Assignment.</div>`;
+    list.innerHTML = `<div class="warn">${ic('alert')} No students assigned to this duty group yet. Go to ${ic('users')} Students → Duty Group Assignment.</div>`;
   } else if (!allElig.length) {
-    list.innerHTML = `<div class="warn">⚠️ No assigned students are present today. Mark attendance first.</div>`;
+    list.innerHTML = `<div class="warn">${ic('alert')} No assigned students are present today. Mark attendance first.</div>`;
   } else {
     list.innerHTML = [...inPool, ...done].map(id => {
       const s = findStu(id);
@@ -2034,15 +2136,15 @@ function pickDuty(dutyKey) {
 
   recordDutyHistory(dutyKey, chosen, stu?.name||chosen);
   renderDutyTab(dutyKey);
-  toast(`${DUTY_CONFIG[dutyKey].icon} ${stu?.name||chosen} — ${DUTY_CONFIG[dutyKey].label}`, 'g');
+  toast(`${stu?.name||chosen} — ${DUTY_CONFIG[dutyKey].label}`, 'g');
 }
 
 // ── Group assignment UI ──
 const GROUP_LABELS = {
-  masjid:   '🕌 Masjid Cleaning',
-  bowls:    '🍽 Bowl Washing',
-  washroom: '🚿 Washroom Cleaning',
-  prayer:   '📖 Prayer Leader',
+  masjid:   ic('mosque') + ' Masjid Cleaning',
+  bowls:    ic('bowl') + ' Bowl Washing',
+  washroom: ic('droplet') + ' Washroom Cleaning',
+  prayer:   ic('book') + ' Prayer Leader',
 };
 
 function toggleStudentGroup(studentId, groupKey, checked) {
@@ -2132,7 +2234,7 @@ function goToday() {
 function updateAttHeader() {
   const d = attDate || todayStr();
   const titleEl = document.getElementById('attDateTitle');
-  if (titleEl) titleEl.textContent = fmtDate(d) + ' · ' + (attSession==='morning'?'🌅 Morning':'🌆 Evening');
+  if (titleEl) titleEl.innerHTML = fmtDate(d) + ' · ' + (attSession==='morning'?ic('sunrise') + ' Morning':ic('sunset') + ' Evening');
 }
 
 function loadDraft() {
@@ -2162,7 +2264,7 @@ function renderAttGrid() {
   grid.innerHTML = active.map(s => {
     const p = attDraft[s.id];
     return `<div class="att-card ${p?'att-present':''}" onclick="toggleAttStu('${s.id}')">
-      <div class="att-cb">${p?'✓':''}</div>
+      <div class="att-cb">${p?ic('check'):''}</div>
       <div class="att-info">
         <div class="att-id ${p?'green':''}">${s.id}</div>
         ${s.name?`<div class="att-nm">${s.name}</div>`:''}
@@ -2238,7 +2340,7 @@ function renderWeekStrip() {
     return `<div class="${cls}" onclick="selectDay('${ds}')">
       <div class="day-name">${DAY_SHORT[i]}</div>
       <div class="day-num">${d.getDate()}</div>
-      <div class="day-sess">${[hasM?'🌅':'',hasE?'🌆':''].filter(Boolean).join(' ')}</div>
+      <div class="day-sess">${[hasM?ic('sunrise'):'',hasE?ic('sunset'):''].filter(Boolean).join(' ')}</div>
     </div>`;
   }).join('');
   const f=parseDt(dates[0]),l=parseDt(dates[4]);
@@ -2264,17 +2366,17 @@ function renderRecViewer(ds) {
     const absent = S.students.filter(s=>!r.present.includes(s.id)).map(s=>s.id);
     html += `<div style="margin-bottom:14px">
       <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:7px">
-        ${sess==='morning'?'🌅 Morning':'🌆 Evening'} · ${r.present.length}/${S.students.length} present
+        ${sess==='morning'?ic('sunrise') + ' Morning':ic('sunset') + ' Evening'} · ${r.present.length}/${S.students.length} present
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
         ${r.present.map(id=>`<span style="font-size:0.7rem;padding:2px 8px;border-radius:4px;background:rgba(76,175,130,0.1);border:1px solid rgba(76,175,130,0.3);color:var(--green)">${id}</span>`).join('')||'<span style="color:var(--muted);font-size:0.7rem">None</span>'}
       </div>
       ${absent.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px">${absent.map(id=>`<span style="font-size:0.7rem;padding:2px 8px;border-radius:4px;background:rgba(224,80,80,0.08);border:1px solid rgba(224,80,80,0.2);color:var(--red)">${id}</span>`).join('')}</div>`:''}
-      ${r.note?`<div style="font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:4px">📝 ${r.note}</div>`:''}
+      ${r.note?`<div style="font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:4px">${ic('note')} ${r.note}</div>`:''}
     </div>`;
   });
   html += `<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">
-    <button class="btn btn-ghost btn-sm" onclick="editRecord('${ds}')">✏️ Edit</button>
+    <button class="btn btn-ghost btn-sm" onclick="editRecord('${ds}')">${ic('pencil')} Edit</button>
     <button class="btn btn-ghost btn-sm" onclick="loadRecToSidebar('${ds}','morning')">→ Morning to sidebar</button>
     <button class="btn btn-ghost btn-sm" onclick="loadRecToSidebar('${ds}','evening')">→ Evening to sidebar</button>
   </div>`;
@@ -2316,7 +2418,7 @@ function renderHistory() {
     const dt = new Date(h.ts).toLocaleDateString()+' '+new Date(h.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     const badge = h.type==='draw'
       ? `<span class="mode-badge mb-draw">Draw #${h.num}</span>`
-      : `<span class="mode-badge mb-clean">🧹 Cleaning</span>`;
+      : `<span class="mode-badge mb-clean">${ic('brush')} Cleaning</span>`;
     const who = h.type==='draw'
       ? (h.name ? `${h.name} <span style="color:var(--muted)">(#${h.id||'?'})</span>` : `Number ${h.num} — unassigned`)
       : (h.name || h.id);
@@ -2809,7 +2911,6 @@ function shareReportWhatsApp() {
           navigator.share({
             files: [file],
             title: 'Attendance Report',
-            text: buildWhatsAppText(),
           }).catch(() => fallbackShareWA());
         } else {
           fallbackShareWA();
@@ -2821,71 +2922,10 @@ function shareReportWhatsApp() {
 }
 
 function fallbackShareWA() {
-  // On desktop: download image + open WhatsApp with text
+  // image only — no text message is generated
   downloadReport();
-  const text = encodeURIComponent(buildWhatsAppText());
-  setTimeout(() => {
-    window.open(`https://wa.me/?text=${text}`, '_blank');
-  }, 600);
 }
 
-function buildWhatsAppText() {
-  const d = attDate || todayStr();
-  const morning = S.attendance[d]?.morning;
-  const evening = S.attendance[d]?.evening;
-  const total    = S.students.length;
-  const active   = S.students.filter(s => !s.archived).length;
-  const inactive = total - active;
-
-  let text = `🕌 *Daily Attendance Report*\n`;
-  text += `━━━━━━━━━━━━━━━━━━\n`;
-
-  // Students summary
-  text += `👥 *Students*\n`;
-  text += `Total: ${total} | Active: ${active} | Inactive: ${inactive}\n\n`;
-
-  // Morning
-  if (morning) {
-    const pres = morning.present.length;
-    const abs  = active - pres;
-    text += `🌅 *Morning*\n`;
-    text += `✅ Present: ${pres}  ❌ Absent: ${abs}\n`;
-    if (morning.note) text += `📝 ${morning.note}\n`;
-    text += `\n`;
-  }
-
-  // Evening
-  if (evening) {
-    const pres = evening.present.length;
-    const abs  = active - pres;
-    text += `🌆 *Evening*\n`;
-    text += `✅ Present: ${pres}  ❌ Absent: ${abs}\n`;
-    if (evening.note) text += `📝 ${evening.note}\n`;
-    text += `\n`;
-  }
-
-  // Malams
-  const dow = parseDt(d).getDay();
-  const scheduledMalams = S.malams.filter(m => (m.days||[6,0,1,2,3]).includes(dow));
-  if (scheduledMalams.length) {
-    text += `👨‍🏫 *Malams*\n`;
-    scheduledMalams.forEach(m => {
-      const mSess = m.sessions || ['morning','evening'];
-      const mornTick = mSess.includes('morning')
-        ? (S.malamAttendance?.[d]?.morning?.present?.includes(m.id) ? '✅' : '❌') : '—';
-      const evenTick = mSess.includes('evening')
-        ? (S.malamAttendance?.[d]?.evening?.present?.includes(m.id) ? '✅' : '❌') : '—';
-      text += `${m.name}: 🌅${mornTick} 🌆${evenTick}\n`;
-    });
-    // Malam notes
-    const mn = S.malamAttendance?.[d];
-    if (mn?.morning?.note) text += `📝 Morning: ${mn.morning.note}\n`;
-    if (mn?.evening?.note) text += `📝 Evening: ${mn.evening.note}\n`;
-  }
-
-  text += `\n_Bab At-Tawbah Islamic Center_`;
-  return text;
-}
 
 function downloadReport() {
   if (!reportDataURL) { toast('Generate the report first', 'r'); return; }
@@ -2991,7 +3031,7 @@ function renderMalamRoster() {
     return;
   }
   const DAY_LABELS = [{v:6,l:'Sat'},{v:0,l:'Sun'},{v:1,l:'Mon'},{v:2,l:'Tue'},{v:3,l:'Wed'}];
-  const SESS_LABELS = [{v:'morning',l:'🌅'},{v:'evening',l:'🌆'}];
+  const SESS_LABELS = [{v:'morning',l:ic('sunrise')},{v:'evening',l:ic('sunset')}];
   wrap.innerHTML = `<table class="stu-table"><thead><tr>
     <th>Name</th><th>Days</th><th>Sessions</th><th>Action</th>
   </tr></thead><tbody>` +
@@ -3017,9 +3057,9 @@ function renderMalamRoster() {
       <td><div style="display:flex;gap:2px;flex-wrap:wrap">${sessPills}</div></td>
       <td style="white-space:nowrap">
         <button class="btn btn-sm" style="font-size:0.6rem;padding:4px 6px;${inactive?'background:#dcfce7;border-color:#86efac;color:#15803d':'background:#fef3c7;border-color:#f59e0b;color:#92400e'}" onclick="toggleMalamActive('${m.id}')" title="${inactive?'Activate':'Leave'}">
-          ${inactive ? '✓' : '⏸'}
+          ${inactive ? ic('check') : ic('pause')}
         </button>
-        <button class="btn btn-red btn-sm" style="padding:4px 6px" onclick="removeMalam('${m.id}')" title="Delete">✕</button>
+        <button class="btn btn-red btn-sm" style="padding:4px 6px" onclick="removeMalam('${m.id}')" title="Delete">${ic('x')}</button>
       </td>
     </tr>`;
   }).join('') + '</tbody></table>';
@@ -3056,10 +3096,10 @@ function buildMalamGrid(scheduledMalams) {
     const absReason = reasons[m.id] || '';
     const reasonSelect = !p ? `<select onchange="setMalamAbsenceReason('${m.id}','${d}','${attSession}',this.value)" style="font-size:16px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:#fff;margin-top:4px;width:100%" onclick="event.stopPropagation()">
       <option value="">Reason...</option>
-      ${['📱 Communicated','🤒 Sick','🚨 Emergency','❓ No Reason','📝 Other'].map(r=>`<option value="${r}" ${absReason===r?'selected':''}>${r}</option>`).join('')}
+      ${['Communicated','Sick','Emergency','No Reason','Other'].map(r=>`<option value="${r}" ${stripEmo(absReason)===r?'selected':''}>${r}</option>`).join('')}
     </select>` : '';
     return `<div class="att-card ${p?'att-present':''}" onclick="toggleMalamAtt('${m.id}')">
-      <div class="att-cb">${p?'✓':''}</div>
+      <div class="att-cb">${p?ic('check'):''}</div>
       <div class="att-info" style="flex:1">
         <div class="att-id ${p?'green':''}">${m.name}</div>
         ${m.role?`<div class="att-nm">${m.role}</div>`:''}
@@ -3074,7 +3114,7 @@ function renderMalamAttGrid() {
   const lbl  = document.getElementById('malamAttLabel');
   if (!grid) return;
   const d = attDate || todayStr();
-  if (lbl) lbl.textContent = `${fmtDate(d)} · ${attSession==='morning'?'🌅 Morning':'🌆 Evening'}`;
+  if (lbl) lbl.innerHTML = `${fmtDate(d)} · ${attSession==='morning'?ic('sunrise') + ' Morning':ic('sunset') + ' Evening'}`;
   if (!S.malams.length) {
     grid.innerHTML = '<div style="color:var(--muted);font-size:0.74rem;padding:12px">No malams added yet.</div>';
     return;
@@ -3252,7 +3292,7 @@ function shareMonthlyWA() {
     });
   } else dlMonthly();
 }
-function dlMonthly() { downloadMonthlyReport(); const m=parseInt(document.getElementById('monthlyMonth').value); const y=parseInt(document.getElementById('monthlyYear').value); const mn=['January','February','March','April','May','June','July','August','September','October','November','December'][m]; setTimeout(()=>window.open(`https://wa.me/?text=${encodeURIComponent('📅 *Monthly Staff Attendance Report*\n'+mn+' '+y+'\n\nFairPick · fairpick.netlify.app')}`, '_blank'),600); }
+function dlMonthly() { downloadMonthlyReport(); }
 function downloadMonthlyReport() {
   if (!monthlyDataURL) { toast('Generate first','r'); return; }
   const m=parseInt(document.getElementById('monthlyMonth').value);
@@ -3300,7 +3340,7 @@ function drawMalamTable(ctx, W, startY, d) {
     // Morning column
     if (mSessions.includes('morning')) {
       const mp=morning?.present?.includes(m.id);
-      ctx.fillStyle=mp?'#1a7a3a':'#cc3333'; ctx.fillText(mp?'✓':'✗',mornX,y+26);
+      ctx.fillStyle=mp?'#1a7a3a':'#cc3333'; ctx.fillText(mp?ic('check'):ic('x'),mornX,y+26);
     } else {
       ctx.fillStyle='#cccccc'; ctx.font='16px monospace'; ctx.fillText('—',mornX,y+26);
     }
@@ -3308,7 +3348,7 @@ function drawMalamTable(ctx, W, startY, d) {
     ctx.font='bold 20px monospace';
     if (mSessions.includes('evening')) {
       const ep=evening?.present?.includes(m.id);
-      ctx.fillStyle=ep?'#1a7a3a':'#cc3333'; ctx.fillText(ep?'✓':'✗',evenX,y+26);
+      ctx.fillStyle=ep?'#1a7a3a':'#cc3333'; ctx.fillText(ep?ic('check'):ic('x'),evenX,y+26);
     } else {
       ctx.fillStyle='#cccccc'; ctx.font='16px monospace'; ctx.fillText('—',evenX,y+26);
     }
@@ -3319,8 +3359,8 @@ function drawMalamTable(ctx, W, startY, d) {
 
   // ── Session notes (morning then evening) ──
   const notes = [];
-  if (morning?.note) notes.push({ label: '🌅 Morning', text: morning.note });
-  if (evening?.note) notes.push({ label: '🌆 Evening', text: evening.note });
+  if (morning?.note) notes.push({ label: ic('sunrise') + ' Morning', text: morning.note });
+  if (evening?.note) notes.push({ label: ic('sunset') + ' Evening', text: evening.note });
 
   if (notes.length) {
     // Note box background
@@ -3356,6 +3396,7 @@ function drawMalamTable(ctx, W, startY, d) {
 }
 
 function switchTab(name) {
+  closeMenu();
   // Map old names to new panel IDs
   const panelMap = {
     'home':       'home',
@@ -3390,7 +3431,7 @@ function switchTab(name) {
   if (panel) { panel.classList.add('active'); panel.style.display = 'block'; }
 
   // Update bottom nav highlight
-  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.dr-item').forEach(b => b.classList.remove('active'));
   const navBtn = document.getElementById('bnav-' + navId);
   if (navBtn) navBtn.classList.add('active');
 
@@ -3411,7 +3452,7 @@ function switchTab(name) {
   if (name === 'draw') { renderPool(); updateDrawProgress(); }
   if (name === 'home') updateHomeDashboard();
   if (name === 'reports' || name === 'malams') { const m=document.getElementById('monthlyMonth'); const y=document.getElementById('monthlyYear'); if(m) m.value=new Date().getMonth(); if(y) y.value=new Date().getFullYear(); }
-  if (name === 'track') { document.getElementById('bnav-home')?.classList.add('active'); trkOpen(); }
+  if (name === 'track') { trkOpen(); }
   if (name === 'scan') { updateScanSessionLabel(); if (!scanStream) startScanner(); }
   else { stopScanner(); } // stop camera whenever navigating away from Scan tab
 }
@@ -3454,7 +3495,7 @@ function showStudentModal(mode) {
         <span class="msname">${s.name||'—'}</span>
         <span class="type-badge type-${s.type}" style="font-size:0.7rem;padding:2px 7px">${s.type}</span>
         <button class="btn btn-ghost btn-sm" style="font-size:0.72rem;border-color:#1a4a2e;color:#1a4a2e" onclick="animateRowThenRun(this,()=>{unarchiveStudent('${s.id}');showStudentModal('archived');})">↩ Restore</button>
-        <button class="btn btn-red btn-sm" style="font-size:0.72rem" onclick="animateRowThenRun(this,()=>removeStudentFromModal('${s.id}'))">🗑 Del</button>
+        <button class="btn btn-red btn-sm" style="font-size:0.72rem" onclick="animateRowThenRun(this,()=>removeStudentFromModal('${s.id}'))">${ic('trash')} Del</button>
       </div>`).join('') : '<p style="color:var(--muted);text-align:center;padding:20px">No archived students.</p>';
   }
   modal.classList.add('open');
@@ -3488,8 +3529,10 @@ function toggleCollapse(headerEl) {
 
 function toast(msg, type='') {
   const el=document.getElementById('toast');
-  el.textContent=msg; el.className='show '+type;
-  clearTimeout(toastT); toastT=setTimeout(()=>{el.className='';},3000);
+  el.innerHTML = ic(type==='r' ? 'alert' : type==='g' ? 'check' : 'info') + '<span class="tmsg"></span>';
+  el.querySelector('.tmsg').textContent = msg;
+  el.className='show '+type;
+  clearTimeout(toastT); toastT=setTimeout(()=>{el.className='';}, type==='r' ? 5500 : 3000);
   // Haptic feedback where supported (mostly Android Chrome)
   if (navigator.vibrate) {
     if (type==='r') navigator.vibrate([30,40,30]); // error: double buzz
@@ -3626,12 +3669,12 @@ async function runMigration() {
 
     localStorage.setItem(MIGRATED_KEY, '1');
     document.getElementById('migBanner').style.display = 'none';
-    toast(`✓ Migrated ${students.length} students to database!`, 'g');
+    toast(`Migrated ${students.length} students to database!`, 'g');
     S = await loadState();
     renderAll();
 
   } catch(e) {
-    btn.textContent = '⬆ Retry migration';
+    btn.textContent = 'Retry migration';
     btn.disabled = false;
     info.textContent = 'Error: ' + e.message;
     toast('Migration failed: ' + e.message, 'r');
@@ -3711,7 +3754,7 @@ async function saveEditStudent() {
   renderAttGrid();
   updateHomeDashboard();
   closeEditStudentModal();
-  toast(`✓ ${newName} updated`, 'g');
+  toast(`${newName} updated`, 'g');
 
   // Save to database
   try {
@@ -3741,7 +3784,7 @@ async function cancelSession(reason) {
 }
 
 async function cancelSessionCustom() {
-  const reason = document.getElementById('cancelOtherReason').value.trim() || '📝 Other';
+  const reason = document.getElementById('cancelOtherReason').value.trim() || 'Other';
   await cancelSession(reason);
 }
 
@@ -3767,7 +3810,7 @@ function updateCancelledBanner() {
   if (!banner) return;
   if (reason) {
     banner.style.display = 'flex';
-    bannerText.textContent = `🚫 Session cancelled — ${reason}`;
+    bannerText.innerHTML = ic('ban') + ' Session cancelled — ' + escHtml(stripEmo(reason));
   } else {
     banner.style.display = 'none';
   }
@@ -3776,7 +3819,7 @@ function updateCancelledBanner() {
 // ══════════════════════════════════════════════
 //  MALAM ABSENCE REASONS
 // ══════════════════════════════════════════════
-const ABSENCE_REASONS = ['📱 Communicated', '🤒 Sick', '🚨 Emergency', '❓ No Reason', '📝 Other'];
+const ABSENCE_REASONS = ['Communicated', 'Sick', 'Emergency', 'No Reason', 'Other'];
 
 function getMalamAbsenceReason(malamId, date, session) {
   return S.malamAttendance?.[date]?.[session]?.absenceReasons?.[malamId] || '';
@@ -3921,7 +3964,7 @@ async function generateStudentMonthlyPDF() {
     <div class="cover-stat"><div class="cover-stat-num">${students.length}</div><div class="cover-stat-label">Total Students</div></div>
     <div class="cover-stat"><div class="cover-stat-num">${activeDaysMorn.length}</div><div class="cover-stat-label">Morning Days</div></div>
     <div class="cover-stat"><div class="cover-stat-num">${activeDaysEven.length}</div><div class="cover-stat-label">Evening Days</div></div>
-    <div class="cover-stat"><div class="cover-stat-num">${stats.filter(s=>s.pct>=80).length}</div><div class="cover-stat-label">🟢 ≥80%</div></div>
+    <div class="cover-stat"><div class="cover-stat-num">${stats.filter(s=>s.pct>=80).length}</div><div class="cover-stat-label"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#16a34a;margin-right:5px"></span>≥80%</div></div>
   </div>
   <div class="cover-meta">Generated on ${new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
 </div>
@@ -3949,7 +3992,8 @@ async function generateStudentMonthlyPDF() {
       ${stats.map((s,i) => {
         const pctClass = s.pct >= 80 ? 'pct-green' : s.pct >= 60 ? 'pct-yellow' : 'pct-red';
         const badge = s.pct >= 80 ? 'badge-green' : s.pct >= 60 ? 'badge-yellow' : 'badge-red';
-        const grade = s.pct >= 80 ? '🟢 Good' : s.pct >= 60 ? '🟡 Fair' : '🔴 Poor';
+        const _dot = c => `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin-right:5px"></span>`;
+  const grade = s.pct >= 80 ? _dot('#16a34a') + 'Good' : s.pct >= 60 ? _dot('#eab308') + 'Fair' : _dot('#dc2626') + 'Poor';
         return `<tr>
           <td class="rank">${i+1}</td>
           <td style="font-weight:700;color:#b45309">${s.id}</td>
@@ -4037,7 +4081,7 @@ function updateHomeDashboard() {
   const today = todayStr();
   const todayDuties = (S.history||[]).filter(h=>h.type==='duty'&&h.ts&&h.ts.startsWith(today));
   setEl('homeDutySummary', todayDuties.length
-    ? todayDuties.map(h=>`${DUTY_CONFIG[h.duty]?.icon||'🧹'} <b>${h.name}</b> — ${h.dutyLabel}`).join('<br>')
+    ? todayDuties.map(h=>`${ic(DUTY_CONFIG[h.duty]?.icon||'brush')} <b>${h.name}</b> — ${h.dutyLabel}`).join('<br>')
     : '<span style="color:var(--muted)">No duties picked yet today.</span>');
 }
 
@@ -4052,6 +4096,9 @@ const TRK = {
 };
 try { TRK.malam = localStorage.getItem('trk_malam') || ''; } catch(e) {}
 
+function ic(n, c) { return '<svg class="ic' + (c ? ' ' + c : '') + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>'; }
+function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function stripEmo(s) { return String(s == null ? '' : s).replace(/(?:\u{1F468}\u200D\u{1F3EB}|[\u{1F000}-\u{1FAFF}\u2600-\u27BF\u2B50\u2B06\u23F8\u2705\u274C\u2728])\uFE0F?\s*/gu, '').trim(); }
 const TRK_MARKS = /[ً-ٰٟۖ-ۭـ]/g;
 function trkNorm(s) {
   return String(s || '').replace(TRK_MARKS, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -4186,7 +4233,7 @@ function trkRenderStudent() {
   const curLesson = trkStartLesson(s.id);
   const L = trkLesson(TRK.lesson);
 
-  let h = `<button class="tk-back" onclick="trkBack()">← All students</button>
+  let h = `<button class="tk-back" onclick="trkBack()">${ic('arrow-left')} All students</button>
     <div class="tk-title">${trkEsc(s.name)}</div>
     <div class="tk-sub">#${trkEsc(s.id)} · ${Object.keys(dn).length}/17 lessons done</div>
     <div class="tk-strip">${BOOK.lessons.map(x => `<button class="${dn[x.num] ? 'done' : ''} ${x.num === curLesson ? 'cur' : ''} ${x.num === TRK.lesson ? 'sel' : ''}" tabindex="-1" style="pointer-events:none">${x.num}</button>`).join('')}</div>`;
@@ -4209,9 +4256,9 @@ function trkRenderStudent() {
   h += `<input id="trkQ" class="tk-search ar" placeholder="ابحث عن كلمة في هذا الدرس…" value="${trkEsc(TRK.q)}" oninput="TRK.q=this.value;trkRenderStudent()" autocomplete="off"/>
     <div class="tk-allrow"><label><input type="checkbox" ${TRK.all ? 'checked' : ''} onchange="TRK.all=this.checked;trkRenderStudent()"/> Search all 17 lessons</label></div>
     <div class="tk-seg">
-      <button class="${TRK.mode === 'stop' ? 'on' : ''}" onclick="TRK.mode='stop';trkRenderStudent()">📍 Read up to</button>
-      <button class="${TRK.mode === 'help' ? 'on bad' : ''}" onclick="TRK.mode='help';trkRenderStudent()">⚠ Needs help${TRK.helps.size ? ' (' + TRK.helps.size + ')' : ''}</button>
-      <button class="${TRK.mode === 'rep' ? 'on rep' : ''}" onclick="TRK.mode='rep';trkRenderStudent()">↻ Repeat${TRK.reps.size ? ' (' + TRK.reps.size + ')' : ''}</button></div>
+      <button class="${TRK.mode === 'stop' ? 'on' : ''}" onclick="TRK.mode='stop';trkRenderStudent()">${ic('pin')} Read up to</button>
+      <button class="${TRK.mode === 'help' ? 'on bad' : ''}" onclick="TRK.mode='help';trkRenderStudent()">${ic('alert')} Needs help${TRK.helps.size ? ' (' + TRK.helps.size + ')' : ''}</button>
+      <button class="${TRK.mode === 'rep' ? 'on rep' : ''}" onclick="TRK.mode='rep';trkRenderStudent()">${ic('repeat')} Repeat${TRK.reps.size ? ' (' + TRK.reps.size + ')' : ''}</button></div>
     <div class="tk-hint">${{ stop: 'Tap the word where he stopped. Everything before it counts as read.', help: 'Tap each word he struggled with. Tap again to undo.', rep: 'Tap each word to go over again. Tap again to undo.' }[TRK.mode]}</div>`;
 
   // items
@@ -4244,7 +4291,7 @@ function trkRenderStudent() {
         <div class="tk-items">${items.map(it => cell(it, false)).join('')}</div>`;
     });
   }
-  if (Object.keys(prev).length) h += `<div class="tk-legend"><span class="dot help"></span> needed help before &nbsp; <span class="dot rep"></span> to repeat &nbsp; 📍 where he stopped last time</div>`;
+  if (Object.keys(prev).length) h += `<div class="tk-legend"><span class="dot help"></span> needed help before &nbsp; <span class="dot rep"></span> to repeat &nbsp; ${ic('pin')} where he stopped last time</div>`;
 
   // history, grouped by day
   h += `<div class="tk-eyebrow">History</div><div class="tk-hist">`;
@@ -4253,12 +4300,12 @@ function trkRenderStudent() {
   TRK.hist.slice(0, 40).forEach(r => {
     if (r.date !== lastDate) { lastDate = r.date; h += `<div class="tk-day">${trkEsc(r.date)}</div>`; }
     const it = TRK_ITEMS[r.stop_item];
-    h += `<div class="h"><div><b>L${r.lesson}</b> ${r.session === 'morning' ? '🌅' : r.session === 'evening' ? '🌆' : ''}${r.malam_id ? ' ' + trkEsc(trkMalamName(r.malam_id) || r.malam_id) : ''}<br>
+    h += `<div class="h"><div><b>L${r.lesson}</b> ${r.session === 'morning' ? ic('sunrise') : r.session === 'evening' ? ic('sunset') : ''}${r.malam_id ? ' ' + trkEsc(trkMalamName(r.malam_id) || r.malam_id) : ''}<br>
       ${it ? `Read up to <span class="tk-ar">${trkEsc(trkShow(it.t))}</span> <small>(item ${it.n})</small>` : 'No stopping point'}
       ${(r.mistakes || []).length ? `<br><span class="tk-pill help">Needs help</span> ${trkWords(r.mistakes)}` : ''}
       ${(r.repeats || []).length ? `<br><span class="tk-pill repeat">Repeat</span> ${trkWords(r.repeats)}` : ''}
       ${r.note ? `<br><i>${trkEsc(r.note)}</i>` : ''}</div>
-      <button class="x" title="Delete this entry" onclick="trkDel(${r.id})">✕</button></div>`;
+      <button class="x" title="Delete this entry" onclick="trkDel(${r.id})">${ic('x')}</button></div>`;
   });
   h += `</div>`;
 
@@ -4266,17 +4313,17 @@ function trkRenderStudent() {
   const doneHere = !!dn[TRK.lesson];
   const pending = (TRK.stop ? 1 : 0) + TRK.helps.size + TRK.reps.size;
   h += `<button class="tk-tab ${trkDirty() ? 'dirty' : ''}" onclick="TRK.card=!TRK.card;trkRenderStudent()" aria-label="Save panel">
-      ${pending ? `<span class="n">${pending}</span>` : ''}<span class="t">${TRK.card ? 'HIDE ▸' : 'SAVE'}</span></button>
+      ${pending ? `<span class="n">${pending}</span>` : ic('save')}<span class="t">${TRK.card ? 'HIDE' : 'SAVE'}</span></button>
     <div class="tk-save ${TRK.card ? 'open' : ''}">
-      <div class="top"><b>Record this recitation</b><button onclick="TRK.card=false;trkRenderStudent()" aria-label="Collapse">▾ Hide</button></div>
+      <div class="top"><b>Record this recitation</b><button onclick="TRK.card=false;trkRenderStudent()" aria-label="Collapse">${ic('chevron-down')} Hide</button></div>
       <div class="sel">${stopItem
         ? `Read up to <span class="tk-ar" style="font-size:1.2rem;color:var(--fg-green)">${trkEsc(trkShow(stopItem.t))}</span> <small>(lesson ${stopItem.lesson}, item ${stopItem.n})</small>`
-        : '<span style="color:#b91c1c">Not set yet — tap “📍 Read up to”, then the word where he stopped.</span>'}
+        : '<span style="color:#b91c1c">Not set yet — choose “Read up to”, then tap the word where he stopped.</span>'}
         ${TRK.helps.size ? `<br><span class="tk-pill help">Needs help</span> ${trkWords([...TRK.helps])}` : ''}
         ${TRK.reps.size ? `<br><span class="tk-pill repeat">Repeat</span> ${trkWords([...TRK.reps])}` : ''}</div>
       <input class="tk-note" id="trkNote" placeholder="Note for the next malam (optional)" value="${trkEsc(TRK.note)}" oninput="TRK.note=this.value" maxlength="300"/>
       <div style="display:flex;gap:8px"><button class="btn btn-green" style="flex:1" id="trkSaveBtn" onclick="trkSave()">${TRK.saving ? 'Saving…' : 'Save'}</button>
-        <button class="btn btn-ghost" onclick="trkToggleDone()">${doneHere ? '↺ Reopen L' + TRK.lesson : '✓ Lesson ' + TRK.lesson + ' complete'}</button></div></div>`;
+        <button class="btn btn-ghost" onclick="trkToggleDone()">${doneHere ? ic('repeat') + ' Reopen L' + TRK.lesson : ic('check') + ' Lesson ' + TRK.lesson + ' complete'}</button></div></div>`;
 
   el.innerHTML = h;
   if (focusQ) { const i = document.getElementById('trkQ'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
@@ -4301,7 +4348,7 @@ function trkTap(id) {
 async function trkSave() {
   if (TRK.saving) return;
   const id = TRK.stu, item = TRK.stop ? TRK_ITEMS[TRK.stop] : null;
-  if (!item) { TRK.card = true; trkRenderStudent(); toast('Tap “📍 Read up to”, then the word where he stopped', 'r'); return; }
+  if (!item) { TRK.card = true; trkRenderStudent(); toast('Choose “Read up to”, then tap the word where he stopped', 'r'); return; }
   if (!TRK.malam && (S.malams || []).some(m => !m.inactive)) { TRK.card = false; trkRenderStudent(); toast('Choose which malam heard the student (“Heard by”)', 'r'); return; }
   TRK.saving = true; trkRenderStudent();
   const result = TRK.helps.size ? 'help' : TRK.reps.size ? 'repeat' : 'good';
@@ -4314,7 +4361,7 @@ async function trkSave() {
       stop_item: body.stopItem, stop_n: body.stopN, mistakes: body.mistakes, repeats: body.repeats, result, note: body.note, created_at: r.createdAt || new Date().toISOString() };
     TRK.latest[id] = row; TRK.recent.unshift(row); TRK.hist.unshift(row);
     trkReset();
-    toast('Saved ✓ ' + trkStuName(id), 'g');
+    toast('Saved — ' + trkStuName(id), 'g');
     // re-read from the server so the history on screen is exactly what is stored
     trkFetchHist(id).then(log => { if (TRK.stu === id) { TRK.hist = log; trkRenderStudent(); } }).catch(() => {});
   } catch (e) { console.error(e); toast('NOT saved — check the connection and tap Save again', 'r'); }
@@ -4328,7 +4375,7 @@ async function trkToggleDone() {
     await api('progress/lesson', { studentId: id, lesson: n, done: !was, malamId: TRK.malam, date: todayStr() });
     TRK.done[id] = TRK.done[id] || {};
     if (was) delete TRK.done[id][n]; else TRK.done[id][n] = { student_id: id, lesson: n, malam_id: TRK.malam, done_on: todayStr() };
-    toast(was ? `Lesson ${n} reopened` : `Lesson ${n} marked complete ✓`, 'g');
+    toast(was ? `Lesson ${n} reopened` : `Lesson ${n} marked complete`, 'g');
     if (!was && n < 17) { TRK.lesson = n + 1; TRK.q = ''; window.scrollTo(0, 0); }
   } catch (e) { toast('Could not update. Try again.', 'r'); }
   trkRenderStudent();
@@ -4420,7 +4467,7 @@ function getAutoSession() {
 function updateScanSessionLabel() {
   const sess = getAutoSession();
   const el = document.getElementById('scanSessionLabel');
-  if (el) el.textContent = sess === 'morning' ? '🌅 Marking Morning Attendance' : '🌆 Marking Evening Attendance';
+  if (el) el.innerHTML = sess === 'morning' ? ic('sunrise') + ' Marking Morning Attendance' : ic('sunset') + ' Marking Evening Attendance';
 }
 
 async function toggleScanner() {
@@ -4464,7 +4511,7 @@ async function startScanner() {
     placeholder.style.display = 'none';
     frame.style.display = 'block';
     await video.play();
-    btn.textContent = '⏸ Stop Scanning';
+    btn.textContent = ic('pause') + ' Stop Scanning';
     btn.classList.remove('btn-gold');
     btn.classList.add('btn-red');
     document.getElementById('scanResult').style.display = 'none';
@@ -4575,9 +4622,9 @@ function showScanSuccess(student, session, already) {
   err.style.display = 'none';
   box.style.display = 'block';
   document.getElementById('scanResultName').textContent = student.name || student.id;
-  document.getElementById('scanResultDetail').textContent = already
+  document.getElementById('scanResultDetail').innerHTML = already
     ? `Already checked in — ${session === 'morning' ? 'Morning' : 'Evening'}`
-    : `Checked in — ${session === 'morning' ? '🌅 Morning' : '🌆 Evening'}`;
+    : `Checked in — ${session === 'morning' ? ic('sunrise') + ' Morning' : ic('sunset') + ' Evening'}`;
 
   if (!already) {
     scanRecent.unshift({ id: student.id, name: student.name || student.id, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), session });
@@ -4593,7 +4640,7 @@ function showScanError(msg) {
   const err = document.getElementById('scanErrorBox');
   box.style.display = 'none';
   err.style.display = 'block';
-  err.textContent = '⚠️ ' + msg;
+  err.innerHTML = ic('alert') + ' ' + escHtml(msg);
   setTimeout(() => { err.style.display = 'none'; }, 3000);
 }
 
@@ -4605,7 +4652,7 @@ function renderScanRecent() {
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
       <div>
         <div style="font-weight:600;color:var(--text);font-size:0.82rem">${r.name}</div>
-        <div style="font-size:0.68rem;color:var(--muted)">${r.id} · ${r.session === 'morning' ? '🌅' : '🌆'}</div>
+        <div style="font-size:0.68rem;color:var(--muted)">${r.id} · ${r.session === 'morning' ? ic('sunrise') : ic('sunset')}</div>
       </div>
       <div style="font-size:0.72rem;color:var(--muted)">${r.time}</div>
     </div>`).join('');
@@ -4676,7 +4723,7 @@ function printQRCards() {
   .qr-card-school-en { font-size:1.8mm; color:rgba(255,255,255,0.85); letter-spacing:0.1em; font-weight:700; }
   .qr-card-body { display:flex; align-items:center; gap:3.5mm; flex:1; padding:3mm 4mm; background:#ffffff; position:relative; overflow:hidden; }
   .qr-card-body::after {
-    content:'☾'; position:absolute; right:-4mm; bottom:-6mm; font-size:32mm;
+    content:''; width:30mm; height:30mm; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8960c' stroke-width='1.2'%3E%3Cpath d='M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z'/%3E%3C/svg%3E") no-repeat center/contain; position:absolute; right:-4mm; bottom:-6mm;
     color:#1a4a2e; opacity:0.05; line-height:1; pointer-events:none; z-index:0;
     font-family:'Lato',sans-serif;
   }
@@ -4702,7 +4749,7 @@ function printQRCards() {
 </style>
 </head>
 <body>
-<button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
 <div class="cards-grid">
 ${cardsHTML}
 </div>
@@ -4793,8 +4840,8 @@ if (localStorage.getItem(PIN_SESSION_KEY) === '1') {
 <div class="modal-overlay" id="editStudentModal" onclick="closeModalBg3(event)">
   <div class="modal-box" style="max-width:380px">
     <div class="modal-header">
-      <h2>✏️ Edit Student</h2>
-      <button class="modal-close" onclick="closeEditStudentModal()">✕</button>
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg> Edit Student</h2>
+      <button class="modal-close" onclick="closeEditStudentModal()"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="modal-body">
       <div style="margin-bottom:14px">
@@ -4812,7 +4859,7 @@ if (localStorage.getItem(PIN_SESSION_KEY) === '1') {
           <option value="female">Female</option>
         </select>
       </div>
-      <button class="btn btn-green" style="width:100%" onclick="saveEditStudent()">💾 Save Changes</button>
+      <button class="btn btn-green" style="width:100%" onclick="saveEditStudent()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg> Save Changes</button>
     </div>
   </div>
 </div>
@@ -4821,16 +4868,16 @@ if (localStorage.getItem(PIN_SESSION_KEY) === '1') {
 <div class="modal-overlay" id="cancelModal" onclick="closeModalBg2(event)">
   <div class="modal-box" style="max-width:380px">
     <div class="modal-header">
-      <h2>🚫 Cancel Session</h2>
-      <button class="modal-close" onclick="closeCancelModal()">✕</button>
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-ban"/></svg> Cancel Session</h2>
+      <button class="modal-close" onclick="closeCancelModal()"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="modal-body">
       <p style="font-size:0.82rem;color:var(--muted);margin-bottom:16px">Select the reason this session did not take place. It will be excluded from all monthly attendance calculations.</p>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('🎉 Holiday')">🎉 Holiday</button>
-        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('🌧 Rain')">🌧 Rain</button>
-        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('⚡ No Electricity')">⚡ No Electricity</button>
-        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('📝 Other')">📝 Other</button>
+        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('Holiday')"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg> Holiday</button>
+        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('Rain')"><svg class="ic" aria-hidden="true"><use href="#i-rain"/></svg> Rain</button>
+        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('No Electricity')"><svg class="ic" aria-hidden="true"><use href="#i-zap"/></svg> No Electricity</button>
+        <button class="btn btn-ghost" style="justify-content:flex-start;font-size:0.84rem" onclick="cancelSession('Other')"><svg class="ic" aria-hidden="true"><use href="#i-note"/></svg> Other</button>
         <input type="text" id="cancelOtherReason" placeholder="Type reason if other..." style="margin-top:4px;font-size:16px"/>
         <button class="btn btn-red" style="margin-top:4px" onclick="cancelSessionCustom()">Confirm Cancel</button>
       </div>
@@ -4843,38 +4890,35 @@ if (localStorage.getItem(PIN_SESSION_KEY) === '1') {
   <div class="modal-box">
     <div class="modal-header">
       <h2 id="modalTitle">Students</h2>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <div class="modal-body" id="modalBody"></div>
   </div>
 </div>
 
-<nav class="bottom-nav" id="bottomNav">
-  <button class="bnav-item active" id="bnav-home" onclick="switchTab('home')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    <span>Home</span>
-  </button>
-  <button class="bnav-item" id="bnav-attend" onclick="switchTab('attend')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>
-    <span>Attendance</span>
-  </button>
-  <button class="bnav-item" id="bnav-clean" onclick="switchTab('clean')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-    <span>Duties</span>
-  </button>
-  <button class="bnav-item" id="bnav-reports" onclick="switchTab('reports')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-    <span>Reports</span>
-  </button>
-  <button class="bnav-item" id="bnav-manage" onclick="switchTab('manage')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
-    <span>Manage</span>
-  </button>
-  <button class="bnav-item" id="bnav-scan" onclick="switchTab('scan')">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
-    <span>Scan</span>
-  </button>
-</nav>
+<div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+<aside class="menu-drawer" id="menuDrawer" aria-hidden="true">
+  <div class="dr-head">
+    <button class="dr-close" onclick="closeMenu()" aria-label="Close menu"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+    <div class="ar">مركز باب التوبة الإسلامي</div>
+    <div class="en">Bab At-Tawbah Islamic Center</div>
+  </div>
+  <div class="dr-list">
+    <button class="dr-item active" id="bnav-home" onclick="switchTab('home')"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Home</span></button>
+    <button class="dr-item" id="bnav-attend" onclick="switchTab('attend')"><svg class="ic" aria-hidden="true"><use href="#i-attend"/></svg><span>Attendance</span></button>
+    <button class="dr-item" id="bnav-scan" onclick="switchTab('scan')"><svg class="ic" aria-hidden="true"><use href="#i-scan"/></svg><span>Scan check-in</span></button>
+    <button class="dr-item" id="bnav-track" onclick="switchTab('track')"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg><span>Book tracking</span></button>
+    <button class="dr-item" id="bnav-clean" onclick="switchTab('clean')"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg><span>Duties</span></button>
+    <button class="dr-item" id="bnav-reports" onclick="switchTab('reports')"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span>Reports</span></button>
+    <button class="dr-item" id="bnav-manage" onclick="switchTab('manage')"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span>Manage</span></button>
+  </div>
+</aside>
+<script>
+function openMenu() { document.getElementById('menuOverlay').classList.add('open'); const d = document.getElementById('menuDrawer'); d.classList.add('open'); d.setAttribute('aria-hidden', 'false'); }
+function closeMenu() { const o = document.getElementById('menuOverlay'); if (!o) return; o.classList.remove('open'); const d = document.getElementById('menuDrawer'); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+</script>
+
 
 </body>
 </html>
