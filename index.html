@@ -617,20 +617,33 @@ input:focus,select:focus,textarea:focus{border-color:var(--fg-green) !important;
 .tk-it.pin::before{content:'📍';position:absolute;top:-9px;right:-5px;font-size:.8rem;direction:ltr}
 .tk-it .lt{position:absolute;bottom:-1px;left:3px;font:800 .5rem 'Manrope',sans-serif;color:var(--fg-muted);direction:ltr}
 .tk-empty{padding:18px;text-align:center;color:var(--fg-muted);font-size:.82rem}
-.tk-save{position:sticky;bottom:78px;z-index:6;margin-top:14px;padding:12px;border-radius:20px;background:rgba(255,255,255,.97);border:1px solid var(--fg-line);box-shadow:0 8px 28px rgba(0,0,0,.14)}
-.tk-save .sel{font-size:.78rem;margin-bottom:8px;color:var(--fg-ink);min-height:1.2em}
-.tk-save .sel .ar{font-size:1.2rem;color:var(--fg-green)}
-.tk-res{display:flex;gap:6px;margin-bottom:8px}
-.tk-res button{flex:1;padding:9px 4px;border-radius:12px;border:1.5px solid var(--fg-line);background:#fff;font:800 .76rem 'Manrope',sans-serif;color:var(--fg-muted);cursor:pointer}
-.tk-res button.on.good{border-color:#15803d;background:#dcfce7;color:#166534}
-.tk-res button.on.repeat{border-color:#d97706;background:#fef3c7;color:#92400e}
-.tk-res button.on.help{border-color:#dc2626;background:#fee2e2;color:#b91c1c}
 .tk-note{width:100%;padding:9px 11px;border:1.5px solid var(--fg-line);border-radius:12px;font:500 .82rem 'Manrope',sans-serif;margin-bottom:8px}
 .tk-hist{display:flex;flex-direction:column;gap:6px}
 .tk-hist .h{display:flex;gap:8px;align-items:flex-start;padding:9px 11px;border:1px solid var(--fg-line);border-radius:14px;background:#fff;font-size:.78rem;line-height:1.5}
 .tk-hist .h .x{margin-left:auto;background:none;border:0;color:#b91c1c;font-size:1rem;cursor:pointer;padding:0 4px}
 .tk-pill{display:inline-block;padding:1px 8px;border-radius:99px;font:800 .66rem 'Manrope',sans-serif}
 .tk-pill.good{background:#dcfce7;color:#166534}.tk-pill.repeat{background:#fef3c7;color:#92400e}.tk-pill.help{background:#fee2e2;color:#b91c1c}
+.tk-seg button.on.rep{border-color:#d97706;background:#fef3c7;color:#92400e}
+.tk-hint{font-size:.72rem;color:var(--fg-muted);margin:0 2px 8px}
+.tk-it.rp{background:#fef3c7;border-color:#d97706;color:#92400e}
+.tk-it.pv-help::after,.tk-it.pv-rep::after{content:'';position:absolute;top:-4px;left:-4px;width:11px;height:11px;border-radius:50%;border:2px solid #fff}
+.tk-it.pv-help::after{background:#dc2626}.tk-it.pv-rep::after{background:#d97706}
+.tk-legend{font-size:.7rem;color:var(--fg-muted);margin:12px 2px 0}
+.tk-legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px}
+.tk-legend .dot.help{background:#dc2626}.tk-legend .dot.rep{background:#d97706}
+.tk-day{font:800 .68rem 'Manrope',sans-serif;letter-spacing:.08em;color:var(--fg-gold-dark);margin:10px 2px 2px}
+.tk-hist .h small,.tk-last small{opacity:.7}
+.tk-hist .h .tk-pill,.tk-last .tk-pill{margin-right:4px}
+/* collapsible save card + edge tab */
+.tk-tab{position:fixed;right:0;bottom:190px;z-index:40;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 5px;border:0;border-radius:12px 0 0 12px;opacity:.94;background:#6b7a70;color:#fff;box-shadow:-3px 4px 14px rgba(0,0,0,.25);cursor:pointer}
+.tk-tab.dirty{background:var(--fg-gold-dark)}
+.tk-tab .t{writing-mode:vertical-rl;font:800 .64rem 'Manrope',sans-serif;letter-spacing:.14em}
+.tk-tab .n{min-width:18px;height:18px;border-radius:99px;background:#fff;color:var(--fg-gold-dark);font:800 .66rem/18px 'Manrope',sans-serif;text-align:center}
+.tk-save{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:39;width:calc(100% - 52px);max-width:480px;padding:12px;border-radius:20px;background:#fff;border:1px solid var(--fg-line);box-shadow:0 10px 34px rgba(0,0,0,.28)}
+.tk-save.open{display:block}
+.tk-save .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font:800 .8rem 'Manrope',sans-serif;color:var(--fg-ink)}
+.tk-save .top button{background:#eef2ef;border:0;border-radius:10px;padding:6px 10px;font:700 .74rem 'Manrope',sans-serif;color:var(--fg-green);cursor:pointer}
+.tk-save .sel{font-size:.8rem;margin-bottom:10px;color:var(--fg-ink);line-height:1.7}
 </style>
 </head>
 <body>
@@ -4030,11 +4043,12 @@ function updateHomeDashboard() {
 
 // ══════════════════════════════════════════════
 //  BOOK TRACKING (At-Tadreeb)
+//  One saved entry = "read up to THIS word" + the words that need help + the words to repeat.
 // ══════════════════════════════════════════════
 const TRK = {
-  malam: '', stu: null, lesson: 1, q: '', all: false, mode: 'stop',
-  stop: null, mist: new Set(), result: 'good', note: '',
-  latest: {}, done: {}, recent: [], hist: [], loaded: false, failed: false, sq: ''
+  malam: '', stu: null, lesson: 1, q: '', all: false, mode: 'stop', card: false,
+  stop: null, helps: new Set(), reps: new Set(), note: '',
+  latest: {}, done: {}, recent: [], hist: [], loaded: false, failed: false, sq: '', saving: false
 };
 try { TRK.malam = localStorage.getItem('trk_malam') || ''; } catch(e) {}
 
@@ -4059,15 +4073,27 @@ function trkAgo(ts) {
 }
 function trkMalamName(id) { const m = (S.malams || []).find(x => x.id === id); return m ? m.name : ''; }
 function trkStuName(id) { const s = findStu(id); return s ? s.name : id; }
+function trkDirty() { return !!(TRK.stop || TRK.helps.size || TRK.reps.size || TRK.note.trim()); }
+function trkReset() { TRK.mode = 'stop'; TRK.stop = null; TRK.helps = new Set(); TRK.reps = new Set(); TRK.note = ''; TRK.card = false; }
+// word list with item numbers, e.g.  بُسِطَ (29)، أُسِرَ (30)
+function trkWords(ids) {
+  return (ids || []).map(id => TRK_ITEMS[id]).filter(Boolean).sort((a, b) => a.lesson - b.lesson || a.n - b.n)
+    .map(it => `<span class="tk-ar">${trkEsc(trkShow(it.t))}</span> <small>(${it.lesson === TRK.lesson ? '' : 'L' + it.lesson + ' · '}${it.n})</small>`).join('، ');
+}
+const trkNoCache = () => '&_=' + Date.now();
 
 async function trkLoad() {
   try {
-    const d = await api('progress/load');
+    const d = await api('progress/load' + trkNoCache());
     TRK.latest = {}; (d.latest || []).forEach(r => TRK.latest[r.student_id] = r);
     TRK.done = {}; (d.done || []).forEach(r => { (TRK.done[r.student_id] = TRK.done[r.student_id] || {})[r.lesson] = r; });
     TRK.recent = d.recent || [];
     TRK.loaded = true; TRK.failed = false;
   } catch (e) { console.error('trkLoad', e); TRK.failed = true; }
+}
+async function trkFetchHist(id) {
+  const d = await api('progress/student&id=' + encodeURIComponent(id) + trkNoCache());
+  return d.log || [];
 }
 
 async function trkOpen() {
@@ -4110,8 +4136,10 @@ function trkRenderSearch() {
     html += `<div class="tk-eyebrow">Latest entries</div><div class="tk-feed">`;
     TRK.recent.slice(0, 8).forEach(r => {
       const it = TRK_ITEMS[r.stop_item];
+      const nh = (r.mistakes || []).length, nr = (r.repeats || []).length;
       html += `<div class="row"><b>${trkEsc(trkStuName(r.student_id))}</b> L${r.lesson}${it ? ` · <span class="tk-ar">${trkEsc(trkShow(it.t))}</span>` : ''}
-        <span class="tk-pill ${r.result}">${TRK_RES[r.result] || r.result}</span><span class="when">${trkAgo(r.created_at)}</span></div>`;
+        ${nh ? `<span class="tk-pill help">${nh} need help</span>` : ''}${nr ? `<span class="tk-pill repeat">${nr} repeat</span>` : ''}${!nh && !nr ? '<span class="tk-pill good">Good</span>' : ''}
+        <span class="when">${trkAgo(r.created_at)}</span></div>`;
     });
     html += `</div>`;
   }
@@ -4120,11 +4148,11 @@ function trkRenderSearch() {
 }
 
 async function trkPick(id) {
-  TRK.stu = id; TRK.q = ''; TRK.all = false; TRK.mode = 'stop';
-  TRK.stop = null; TRK.mist = new Set(); TRK.result = 'good'; TRK.note = ''; TRK.hist = [];
+  trkReset();
+  TRK.stu = id; TRK.q = ''; TRK.all = false; TRK.mode = 'stop'; TRK.hist = [];
   TRK.lesson = trkStartLesson(id);
   trkRender(); window.scrollTo(0, 0);
-  try { const d = await api('progress/student&id=' + encodeURIComponent(id)); TRK.hist = d.log || []; } catch (e) {}
+  try { TRK.hist = await trkFetchHist(id); } catch (e) { console.error('history', e); }
   if (TRK.stu === id) trkRenderStudent();
 }
 function trkStartLesson(id) {
@@ -4133,12 +4161,26 @@ function trkStartLesson(id) {
   while (dn[n] && n < 17) n++;
   return n;
 }
-function trkBack() { TRK.stu = null; TRK.q = ''; trkRender(); trkLoad().then(() => { if (!TRK.stu) trkRender(); }); }
+function trkBack() {
+  if (trkDirty() && !confirm('You have not saved this recitation yet.\n\nLeave without saving?')) return;
+  trkReset(); TRK.stu = null; TRK.q = '';
+  trkRender(); trkLoad().then(() => { if (!TRK.stu) trkRender(); });
+}
+
+// flags from earlier days for the open lesson (most recent entry wins), shown as small dots
+function trkPrevFlags(lesson) {
+  const m = {};
+  TRK.hist.forEach(r => {
+    (r.mistakes || []).forEach(id => { if (!(id in m) && TRK_ITEMS[id] && TRK_ITEMS[id].lesson === lesson) m[id] = 'help'; });
+    (r.repeats || []).forEach(id => { if (!(id in m) && TRK_ITEMS[id] && TRK_ITEMS[id].lesson === lesson) m[id] = 'rep'; });
+  });
+  return m;
+}
 
 // ── 2. the student's page ──
 function trkRenderStudent() {
   const el = document.getElementById('trk-student-view');
-  const s = findStu(TRK.stu); if (!s) { trkBack(); return; }
+  const s = findStu(TRK.stu); if (!s) { TRK.stu = null; trkRender(); return; }
   const focusQ = document.activeElement && document.activeElement.id === 'trkQ';
   const last = TRK.latest[s.id], dn = TRK.done[s.id] || {};
   const curLesson = trkStartLesson(s.id);
@@ -4151,9 +4193,10 @@ function trkRenderStudent() {
 
   if (last) {
     const it = TRK_ITEMS[last.stop_item];
-    h += `<div class="tk-last"><b>Last time:</b> Lesson ${last.lesson}${it ? ` · stopped at <span class="tk-ar" style="font-size:1.25rem">${trkEsc(trkShow(it.t))}</span> (item ${it.n} of ${trkLesson(it.lesson).items.length})` : ''}
-      · <span class="tk-pill ${last.result}">${TRK_RES[last.result] || last.result}</span><br>
-      ${trkAgo(last.created_at)}${last.malam_id ? ' · heard by ' + trkEsc(trkMalamName(last.malam_id) || last.malam_id) : ''}${last.note ? '<br>“' + trkEsc(last.note) + '”' : ''}</div>`;
+    h += `<div class="tk-last"><b>Last time (${trkAgo(last.created_at)}):</b> Lesson ${last.lesson}${it ? ` · read up to <span class="tk-ar" style="font-size:1.25rem">${trkEsc(trkShow(it.t))}</span> <small>(item ${it.n} of ${trkLesson(it.lesson).items.length})</small>` : ''}
+      ${(last.mistakes || []).length ? `<br><span class="tk-pill help">Needs help</span> ${trkWords(last.mistakes)}` : ''}
+      ${(last.repeats || []).length ? `<br><span class="tk-pill repeat">Repeat</span> ${trkWords(last.repeats)}` : ''}
+      ${last.malam_id ? '<br>Heard by ' + trkEsc(trkMalamName(last.malam_id) || last.malam_id) : ''}${last.note ? '<br>“' + trkEsc(last.note) + '”' : ''}</div>`;
   } else h += `<div class="tk-last">No recitation recorded yet for this student.</div>`;
 
   const malams = (S.malams || []).filter(m => !m.inactive);
@@ -4165,11 +4208,15 @@ function trkRenderStudent() {
 
   h += `<input id="trkQ" class="tk-search ar" placeholder="ابحث عن كلمة في هذا الدرس…" value="${trkEsc(TRK.q)}" oninput="TRK.q=this.value;trkRenderStudent()" autocomplete="off"/>
     <div class="tk-allrow"><label><input type="checkbox" ${TRK.all ? 'checked' : ''} onchange="TRK.all=this.checked;trkRenderStudent()"/> Search all 17 lessons</label></div>
-    <div class="tk-seg"><button class="${TRK.mode === 'stop' ? 'on' : ''}" onclick="TRK.mode='stop';trkRenderStudent()">📍 Where they stopped</button>
-      <button class="${TRK.mode === 'bad' ? 'on bad' : ''}" onclick="TRK.mode='bad';trkRenderStudent()">✗ Mark mistakes${TRK.mist.size ? ' (' + TRK.mist.size + ')' : ''}</button></div>`;
+    <div class="tk-seg">
+      <button class="${TRK.mode === 'stop' ? 'on' : ''}" onclick="TRK.mode='stop';trkRenderStudent()">📍 Read up to</button>
+      <button class="${TRK.mode === 'help' ? 'on bad' : ''}" onclick="TRK.mode='help';trkRenderStudent()">⚠ Needs help${TRK.helps.size ? ' (' + TRK.helps.size + ')' : ''}</button>
+      <button class="${TRK.mode === 'rep' ? 'on rep' : ''}" onclick="TRK.mode='rep';trkRenderStudent()">↻ Repeat${TRK.reps.size ? ' (' + TRK.reps.size + ')' : ''}</button></div>
+    <div class="tk-hint">${{ stop: 'Tap the word where he stopped. Everything before it counts as read.', help: 'Tap each word he struggled with. Tap again to undo.', rep: 'Tap each word to go over again. Tap again to undo.' }[TRK.mode]}</div>`;
 
   // items
   const q = trkNorm(TRK.q);
+  const prev = trkPrevFlags(TRK.lesson);
   const pinN = last && last.lesson === TRK.lesson && TRK_ITEMS[last.stop_item] ? TRK_ITEMS[last.stop_item].n : 0;
   const stopItem = TRK.stop ? TRK_ITEMS[TRK.stop] : null;
   const stopN = stopItem && stopItem.lesson === TRK.lesson ? stopItem.n : 0;
@@ -4180,7 +4227,8 @@ function trkRenderStudent() {
       if (stopItem && it.id === stopItem.id) cls.push('stop');
       if (pinN && it.n === pinN && !(stopItem && it.id === stopItem.id)) cls.push('pin');
     }
-    if (TRK.mist.has(it.id)) cls.push('bad');
+    if (TRK.helps.has(it.id)) cls.push('bad'); else if (TRK.reps.has(it.id)) cls.push('rp');
+    else if (prev[it.id]) cls.push(prev[it.id] === 'help' ? 'pv-help' : 'pv-rep');
     return `<button class="${cls.join(' ')}" onclick="trkTap('${it.id}')">${trkEsc(trkShow(it.t))}${showLesson ? `<span class="lt">L${it.lesson}</span>` : ''}</button>`;
   };
   if (q) {
@@ -4196,29 +4244,39 @@ function trkRenderStudent() {
         <div class="tk-items">${items.map(it => cell(it, false)).join('')}</div>`;
     });
   }
+  if (Object.keys(prev).length) h += `<div class="tk-legend"><span class="dot help"></span> needed help before &nbsp; <span class="dot rep"></span> to repeat &nbsp; 📍 where he stopped last time</div>`;
 
-  // save bar
-  const doneHere = !!dn[TRK.lesson];
-  h += `<div class="tk-save"><div class="sel">${stopItem
-      ? `Stopped at <span class="ar tk-ar">${trkEsc(trkShow(stopItem.t))}</span> · lesson ${stopItem.lesson}, item ${stopItem.n}${TRK.mist.size ? ' · ' + TRK.mist.size + ' mistake' + (TRK.mist.size > 1 ? 's' : '') : ''}`
-      : '<span style="color:var(--fg-muted)">Tap the word where the student stopped.</span>'}</div>
-    <div class="tk-res">${['good', 'repeat', 'help'].map(r => `<button class="${r} ${TRK.result === r ? 'on' : ''}" onclick="TRK.result='${r}';trkRenderStudent()">${TRK_RES[r]}</button>`).join('')}</div>
-    <input class="tk-note" id="trkNote" placeholder="Note for the next malam (optional)" value="${trkEsc(TRK.note)}" oninput="TRK.note=this.value" maxlength="300"/>
-    <div style="display:flex;gap:8px"><button class="btn btn-green" style="flex:1" id="trkSaveBtn" onclick="trkSave()">Save</button>
-      <button class="btn btn-ghost" onclick="trkToggleDone()">${doneHere ? '↺ Reopen L' + TRK.lesson : '✓ Lesson ' + TRK.lesson + ' complete'}</button></div></div>`;
-
-  // history
+  // history, grouped by day
   h += `<div class="tk-eyebrow">History</div><div class="tk-hist">`;
-  if (!TRK.hist.length) h += `<div class="tk-empty">Nothing yet.</div>`;
-  TRK.hist.slice(0, 15).forEach(r => {
+  if (!TRK.hist.length) h += `<div class="tk-empty">Nothing saved yet. Tap <b>SAVE</b> on the right edge after a recitation.</div>`;
+  let lastDate = '';
+  TRK.hist.slice(0, 40).forEach(r => {
+    if (r.date !== lastDate) { lastDate = r.date; h += `<div class="tk-day">${trkEsc(r.date)}</div>`; }
     const it = TRK_ITEMS[r.stop_item];
-    const mw = (r.mistakes || []).map(id => TRK_ITEMS[id] ? trkShow(TRK_ITEMS[id].t) : '').filter(Boolean);
-    h += `<div class="h"><div><b>L${r.lesson}</b>${it ? ` · <span class="tk-ar">${trkEsc(trkShow(it.t))}</span>` : ''} <span class="tk-pill ${r.result}">${TRK_RES[r.result] || r.result}</span><br>
-      <span style="color:var(--fg-muted);font-size:.7rem">${trkEsc(r.date)} ${r.session === 'morning' ? '🌅' : r.session === 'evening' ? '🌆' : ''}${r.malam_id ? ' · ' + trkEsc(trkMalamName(r.malam_id) || r.malam_id) : ''}</span>
-      ${mw.length ? `<br><span style="color:#b91c1c">Mistakes:</span> <span class="tk-ar">${trkEsc(mw.join('، '))}</span>` : ''}${r.note ? `<br><i>${trkEsc(r.note)}</i>` : ''}</div>
+    h += `<div class="h"><div><b>L${r.lesson}</b> ${r.session === 'morning' ? '🌅' : r.session === 'evening' ? '🌆' : ''}${r.malam_id ? ' ' + trkEsc(trkMalamName(r.malam_id) || r.malam_id) : ''}<br>
+      ${it ? `Read up to <span class="tk-ar">${trkEsc(trkShow(it.t))}</span> <small>(item ${it.n})</small>` : 'No stopping point'}
+      ${(r.mistakes || []).length ? `<br><span class="tk-pill help">Needs help</span> ${trkWords(r.mistakes)}` : ''}
+      ${(r.repeats || []).length ? `<br><span class="tk-pill repeat">Repeat</span> ${trkWords(r.repeats)}` : ''}
+      ${r.note ? `<br><i>${trkEsc(r.note)}</i>` : ''}</div>
       <button class="x" title="Delete this entry" onclick="trkDel(${r.id})">✕</button></div>`;
   });
   h += `</div>`;
+
+  // collapsible save card + the tab on the right edge that opens it
+  const doneHere = !!dn[TRK.lesson];
+  const pending = (TRK.stop ? 1 : 0) + TRK.helps.size + TRK.reps.size;
+  h += `<button class="tk-tab ${trkDirty() ? 'dirty' : ''}" onclick="TRK.card=!TRK.card;trkRenderStudent()" aria-label="Save panel">
+      ${pending ? `<span class="n">${pending}</span>` : ''}<span class="t">${TRK.card ? 'HIDE ▸' : 'SAVE'}</span></button>
+    <div class="tk-save ${TRK.card ? 'open' : ''}">
+      <div class="top"><b>Record this recitation</b><button onclick="TRK.card=false;trkRenderStudent()" aria-label="Collapse">▾ Hide</button></div>
+      <div class="sel">${stopItem
+        ? `Read up to <span class="tk-ar" style="font-size:1.2rem;color:var(--fg-green)">${trkEsc(trkShow(stopItem.t))}</span> <small>(lesson ${stopItem.lesson}, item ${stopItem.n})</small>`
+        : '<span style="color:#b91c1c">Not set yet — tap “📍 Read up to”, then the word where he stopped.</span>'}
+        ${TRK.helps.size ? `<br><span class="tk-pill help">Needs help</span> ${trkWords([...TRK.helps])}` : ''}
+        ${TRK.reps.size ? `<br><span class="tk-pill repeat">Repeat</span> ${trkWords([...TRK.reps])}` : ''}</div>
+      <input class="tk-note" id="trkNote" placeholder="Note for the next malam (optional)" value="${trkEsc(TRK.note)}" oninput="TRK.note=this.value" maxlength="300"/>
+      <div style="display:flex;gap:8px"><button class="btn btn-green" style="flex:1" id="trkSaveBtn" onclick="trkSave()">${TRK.saving ? 'Saving…' : 'Save'}</button>
+        <button class="btn btn-ghost" onclick="trkToggleDone()">${doneHere ? '↺ Reopen L' + TRK.lesson : '✓ Lesson ' + TRK.lesson + ' complete'}</button></div></div>`;
 
   el.innerHTML = h;
   if (focusQ) { const i = document.getElementById('trkQ'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
@@ -4228,8 +4286,10 @@ function trkLessonGo(n) { TRK.lesson = n; TRK.q = ''; trkRenderStudent(); }
 
 function trkTap(id) {
   const it = TRK_ITEMS[id]; if (!it) return;
-  if (TRK.mode === 'bad') {
-    TRK.mist.has(id) ? TRK.mist.delete(id) : TRK.mist.add(id);
+  if (TRK.mode === 'help') {
+    if (TRK.helps.has(id)) TRK.helps.delete(id); else { TRK.helps.add(id); TRK.reps.delete(id); }
+  } else if (TRK.mode === 'rep') {
+    if (TRK.reps.has(id)) TRK.reps.delete(id); else { TRK.reps.add(id); TRK.helps.delete(id); }
   } else {
     TRK.stop = id;
     if (it.lesson !== TRK.lesson) TRK.lesson = it.lesson;   // result from "all lessons" search
@@ -4239,20 +4299,26 @@ function trkTap(id) {
 }
 
 async function trkSave() {
+  if (TRK.saving) return;
   const id = TRK.stu, item = TRK.stop ? TRK_ITEMS[TRK.stop] : null;
-  if (!item) { toast('Tap the word where the student stopped', 'r'); return; }
-  if (!TRK.malam && (S.malams || []).some(m => !m.inactive)) { toast('Choose which malam heard the student', 'r'); return; }
-  const btn = document.getElementById('trkSaveBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  if (!item) { TRK.card = true; trkRenderStudent(); toast('Tap “📍 Read up to”, then the word where he stopped', 'r'); return; }
+  if (!TRK.malam && (S.malams || []).some(m => !m.inactive)) { TRK.card = false; trkRenderStudent(); toast('Choose which malam heard the student (“Heard by”)', 'r'); return; }
+  TRK.saving = true; trkRenderStudent();
+  const result = TRK.helps.size ? 'help' : TRK.reps.size ? 'repeat' : 'good';
   const body = { studentId: id, malamId: TRK.malam, date: todayStr(), session: attSession, lesson: item.lesson,
-    stopItem: item.id, stopN: item.n, mistakes: [...TRK.mist], result: TRK.result, note: TRK.note.trim() };
+    stopItem: item.id, stopN: item.n, mistakes: [...TRK.helps], repeats: [...TRK.reps], result, note: TRK.note.trim() };
   try {
     const r = await api('progress/log', body);
+    if (!r || !r.ok) throw new Error('save refused');
     const row = { id: r.id, student_id: id, malam_id: body.malamId, date: body.date, session: body.session, lesson: body.lesson,
-      stop_item: body.stopItem, stop_n: body.stopN, mistakes: body.mistakes, result: body.result, note: body.note, created_at: r.createdAt || new Date().toISOString() };
-    TRK.latest[id] = row; TRK.hist.unshift(row); TRK.recent.unshift(row);
-    TRK.stop = null; TRK.mist = new Set(); TRK.note = ''; TRK.result = 'good';
-    toast('Saved — ' + trkStuName(id), 'g');
-  } catch (e) { console.error(e); toast('Could not save. Try again.', 'r'); }
+      stop_item: body.stopItem, stop_n: body.stopN, mistakes: body.mistakes, repeats: body.repeats, result, note: body.note, created_at: r.createdAt || new Date().toISOString() };
+    TRK.latest[id] = row; TRK.recent.unshift(row); TRK.hist.unshift(row);
+    trkReset();
+    toast('Saved ✓ ' + trkStuName(id), 'g');
+    // re-read from the server so the history on screen is exactly what is stored
+    trkFetchHist(id).then(log => { if (TRK.stu === id) { TRK.hist = log; trkRenderStudent(); } }).catch(() => {});
+  } catch (e) { console.error(e); toast('NOT saved — check the connection and tap Save again', 'r'); }
+  TRK.saving = false;
   trkRenderStudent();
 }
 

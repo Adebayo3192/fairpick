@@ -1,4 +1,4 @@
-// FairPick API v2.2 - numeric sort fix + book progress tracking
+// FairPick API v2.3 - numeric sort fix + book progress tracking (per-word help/repeat marks)
 import pg from 'pg';
 const { Pool } = pg;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 5 });
@@ -42,6 +42,7 @@ async function initDB() {
         note TEXT DEFAULT '',
         created_at TIMESTAMP DEFAULT NOW()
       );
+      ALTER TABLE progress_log ADD COLUMN IF NOT EXISTS repeats TEXT[] NOT NULL DEFAULT '{}';
       CREATE INDEX IF NOT EXISTS progress_log_student_idx ON progress_log(student_id, created_at DESC);
       CREATE TABLE IF NOT EXISTS lesson_done (
         student_id TEXT NOT NULL,
@@ -356,10 +357,10 @@ export default async function handler(req) {
       const c = await pool.connect();
       try {
         const [latest, done, recent] = await Promise.all([
-          c.query(`SELECT DISTINCT ON (student_id) id,student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,result,note,created_at
+          c.query(`SELECT DISTINCT ON (student_id) id,student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,repeats,result,note,created_at
                    FROM progress_log ORDER BY student_id, created_at DESC, id DESC`).then(r=>r.rows),
           c.query('SELECT student_id,lesson,malam_id,done_on FROM lesson_done').then(r=>r.rows),
-          c.query(`SELECT id,student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,result,note,created_at
+          c.query(`SELECT id,student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,repeats,result,note,created_at
                    FROM progress_log ORDER BY created_at DESC, id DESC LIMIT 60`).then(r=>r.rows),
         ]);
         return jsonRes({ latest, done, recent });
@@ -370,22 +371,23 @@ export default async function handler(req) {
       if (!id) return jsonRes({error:'Missing id'},400);
       const c = await pool.connect();
       try {
-        const r = await c.query(`SELECT id,student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,result,note,created_at
+        const r = await c.query(`SELECT id,student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,repeats,result,note,created_at
                                  FROM progress_log WHERE student_id=$1 ORDER BY created_at DESC, id DESC LIMIT 100`,[id]);
         return jsonRes({ log: r.rows });
       } finally { c.release(); }
     }
     if (action==='progress/log' && method==='POST') {
-      const {studentId,malamId,date,session,lesson,stopItem,stopN,mistakes,result,note}=await req.json();
+      const {studentId,malamId,date,session,lesson,stopItem,stopN,mistakes,repeats,result,note}=await req.json();
       if (!studentId || !date || !lesson) return jsonRes({error:'Missing studentId, date or lesson'},400);
       const res = ['good','repeat','help'].includes(result) ? result : 'good';
-      const mist = Array.isArray(mistakes) ? mistakes.map(String).slice(0,60) : [];
+      const mist = Array.isArray(mistakes) ? mistakes.map(String).slice(0,120) : [];
+      const reps = Array.isArray(repeats) ? repeats.map(String).slice(0,120) : [];
       const c = await pool.connect();
       try {
         const r = await c.query(
-          `INSERT INTO progress_log(student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,result,note)
-           VALUES($1,$2,$3,$4,$5,$6,$7,$8::text[],$9,$10) RETURNING id,created_at`,
-          [String(studentId),malamId||'',date,session||'',parseInt(lesson),stopItem||'',parseInt(stopN)||0,mist,res,(note||'').slice(0,500)]
+          `INSERT INTO progress_log(student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,repeats,result,note)
+           VALUES($1,$2,$3,$4,$5,$6,$7,$8::text[],$9::text[],$10,$11) RETURNING id,created_at`,
+          [String(studentId),malamId||'',date,session||'',parseInt(lesson),stopItem||'',parseInt(stopN)||0,mist,reps,res,(note||'').slice(0,500)]
         );
         return jsonRes({ok:true,id:r.rows[0].id,createdAt:r.rows[0].created_at});
       } finally { c.release(); }
