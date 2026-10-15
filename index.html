@@ -719,6 +719,13 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
 
 /* collapsible sections must never clip long lists (was capped at 5000px, hiding students after ~70) */
 .collapse-body.open{max-height:60000px !important}
+
+/* ═══ STICKY FOOTER ═══ */
+body{padding-bottom:calc(46px + env(safe-area-inset-bottom)) !important}
+.app-foot{position:fixed;left:0;right:0;bottom:0;z-index:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:5px 10px calc(5px + env(safe-area-inset-bottom));background:#0f2f1d;color:rgba(255,255,255,.72);font:600 .64rem/1.35 'Manrope',sans-serif;text-align:center;letter-spacing:.01em;border-top:1px solid rgba(200,150,12,.45)}
+.app-foot a{color:#e9c46a;text-decoration:none;font-weight:700;white-space:nowrap}
+.tk-save{bottom:calc(54px + env(safe-area-inset-bottom)) !important}
+.tk-tab{bottom:calc(120px + env(safe-area-inset-bottom)) !important}
 </style>
 </head>
 <body>
@@ -5004,6 +5011,11 @@ function openMenu() { document.getElementById('menuOverlay').classList.add('open
 function closeMenu() { const o = document.getElementById('menuOverlay'); if (!o) return; o.classList.remove('open'); const d = document.getElementById('menuDrawer'); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
 </script>
+<div class="app-foot" role="contentinfo">
+  <div>&copy; <span id="ftYear">2026</span> Bab At-Tawbah Islamic Center</div>
+  <div>Developed by Ibrahim Adebayo &middot; <a href="https://wa.me/2347048129569" target="_blank" rel="noopener">+234 704 812 9569</a></div>
+</div>
+<script>try { document.getElementById('ftYear').textContent = new Date().getFullYear(); } catch (e) {}</script>
 
 
 </body>
