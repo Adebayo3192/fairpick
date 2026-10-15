@@ -4456,6 +4456,27 @@ async function trkDel(logId) {
     if (!compact && y > 90) set(true); else if (compact && y < 20) set(false);
   }, {passive:true});
 })();
+
+/* Back button: from any screen, Back goes to Home; Back from Home leaves the site.
+   Home is the base history entry; the first move away from Home adds one entry on top of it. */
+(function(){
+  const orig = switchTab;
+  let inside = false;
+  switchTab = function(name){
+    if (name === 'home') {
+      if (inside) { inside = false; try { history.back(); } catch (e) {} }
+    } else if (!inside) {
+      try { history.pushState({ inside: 1 }, ''); inside = true; } catch (e) {}
+    }
+    return orig.apply(this, arguments);
+  };
+  window.addEventListener('popstate', () => {
+    inside = false;
+    try { closeMenu(); } catch (e) {}
+    try { closeModal(); } catch (e) {}
+    orig('home');
+  });
+})();
 async function boot() {
   // Show loading indicator
   // document.body.style.opacity = '0.6'; // removed - causes dimness
