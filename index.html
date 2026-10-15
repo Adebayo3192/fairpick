@@ -660,7 +660,7 @@ input,select,textarea{font-size:16px !important}
 .panel{padding:14px 10px 32px !important}
 /* nothing may be wider than the screen */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;width:100%}
-body{width:100%;overflow-x:hidden}
+body{width:100%;overflow-x:clip}
 .panel,.panel>*{max-width:100%;min-width:0}
 input:not([type=checkbox]):not([type=radio]),select,textarea{max-width:100%;min-width:0;box-sizing:border-box}
 .tk-row select{min-width:0 !important;flex:1 1 0}
@@ -689,6 +689,11 @@ input:not([type=checkbox]):not([type=radio]),select,textarea{max-width:100%;min-
 #toast.show{transform:translate(-50%,0) !important}
 #toast svg.ic{margin-top:2px;width:1.15em;height:1.15em}
 .gdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
+
+/* ═══ STICKY HEADER: name + menu stay on screen; the count pills scroll away ═══ */
+header{position:sticky;top:0;z-index:900}
+header.compact .hbadges{display:none}
+header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
 </style>
 </head>
 <body>
@@ -3348,7 +3353,7 @@ function drawMalamTable(ctx, W, startY, d) {
     // Morning column
     if (mSessions.includes('morning')) {
       const mp=morning?.present?.includes(m.id);
-      ctx.fillStyle=mp?'#1a7a3a':'#cc3333'; ctx.fillText(mp?ic('check'):ic('x'),mornX,y+26);
+      ctx.fillStyle=mp?'#1a7a3a':'#cc3333'; ctx.fillText(mp?'✓':'✗',mornX,y+26);
     } else {
       ctx.fillStyle='#cccccc'; ctx.font='16px monospace'; ctx.fillText('—',mornX,y+26);
     }
@@ -3356,7 +3361,7 @@ function drawMalamTable(ctx, W, startY, d) {
     ctx.font='bold 20px monospace';
     if (mSessions.includes('evening')) {
       const ep=evening?.present?.includes(m.id);
-      ctx.fillStyle=ep?'#1a7a3a':'#cc3333'; ctx.fillText(ep?ic('check'):ic('x'),evenX,y+26);
+      ctx.fillStyle=ep?'#1a7a3a':'#cc3333'; ctx.fillText(ep?'✓':'✗',evenX,y+26);
     } else {
       ctx.fillStyle='#cccccc'; ctx.font='16px monospace'; ctx.fillText('—',evenX,y+26);
     }
@@ -3367,8 +3372,8 @@ function drawMalamTable(ctx, W, startY, d) {
 
   // ── Session notes (morning then evening) ──
   const notes = [];
-  if (morning?.note) notes.push({ label: ic('sunrise') + ' Morning', text: morning.note });
-  if (evening?.note) notes.push({ label: ic('sunset') + ' Evening', text: evening.note });
+  if (morning?.note) notes.push({ label: '🌅 Morning', text: morning.note });
+  if (evening?.note) notes.push({ label: '🌆 Evening', text: evening.note });
 
   if (notes.length) {
     // Note box background
@@ -4401,6 +4406,28 @@ async function trkDel(logId) {
   trkRenderStudent();
 }
 
+
+
+/* sticky header: after scrolling, the count pills fold away and only name + menu stay pinned.
+   A spacer of equal height keeps the page from jumping. */
+(function(){
+  let compact = false;
+  function set(on){
+    const h = document.querySelector('header'); if (!h || on === compact) return;
+    if (on) {
+      const before = h.offsetHeight;
+      h.classList.add('compact');
+      h.style.marginBottom = Math.max(0, before - h.offsetHeight) + 'px';
+    } else {
+      h.classList.remove('compact'); h.style.marginBottom = '';
+    }
+    compact = on;
+  }
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (!compact && y > 90) set(true); else if (compact && y < 20) set(false);
+  }, {passive:true});
+})();
 async function boot() {
   // Show loading indicator
   // document.body.style.opacity = '0.6'; // removed - causes dimness
