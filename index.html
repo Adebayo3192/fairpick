@@ -694,6 +694,32 @@ input:not([type=checkbox]):not([type=radio]),select,textarea{max-width:100%;min-
 header{position:sticky;top:0;z-index:900}
 header.compact .hbadges{display:none}
 header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
+
+/* ═══ SLIM DRAWER: a plain, small list ═══ */
+.menu-drawer{width:min(68vw,240px) !important;box-shadow:6px 0 24px rgba(0,0,0,.25) !important}
+.menu-drawer .dr-head{padding:12px 14px 10px !important;border-bottom-width:2px !important}
+.menu-drawer .dr-head .ar{font-size:1.05rem !important;line-height:1.3 !important}
+.menu-drawer .dr-head .en{font-size:.56rem !important;margin-top:1px !important}
+.menu-drawer .dr-list{padding:6px !important;gap:0 !important}
+.dr-item{padding:10px 10px !important;gap:12px !important;border-radius:8px !important;font-size:.88rem !important}
+.dr-item svg.ic{width:19px !important;height:19px !important}
+.dr-close{top:8px !important;right:8px !important;width:28px !important;height:28px !important;border-radius:9px !important}
+
+/* ═══ COMPACT STUDENT LISTS (archived / active) ═══ */
+.modal-overlay{padding:10px !important}
+.modal-box{max-width:100% !important;max-height:88vh !important;border-radius:18px !important;width:100% !important}
+.modal-header{padding:12px 14px !important}
+.modal-header h2{font-size:1.05rem !important}
+.modal-close{width:32px !important;height:32px !important}
+.modal-body{padding:8px 10px !important}
+.modal-row{gap:8px !important;padding:7px 8px !important;margin-bottom:5px !important}
+.modal-row .msid{min-width:28px !important;font-size:.8rem !important}
+.modal-row .msname{min-width:0 !important;font-size:.86rem !important;line-height:1.25 !important;overflow-wrap:anywhere}
+.modal-row .type-badge{flex-shrink:0;white-space:nowrap}
+.mic{flex:0 0 auto;width:34px;height:34px;border-radius:10px;border:1.5px solid;background:#fff;display:grid;place-items:center;cursor:pointer;padding:0;touch-action:manipulation}
+.mic svg.ic{width:17px;height:17px}
+.mic-ok{border-color:#1a4a2e;color:#1a4a2e}
+.mic-del{border-color:#fca5a5;color:#b91c1c;background:#fff5f5}
 </style>
 </head>
 <body>
@@ -727,6 +753,12 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
 <symbol id="i-arrow-up" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></symbol>
 <symbol id="i-arrow-left" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol>
 <symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></symbol>
+<symbol id="i-backspace" viewBox="0 0 24 24"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></symbol>
 <symbol id="i-repeat" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
 <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
@@ -781,7 +813,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
       <button class="pin-key" onclick="pinPress('9')">9</button>
       <button class="pin-key" style="visibility:hidden">.</button>
       <button class="pin-key" onclick="pinPress('0')">0</button>
-      <button class="pin-key" onclick="pinBackspace()">⌫</button>
+      <button class="pin-key" onclick="pinBackspace()"><svg class="ic" aria-hidden="true"><use href="#i-backspace"/></svg></button>
     </div>
   </div>
 </div>
@@ -931,7 +963,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
         <div id="scanFrame" style="position:absolute;inset:14%;border:3px solid rgba(134,239,172,0.8);border-radius:12px;display:none;pointer-events:none"></div>
       </div>
 
-      <button class="btn btn-gold" id="scanToggleBtn" onclick="toggleScanner()" style="margin-bottom:10px">▶ Start Scanning</button>
+      <button class="btn btn-gold" id="scanToggleBtn" onclick="toggleScanner()" style="margin-bottom:10px"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> Start Scanning</button>
 
       <div id="scanResult" style="display:none;background:#f0f7f3;border:2px solid #86efac;border-radius:12px;padding:16px;margin-top:6px;text-align:center">
         <div style="margin-bottom:4px;color:var(--green)"><svg class="ic" style="width:40px;height:40px" aria-hidden="true"><use href="#i-check-circle"/></svg></div>
@@ -969,7 +1001,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
           <input type="number" id="rangeTo" value="20" min="1" style="width:80px" oninput="initPool()"/>
         </div>
         <div style="margin-top:18px">
-          <button class="btn btn-ghost btn-sm" onclick="initPool(true)">↺ Reset pool</button>
+          <button class="btn btn-ghost btn-sm" onclick="initPool(true)"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg> Reset pool</button>
         </div>
         <div style="margin-top:18px;font-size:0.68rem;color:var(--muted)" id="poolStatus"></div>
       </div>
@@ -1144,7 +1176,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
     <div style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;flex-wrap:wrap;gap:6px">
       <button class="btn btn-ghost btn-sm" onclick="attAll(true)"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> All Present</button>
       <button class="btn btn-ghost btn-sm" onclick="attAll(false)"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg> All Absent</button>
-      <button class="btn btn-ghost btn-sm" onclick="attFromSidebar()">← From sidebar</button>
+      <button class="btn btn-ghost btn-sm" onclick="attFromSidebar()"><svg class="ic" aria-hidden="true"><use href="#i-arrow-left"/></svg> From sidebar</button>
     </div>
 
     <!-- Student search -->
@@ -1161,7 +1193,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
 
     <div class="row" style="margin-bottom:6px">
       <button class="btn btn-green" onclick="saveAtt()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg> Save Attendance</button>
-      <button class="btn btn-ghost btn-sm" onclick="attApplyToSidebar()">→ Apply to sidebar</button>
+      <button class="btn btn-ghost btn-sm" onclick="attApplyToSidebar()"><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg> Apply to sidebar</button>
       <button class="btn btn-sm" id="cancelSessionBtn" onclick="showCancelModal()" style="background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626;font-weight:600"><svg class="ic" aria-hidden="true"><use href="#i-ban"/></svg> Cancel Session</button>
       <span id="attSavedMsg" style="font-size:0.68rem;color:var(--green);display:none"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg> Saved</span>
     </div>
@@ -1208,7 +1240,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
             <label style="font-size:0.6rem;color:var(--muted);display:block;margin-bottom:3px">Year (AH)</label>
             <input type="number" id="hijriYear" min="1400" max="1600" style="width:80px;font-size:16px" oninput="updateHijriPreview()"/>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="autoDetectHijri()" style="margin-bottom:1px">↺ Auto-detect</button>
+          <button class="btn btn-ghost btn-sm" onclick="autoDetectHijri()" style="margin-bottom:1px"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg> Auto-detect</button>
         </div>
         <div style="margin-top:10px;font-size:0.8rem;color:var(--gold)" id="hijriPreview">—</div>
       </div>
@@ -1219,7 +1251,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           Share to WhatsApp
         </button>
-        <button class="btn btn-ghost btn-sm" onclick="downloadReport()" id="downloadRptBtn" style="display:none">⬇ Save Image</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadReport()" id="downloadRptBtn" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Save Image</button>
       </div>
 
       <!-- Preview -->
@@ -1232,9 +1264,9 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
     <div class="att-browser">
       <h3>Past Records</h3>
       <div class="week-nav">
-        <button onclick="wkNav(-1)">← Prev</button>
+        <button onclick="wkNav(-1)"><svg class="ic" aria-hidden="true"><use href="#i-arrow-left"/></svg> Prev</button>
         <div class="week-label" id="wkLabel">—</div>
-        <button onclick="wkNav(1)">Next →</button>
+        <button onclick="wkNav(1)">Next <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
       </div>
       <div class="week-strip" id="weekStrip"></div>
       <div class="rec-viewer" id="recViewer"><div class="rec-empty">Select a day to view its record.</div></div>
@@ -1271,7 +1303,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
     <div class="card">
       <div class="card-title collapsible" onclick="toggleCollapse(this)">
         <span>Duty Group Assignment</span>
-        <span class="chevron">▾</span>
+        <span class="chevron"><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
       </div>
       <div class="collapse-body">
       <div style="font-size:0.76rem;color:var(--muted);margin-bottom:12px">Assign students to duty groups. Only assigned & present students appear in each duty rotation.</div>
@@ -1285,7 +1317,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
     <div class="card">
       <div class="card-title collapsible" onclick="toggleCollapse(this)">
         <span>Import / Export Students</span>
-        <span class="chevron">▾</span>
+        <span class="chevron"><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
       </div>
       <div class="collapse-body">
       <div style="font-size:0.72rem;color:var(--muted);margin-bottom:12px;line-height:1.6">
@@ -1297,7 +1329,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
       <div style="margin-bottom:16px">
         <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:7px">Export</div>
         <div class="row">
-          <button class="btn btn-gold" onclick="exportStudents()">⬇ Download students.csv</button>
+          <button class="btn btn-gold" onclick="exportStudents()"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Download students.csv</button>
           <span style="font-size:0.68rem;color:var(--muted)" id="exportCount"></span>
         </div>
         <div style="margin-top:8px;font-size:0.68rem;color:var(--muted)">
@@ -1356,7 +1388,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
     <div class="card">
       <div class="card-title collapsible" onclick="toggleCollapse(this)">
         <span>Add Malam / Teacher</span>
-        <span class="chevron">▾</span>
+        <span class="chevron"><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
       </div>
       <div class="collapse-body">
       <div style="margin-top:10px;margin-bottom:12px">
@@ -1391,7 +1423,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
     <div class="card">
       <div class="card-title collapsible" onclick="toggleCollapse(this)">
         <span>Malam Roster</span>
-        <span class="chevron">▾</span>
+        <span class="chevron"><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
       </div>
       <div class="collapse-body">
       <div id="malamRosterWrap" style="margin-top:10px">
@@ -1435,7 +1467,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
 
       <div class="card-title collapsible" style="font-size:0.62rem;margin-bottom:0" onclick="toggleCollapse(this)">
         <span><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg> Hijri Date (auto or correct manually)</span>
-        <span class="chevron">▾</span>
+        <span class="chevron"><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
       </div>
       <div class="collapse-body">
       <div style="background:#f8f4ec;border:1.5px solid #d4b896;border-radius:10px;padding:10px;margin:8px 0">
@@ -1515,7 +1547,7 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
   <!-- ═══ HISTORY ═══ -->
   <div class="panel" id="panel-history" style="display:none">
     <div class="row" style="margin-bottom:14px">
-      <button class="btn btn-ghost btn-sm" onclick="exportHistory()">⬇ Export CSV</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportHistory()"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Export CSV</button>
       <button class="btn btn-red btn-sm" onclick="clearHistory()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg> Clear History</button>
       <input type="text" id="histSearch" placeholder="Filter…" style="max-width:180px;font-size:16px" oninput="renderHistory()"/>
     </div>
@@ -2001,7 +2033,7 @@ function drawNumber() {
   ballNum.classList.remove('pop'); void ballNum.offsetWidth; ballNum.classList.add('pop');
   document.getElementById('ballLabel');
   ball.querySelector('.ball-label').textContent = 'number drawn';
-  document.getElementById('ballSub').textContent = stu ? `→ ${stu.name || stu.id}` : 'No student assigned';
+  document.getElementById('ballSub').textContent = stu ? `${stu.name || stu.id}` : 'No student assigned';
 
   // Show result card
   const res = document.getElementById('drawResult');
@@ -2013,7 +2045,7 @@ function drawNumber() {
   renderPool();
   updateDrawProgress();
   renderHistory();
-  toast(`Drew number ${num}${stu ? ' → ' + (stu.name||stu.id) : ''}`, 'gold');
+  toast(`Drew number ${num}${stu ? ' for ' + (stu.name||stu.id) : ''}`, 'gold');
 }
 
 function updateDrawProgress() {
@@ -2080,7 +2112,7 @@ function renderDutyTab(dutyKey) {
   if (!list) return;
 
   if (!allMembers.length) {
-    list.innerHTML = `<div class="warn">${ic('alert')} No students assigned to this duty group yet. Go to ${ic('users')} Students → Duty Group Assignment.</div>`;
+    list.innerHTML = `<div class="warn">${ic('alert')} No students assigned to this duty group yet. Go to ${ic('users')} Students &gt; Duty Group Assignment.</div>`;
   } else if (!allElig.length) {
     list.innerHTML = `<div class="warn">${ic('alert')} No assigned students are present today. Mark attendance first.</div>`;
   } else {
@@ -3507,8 +3539,8 @@ function showStudentModal(mode) {
         <span class="msid">${s.id}</span>
         <span class="msname">${s.name||'—'}</span>
         <span class="type-badge type-${s.type}" style="font-size:0.7rem;padding:2px 7px">${s.type}</span>
-        <button class="btn btn-ghost btn-sm" style="font-size:0.72rem;border-color:#1a4a2e;color:#1a4a2e" onclick="animateRowThenRun(this,()=>{unarchiveStudent('${s.id}');showStudentModal('archived');})">↩ Restore</button>
-        <button class="btn btn-red btn-sm" style="font-size:0.72rem" onclick="animateRowThenRun(this,()=>removeStudentFromModal('${s.id}'))">${ic('trash')} Del</button>
+        <button class="mic mic-ok" title="Restore" aria-label="Restore" onclick="animateRowThenRun(this,()=>{unarchiveStudent('${s.id}');showStudentModal('archived');})">${ic('undo')}</button>
+        <button class="mic mic-del" title="Delete" aria-label="Delete" onclick="animateRowThenRun(this,()=>removeStudentFromModal('${s.id}'))">${ic('trash')}</button>
       </div>`).join('') : '<p style="color:var(--muted);text-align:center;padding:20px">No archived students.</p>';
   }
   modal.classList.add('open');
@@ -3625,7 +3657,7 @@ async function runMigration() {
   const { data } = found;
   const btn = document.querySelector('#migBanner button');
   const info = document.getElementById('migInfo');
-  btn.textContent = '⏳ Migrating...';
+  btn.textContent = 'Migrating...';
   btn.disabled = true;
 
   try {
@@ -4546,7 +4578,7 @@ async function startScanner() {
     placeholder.style.display = 'none';
     frame.style.display = 'block';
     await video.play();
-    btn.textContent = ic('pause') + ' Stop Scanning';
+    btn.innerHTML = ic('pause') + ' Stop Scanning';
     btn.classList.remove('btn-gold');
     btn.classList.add('btn-red');
     document.getElementById('scanResult').style.display = 'none';
@@ -4579,7 +4611,7 @@ function stopScanner() {
   if (placeholder) placeholder.style.display = 'flex';
   if (frame) frame.style.display = 'none';
   if (btn) {
-    btn.textContent = '▶ Start Scanning';
+    btn.innerHTML = ic('play') + ' Start Scanning';
     btn.classList.remove('btn-red');
     btn.classList.add('btn-gold');
   }
@@ -4614,7 +4646,7 @@ async function handleScannedCode(rawId) {
 
   if (!student) {
     if (anyMatch && anyMatch.archived) {
-      showScanError(`${anyMatch.name || rawId} is marked Inactive. Restore them in Manage → Students first.`);
+      showScanError(`${anyMatch.name || rawId} is marked Inactive. Restore them in Manage > Students first.`);
     } else {
       showScanError(`No student found with ID: ${rawId}`);
     }
