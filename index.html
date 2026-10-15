@@ -716,6 +716,9 @@ header.compact{box-shadow:0 6px 18px rgba(11,47,29,.3) !important}
 .dr-item svg.ic{width:21px;height:21px;color:var(--fg-muted)}
 .dr-item.active{background:#eef6f0;color:var(--fg-green)}
 .dr-item.active svg.ic{color:var(--fg-green)}
+
+/* collapsible sections must never clip long lists (was capped at 5000px, hiding students after ~70) */
+.collapse-body.open{max-height:60000px !important}
 </style>
 </head>
 <body>
@@ -4211,14 +4214,13 @@ function trkRenderSearch() {
   if (TRK.failed) html += `<div class="tk-last" style="margin-top:12px;background:#fee2e2;border-color:#fca5a5;color:#991b1b">Could not load progress from the server. Check your connection, then reopen this page.</div>`;
   html += `<div class="tk-stulist">`;
   if (!list.length) html += `<div class="tk-empty">No student found.</div>`;
-  list.slice(0, 60).forEach(s => {
+  list.forEach(s => {
     const l = TRK.latest[s.id], dn = Object.keys(TRK.done[s.id] || {}).length;
     const badge = l ? `<div class="badge">L${l.lesson}<small>${trkAgo(l.created_at)}</small></div>` : `<div class="badge none">New</div>`;
     const stop = l && TRK_ITEMS[l.stop_item] ? ` · <span class="tk-ar">${trkEsc(trkShow(TRK_ITEMS[l.stop_item].t))}</span>` : '';
     html += `<button class="tk-stu" onclick="trkPick('${trkEsc(s.id)}')"><div><div class="nm">${trkEsc(s.name)}</div>
       <div class="meta">#${trkEsc(s.id)} · ${dn}/17 lessons done${stop}</div></div>${badge}</button>`;
   });
-  if (list.length > 60) html += `<div class="tk-empty">Showing 60 of ${list.length} — type to narrow down.</div>`;
   html += `</div>`;
   if (!q && TRK.recent.length) {
     html += `<div class="tk-eyebrow">Latest entries</div><div class="tk-feed">`;
