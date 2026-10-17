@@ -7,6 +7,35 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejec
 // We handle routing via query param: /api?action=load etc
 // index.html will call /.netlify/functions/api?action=load
 
+// ── Qur'an memorization: verses per surah (standard Madinah numbering, 6236 in total) ──
+const QURAN_AYAH = [7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128, 111, 110, 98, 135, 112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30, 73, 54, 45, 83, 182, 88, 75, 85, 54, 53, 89, 59, 37, 35, 38, 29, 18, 45, 60, 49, 62, 55, 78, 96, 29, 22, 24, 13, 14, 11, 11, 18, 12, 12, 30, 52, 52, 44, 28, 28, 20, 56, 40, 31, 50, 40, 46, 42, 29, 19, 36, 25, 22, 17, 19, 26, 30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6];
+// merge [from,to] ranges that touch or overlap
+function qrMergeRanges(list) {
+  const a = list.map(r => [r[0], r[1]]).sort((x, y) => x[0] - y[0] || x[1] - y[1]);
+  const out = [];
+  for (const r of a) {
+    const l = out[out.length - 1];
+    if (l && r[0] <= l[1] + 1) l[1] = Math.max(l[1], r[1]); else out.push(r);
+  }
+  return out;
+}
+// rows -> { studentId: [[surah,from,to], ...merged] }
+function qrCoverage(rows) {
+  const by = {};
+  for (const r of rows) {
+    const st = (by[r.student_id] = by[r.student_id] || {});
+    (st[r.surah] = st[r.surah] || []).push([r.from_ayah, r.to_ayah]);
+  }
+  const out = {};
+  for (const sid in by) {
+    out[sid] = [];
+    for (const sur of Object.keys(by[sid]).map(Number).sort((a, b) => a - b))
+      for (const m of qrMergeRanges(by[sid][sur])) out[sid].push([sur, m[0], m[1]]);
+  }
+  return out;
+}
+const qrCount = cov => cov.reduce((n, r) => n + (r[2] - r[1] + 1), 0);
+
 async function initDB() {
   const client = await pool.connect();
   try {
@@ -52,6 +81,23 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT NOW(),
         PRIMARY KEY(student_id, lesson)
       );
+      CREATE TABLE IF NOT EXISTS quran_students (
+        student_id TEXT PRIMARY KEY,
+        added_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS quran_log (
+        id SERIAL PRIMARY KEY,
+        student_id TEXT NOT NULL,
+        malam_id TEXT DEFAULT '',
+        date TEXT NOT NULL,
+        surah INTEGER NOT NULL,
+        from_ayah INTEGER NOT NULL,
+        to_ayah INTEGER NOT NULL,
+        result TEXT NOT NULL DEFAULT 'good',
+        note TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS quran_log_student_idx ON quran_log(student_id, created_at DESC);
       INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]'),('duty_groups','{}'),('student_groups','{}') ON CONFLICT(key) DO NOTHING;
       UPDATE students SET type='male' WHERE type='boy';
       UPDATE students SET type='female' WHERE type='girl';
@@ -408,6 +454,76 @@ export default async function handler(req) {
           'INSERT INTO lesson_done(student_id,lesson,malam_id,done_on)VALUES($1,$2,$3,$4)ON CONFLICT(student_id,lesson)DO UPDATE SET malam_id=$3,done_on=$4',
           [String(studentId),parseInt(lesson),malamId||'',date||'']
         );
+      } finally { c.release(); }
+      return jsonRes({ok:true});
+    }
+
+    // ── QUR'AN MEMORIZATION TRACKING (new memorization only; additive tables, nothing existing is touched) ──
+    // One entry = a verse range a student memorized: surah + from-verse + to-verse.
+    // 'repeat' entries (not passed yet) are stored and shown but are NOT counted as memorized.
+    if (action==='quran/load' && method==='GET') {
+      const okDate = d => /^\d{4}-\d{2}-\d{2}$/.test(d||'') ? d : '';
+      const weekFrom = okDate(url.searchParams.get('weekFrom')), monthFrom = okDate(url.searchParams.get('monthFrom'));
+      const c = await pool.connect();
+      try {
+        const stu = (await c.query('SELECT student_id FROM quran_students ORDER BY added_at')).rows.map(x=>x.student_id);
+        const rows = (await c.query(`SELECT id,student_id,malam_id,date,surah,from_ayah,to_ayah,result,note,created_at
+                   FROM quran_log ORDER BY created_at DESC, id DESC`)).rows;
+        const latest = {}; for (const r of rows) if (!latest[r.student_id]) latest[r.student_id] = r;
+        const counted = rows.filter(r => r.result !== 'repeat');
+        const cover = qrCoverage(counted);
+        const per = from => {
+          if (!from) return {};
+          const cov = qrCoverage(counted.filter(r => r.date >= from)), o = {};
+          for (const sid in cov) o[sid] = qrCount(cov[sid]);
+          return o;
+        };
+        return jsonRes({ students: stu, latest: Object.values(latest), cover, week: per(weekFrom), month: per(monthFrom), recent: rows.slice(0, 12) });
+      } finally { c.release(); }
+    }
+    if (action==='quran/student' && method==='GET') {
+      const id = url.searchParams.get('id');
+      if (!id) return jsonRes({error:'Missing id'},400);
+      const c = await pool.connect();
+      try {
+        const r = await c.query(`SELECT id,student_id,malam_id,date,surah,from_ayah,to_ayah,result,note,created_at
+                                 FROM quran_log WHERE student_id=$1 ORDER BY created_at DESC, id DESC LIMIT 150`,[id]);
+        return jsonRes({ log: r.rows });
+      } finally { c.release(); }
+    }
+    if (action==='quran/log' && method==='POST') {
+      const {studentId,malamId,date,surah,from,to,result,note}=await req.json();
+      const su=parseInt(surah), fr=parseInt(from), tt=parseInt(to);
+      if (!studentId || !date) return jsonRes({error:'Missing studentId or date'},400);
+      if (!(su>=1 && su<=114)) return jsonRes({error:'Surah must be 1 to 114'},400);
+      if (!(fr>=1 && tt>=fr && tt<=QURAN_AYAH[su-1])) return jsonRes({error:'Verses must be between 1 and '+QURAN_AYAH[su-1]+', and "from" cannot be after "to"'},400);
+      const res = ['good','repeat','help'].includes(result) ? result : 'good';
+      const c = await pool.connect();
+      try {
+        const r = await c.query(
+          `INSERT INTO quran_log(student_id,malam_id,date,surah,from_ayah,to_ayah,result,note)
+           VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id,created_at`,
+          [String(studentId),malamId||'',date,su,fr,tt,res,(note||'').slice(0,500)]
+        );
+        // a student who has an entry is on the Qur'an list
+        await c.query('INSERT INTO quran_students(student_id) VALUES($1) ON CONFLICT DO NOTHING',[String(studentId)]);
+        return jsonRes({ok:true,id:r.rows[0].id,createdAt:r.rows[0].created_at});
+      } finally { c.release(); }
+    }
+    if (action==='quran/log/delete' && method==='POST') {
+      const {id}=await req.json();
+      const c = await pool.connect();
+      try { await c.query('DELETE FROM quran_log WHERE id=$1',[id]); } finally { c.release(); }
+      return jsonRes({ok:true});
+    }
+    if (action==='quran/student' && method==='POST') {
+      const {studentId,on}=await req.json();
+      if (!studentId) return jsonRes({error:'Missing studentId'},400);
+      const c = await pool.connect();
+      try {
+        // removing a student from the list never deletes what was recorded
+        if (on === false) await c.query('DELETE FROM quran_students WHERE student_id=$1',[String(studentId)]);
+        else await c.query('INSERT INTO quran_students(student_id) VALUES($1) ON CONFLICT DO NOTHING',[String(studentId)]);
       } finally { c.release(); }
       return jsonRes({ok:true});
     }
