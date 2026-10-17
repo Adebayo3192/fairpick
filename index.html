@@ -768,11 +768,13 @@ body{padding-bottom:calc(46px + env(safe-area-inset-bottom)) !important}
 .qr-rm{display:block;margin:18px auto 0;background:none;border:0;color:#b91c1c;font:700 .76rem 'Manrope',sans-serif;cursor:pointer;padding:8px}
 #qr-view{max-width:100%;min-width:0}
 
-.tk-jump{position:fixed;right:12px;bottom:76px;z-index:60;align-items:center;gap:6px;padding:10px 16px;border:0;border-radius:99px;background:var(--fg-green);color:#fff;font:800 .8rem 'Manrope',sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
+.tk-jump{align-items:center;gap:6px;padding:10px 16px;border:0;border-radius:99px;background:var(--fg-green);color:#fff;font:800 .8rem 'Manrope',sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
 .tk-jump:active{transform:scale(.96)}
-.scroll-nav{position:fixed;left:12px;bottom:76px;z-index:700;flex-direction:column;gap:8px}
-.scroll-nav button{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(15,47,29,.88);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.28);padding:0;font-size:1.15rem}
+.scroll-nav{position:fixed;right:12px;bottom:76px;z-index:700;flex-direction:column;align-items:flex-end;gap:8px}
+.scroll-nav.tab-open{right:46px}
+.scroll-nav button{width:40px;height:40px;opacity:.88;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(15,47,29,.88);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.28);padding:0;font-size:1.15rem}
 .scroll-nav button:active{transform:scale(.93)}
+.scroll-nav .tk-jump{width:auto;height:auto;border-radius:99px;display:flex;padding:10px 16px;white-space:nowrap;background:var(--fg-green);border:0}
 </style>
 </head>
 <body>
@@ -4549,18 +4551,18 @@ function trkJumpUpdate() {
   const b = document.getElementById('trk-jump'); if (!b) return;
   const a = document.getElementById('trk-latest') || document.getElementById('qr-latest');
   const listPage = QR.on ? !QR.stu : !TRK.stu;
-  b.style.display = (a && listPage) ? 'flex' : 'none';
-  if (a && listPage) {
+  let show = false;
+  const pt = document.getElementById('panel-track');
+  if (a && listPage && pt && pt.classList.contains('active')) {
     const atEnd = window.scrollY > 200 && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 8;
-    const below = !atEnd && a.getBoundingClientRect().top > window.innerHeight * 0.8;
-    b.innerHTML = below ? ic('arrow-down') + ' Latest' : ic('arrow-up') + ' Top';
-    b.dataset.dir = below ? 'down' : 'up';
+    show = !atEnd && a.getBoundingClientRect().top > window.innerHeight * 0.8;
+    b.innerHTML = ic('arrow-down') + ' Latest';
   }
+  b.style.display = show ? 'flex' : 'none';
 }
 function trkJump() {
-  const b = document.getElementById('trk-jump');
-  if (b && b.dataset.dir === 'up') window.scrollTo({ top: 0, behavior: 'smooth' });
-  else { const a = document.getElementById('trk-latest') || document.getElementById('qr-latest'); if (a) { const y = a.getBoundingClientRect().top + window.scrollY - 76; window.scrollTo({ top: y, behavior: 'smooth' }); } }
+  const a = document.getElementById('trk-latest') || document.getElementById('qr-latest');
+  if (a) { const y = a.getBoundingClientRect().top + window.scrollY - 76; window.scrollTo({ top: y, behavior: 'smooth' }); }
 }
 window.addEventListener('scroll', () => { trkJumpUpdate(); }, { passive: true });
 
@@ -4569,12 +4571,14 @@ window.addEventListener('scroll', () => { trkJumpUpdate(); }, { passive: true })
   const box = document.createElement('div');
   box.id = 'scrollNav'; box.className = 'scroll-nav';
   box.innerHTML = '<button id="snUp" aria-label="Go to top" title="Top">' + ic('arrow-up') + '</button><button id="snDown" aria-label="Go to bottom" title="Bottom">' + ic('arrow-down') + '</button>';
-  const add = () => { document.body.appendChild(box); update(); };
+  const add = () => { document.body.appendChild(box); const j = document.getElementById('trk-jump'); if (j) box.insertBefore(j, box.firstChild); update(); };
   const root = () => document.documentElement;
   function update() {
     const h = root().scrollHeight, vh = window.innerHeight, y = window.scrollY;
     const long = h > vh * 1.5;
     box.style.display = long ? 'flex' : 'none';
+    try { trkJumpUpdate(); } catch (e) {}
+    const tab = document.querySelector('.tk-tab'); box.classList.toggle('tab-open', !!(tab && tab.getClientRects().length));
     if (!long) return;
     document.getElementById('snUp').style.display = y > 250 ? 'grid' : 'none';
     document.getElementById('snDown').style.display = (vh + y < h - 250) ? 'grid' : 'none';
