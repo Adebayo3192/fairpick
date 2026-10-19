@@ -422,6 +422,15 @@ export default async function handler(req) {
         return jsonRes({ log: r.rows });
       } finally { c.release(); }
     }
+    // every recitation ever recorded (read-only; used by the History page and its date/lesson filters)
+    if (action==='progress/history' && method==='GET') {
+      const c = await pool.connect();
+      try {
+        const r = await c.query(`SELECT id,student_id,malam_id,date,session,lesson,stop_item,stop_n,mistakes,repeats,result,note,created_at
+                                 FROM progress_log ORDER BY date DESC, created_at DESC, id DESC LIMIT 20000`);
+        return jsonRes({ log: r.rows });
+      } finally { c.release(); }
+    }
     if (action==='progress/log' && method==='POST') {
       const {studentId,malamId,date,session,lesson,stopItem,stopN,mistakes,repeats,result,note}=await req.json();
       if (!studentId || !date || !lesson) return jsonRes({error:'Missing studentId, date or lesson'},400);
