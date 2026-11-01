@@ -97,6 +97,8 @@ async function initDB() {
         note TEXT DEFAULT '',
         created_at TIMESTAMP DEFAULT NOW()
       );
+      ALTER TABLE quran_log ADD COLUMN IF NOT EXISTS mistakes TEXT[] NOT NULL DEFAULT '{}';
+      ALTER TABLE quran_log ADD COLUMN IF NOT EXISTS repeats TEXT[] NOT NULL DEFAULT '{}';
       CREATE INDEX IF NOT EXISTS quran_log_student_idx ON quran_log(student_id, created_at DESC);
       INSERT INTO app_state(key,value) VALUES('draw_pool','[]'),('draw_round','1'),('draw_from','1'),('draw_to','20'),('clean_pool','[]'),('clean_round','1'),('present','[]'),('duty_groups','{}'),('student_groups','{}') ON CONFLICT(key) DO NOTHING;
       UPDATE students SET type='male' WHERE type='boy';
@@ -476,7 +478,7 @@ export default async function handler(req) {
       const c = await pool.connect();
       try {
         const stu = (await c.query('SELECT student_id FROM quran_students ORDER BY added_at')).rows.map(x=>x.student_id);
-        const rows = (await c.query(`SELECT id,student_id,malam_id,date,surah,from_ayah,to_ayah,result,note,created_at
+        const rows = (await c.query(`SELECT id,student_id,malam_id,date,surah,from_ayah,to_ayah,result,note,mistakes,repeats,created_at
                    FROM quran_log ORDER BY created_at DESC, id DESC`)).rows;
         const latest = {}; for (const r of rows) if (!latest[r.student_id]) latest[r.student_id] = r;
         const counted = rows.filter(r => r.result !== 'repeat');
@@ -495,24 +497,28 @@ export default async function handler(req) {
       if (!id) return jsonRes({error:'Missing id'},400);
       const c = await pool.connect();
       try {
-        const r = await c.query(`SELECT id,student_id,malam_id,date,surah,from_ayah,to_ayah,result,note,created_at
+        const r = await c.query(`SELECT id,student_id,malam_id,date,surah,from_ayah,to_ayah,result,note,mistakes,repeats,created_at
                                  FROM quran_log WHERE student_id=$1 ORDER BY created_at DESC, id DESC LIMIT 150`,[id]);
         return jsonRes({ log: r.rows });
       } finally { c.release(); }
     }
     if (action==='quran/log' && method==='POST') {
-      const {studentId,malamId,date,surah,from,to,result,note}=await req.json();
+      const {studentId,malamId,date,surah,from,to,result,note,mistakes,repeats}=await req.json();
       const su=parseInt(surah), fr=parseInt(from), tt=parseInt(to);
       if (!studentId || !date) return jsonRes({error:'Missing studentId or date'},400);
       if (!(su>=1 && su<=114)) return jsonRes({error:'Surah must be 1 to 114'},400);
       if (!(fr>=1 && tt>=fr && tt<=QURAN_AYAH[su-1])) return jsonRes({error:'Verses must be between 1 and '+QURAN_AYAH[su-1]+', and "from" cannot be after "to"'},400);
       const res = ['good','repeat','help'].includes(result) ? result : 'good';
+      // flagged words are stored as "verse:word" (word = its position in the verse, starting at 1)
+      const okRef = k => typeof k==='string' && /^\d{1,3}:\d{1,3}$/.test(k) && parseInt(k)>=1 && parseInt(k)<=QURAN_AYAH[su-1];
+      const bad = (Array.isArray(mistakes)?mistakes:[]).filter(okRef).slice(0,400);
+      const rep_ = (Array.isArray(repeats)?repeats:[]).filter(okRef).slice(0,400);
       const c = await pool.connect();
       try {
         const r = await c.query(
-          `INSERT INTO quran_log(student_id,malam_id,date,surah,from_ayah,to_ayah,result,note)
-           VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id,created_at`,
-          [String(studentId),malamId||'',date,su,fr,tt,res,(note||'').slice(0,500)]
+          `INSERT INTO quran_log(student_id,malam_id,date,surah,from_ayah,to_ayah,result,note,mistakes,repeats)
+           VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id,created_at`,
+          [String(studentId),malamId||'',date,su,fr,tt,res,(note||'').slice(0,500),bad,rep_]
         );
         // a student who has an entry is on the Qur'an list
         await c.query('INSERT INTO quran_students(student_id) VALUES($1) ON CONFLICT DO NOTHING',[String(studentId)]);
